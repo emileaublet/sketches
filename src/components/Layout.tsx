@@ -5,9 +5,15 @@ const Layout: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="border-b">
-        <div className="container p-4 mx-auto">
+        <div className="container flex items-center justify-between p-4 mx-auto">
           <Link to="/">
-            <span className="text-lg font-medium">Sketches</span>
+            <span className="text-lg font-medium">Émile's Sketches</span>
+          </Link>
+          <Link
+            to="https://aublet.ca"
+            className="text-sm underline text-muted-foreground underline-offset-2 hover:text-white"
+          >
+            <span className="ml-2">aublet.ca</span>
           </Link>
         </div>
       </header>
