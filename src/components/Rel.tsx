@@ -1,5 +1,5 @@
 import { cx } from "class-variance-authority";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 export const Rel = ({
   rel,

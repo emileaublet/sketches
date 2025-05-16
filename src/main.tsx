@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -11,12 +11,7 @@ init(p5);
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
+    <BrowserRouter basename="/">
       <App />
     </BrowserRouter>
   </HelmetProvider>
