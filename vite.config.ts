@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 // https://vite.dev/config/
 export default defineConfig({
   // exclude all files in the sketches directory
+  base: "/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

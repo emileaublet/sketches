@@ -11,7 +11,7 @@ init(p5);
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
-    <BrowserRouter basename="/">
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </HelmetProvider>
