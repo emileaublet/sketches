@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import P5Wrapper from "../components/P5Wrapper";
-import { Maximize, Minimize, RefreshCw } from "lucide-react";
+import { Maximize, Minimize, Moon, RefreshCw, Sun } from "lucide-react";
 import type { Meta } from "../types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ interface SketchPageProps {
 const SketchPage: React.FC<SketchPageProps> = ({ sketch }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [mode, setMode] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
     // Simulate loading
@@ -27,6 +28,10 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch }) => {
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
+  };
+
+  const toggleMode = () => {
+    setMode((prevMode) => (prevMode === "dark" ? "light" : "dark"));
   };
 
   const refresh = () => {
@@ -67,13 +72,36 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch }) => {
                   : "relative border-2"
               )}
             >
-              <P5Wrapper slug={sketch.slug ?? ""} />
+              <P5Wrapper
+                className={cx(
+                  "transition-colors",
+                  mode === "dark" ? "bg-background" : "bg-foreground"
+                )}
+                slug={sketch.slug ?? ""}
+              />
 
               <div className="absolute top-0 right-0 z-10 flex items-center justify-between p-4">
                 <Button
                   size={"icon"}
                   variant={"ghost"}
-                  className="cursor-pointer"
+                  className={cx(
+                    "cursor-pointer",
+                    mode === "dark" ? "text-white" : "text-black"
+                  )}
+                  onClick={toggleMode}
+                  aria-label={`Switch to ${
+                    mode === "dark" ? "light" : "dark"
+                  } mode`}
+                >
+                  {mode === "dark" ? <Sun /> : <Moon />}
+                </Button>
+                <Button
+                  size={"icon"}
+                  variant={"ghost"}
+                  className={cx(
+                    "cursor-pointer",
+                    mode === "dark" ? "text-white" : "text-black"
+                  )}
                   onClick={refresh}
                   aria-label={"Refresh sketch"}
                 >
@@ -82,7 +110,10 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch }) => {
                 <Button
                   size={"icon"}
                   variant={"ghost"}
-                  className="cursor-pointer"
+                  className={cx(
+                    "cursor-pointer",
+                    mode === "dark" ? "text-white" : "text-black"
+                  )}
                   onClick={toggleFullscreen}
                   aria-label={
                     isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
