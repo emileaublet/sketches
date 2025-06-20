@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import P5Wrapper from "../components/P5Wrapper";
-import { Maximize, Minimize, Moon, RefreshCw, Sun } from "lucide-react";
+import {
+  ChevronLeft,
+  Maximize,
+  Minimize,
+  Moon,
+  RefreshCw,
+  Sun,
+} from "lucide-react";
 import type { Meta } from "../types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -10,9 +17,11 @@ import { Helmet } from "react-helmet-async";
 
 interface SketchPageProps {
   sketch: Meta;
+  prev?: Meta;
+  next?: Meta;
 }
 
-const SketchPage: React.FC<SketchPageProps> = ({ sketch }) => {
+const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [mode, setMode] = useState<"dark" | "light">("dark");
@@ -125,6 +134,36 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch }) => {
             </div>
           </>
         )}
+      </div>
+      <div className="flex items-end justify-between mt-12">
+        <button
+          disabled={!prev}
+          className="group flex flex-col items-start cursor-pointer"
+          onClick={() => {
+            if (prev) {
+              window.location.href = `/sketch/${prev.slug}`;
+            }
+          }}
+        >
+          <span className="opacity-40">Previous</span>
+          <span className="text-2xl opacity-60 hover:opacity-100">
+            {prev?.title}
+          </span>
+        </button>
+        <button
+          disabled={!next}
+          className="group flex flex-col items-end cursor-pointer"
+          onClick={() => {
+            if (next) {
+              window.location.href = `/sketch/${next.slug}`;
+            }
+          }}
+        >
+          <span className="opacity-40">Next</span>
+          <span className="text-2xl opacity-60 hover:opacity-100">
+            {next?.title}
+          </span>
+        </button>
       </div>
     </>
   );

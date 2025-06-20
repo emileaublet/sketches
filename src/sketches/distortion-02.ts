@@ -64,7 +64,21 @@ const distortionSketch = (p: p5SVG) => {
 
       drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
     }
+    drawDots("white");
+    drawDots(staedtlerPens[0]);
   };
+
+  function drawDots(color: string) {
+    // Add white dots
+    const dotCount = p.random(100, 200);
+    p.strokeWeight(6);
+    p.stroke(color); // white
+    for (let i = 0; i < dotCount; i++) {
+      const x = p.random(canvasXMargin, p.width - canvasXMargin);
+      const y = p.random(canvasYMargin, p.height - canvasYMargin);
+      p.point(x, y);
+    }
+  }
 
   /**
    * @param startX     absolute x

@@ -17,11 +17,17 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage sketches={sketches} />} />
-        {sketches.map((sketch) => (
+        {sketches.map((sketch, i) => (
           <Route
             key={sketch.id}
             path={`/sketch/${sketch.id}`}
-            element={<SketchPage sketch={sketch} />}
+            element={
+              <SketchPage
+                sketch={sketch}
+                prev={i > 0 ? sketches[i - 1] : sketches[sketches.length - 1]}
+                next={i < sketches.length - 1 ? sketches[i + 1] : sketches[0]}
+              />
+            }
           />
         ))}
       </Route>
