@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
 import P5Wrapper from "../components/P5Wrapper";
-import {
-  ChevronLeft,
-  Maximize,
-  Minimize,
-  Moon,
-  RefreshCw,
-  Sun,
-} from "lucide-react";
+import { Maximize, Minimize, Moon, RefreshCw, Sun } from "lucide-react";
 import type { Meta } from "../types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -135,7 +128,12 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
           </>
         )}
       </div>
-      <div className="flex items-end justify-between mt-12">
+      <div
+        className={cx(
+          "flex items-end justify-between mt-12",
+          isFullscreen && "hidden"
+        )}
+      >
         <button
           disabled={!prev}
           className="group flex flex-col items-start cursor-pointer"
