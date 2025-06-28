@@ -50,9 +50,10 @@ const cartesianSketch = (p: p5SVG) => {
     );
 
     p.strokeWeight(0.5);
-    for (const rect of rectsH) {
+
+    for (const [i, rect] of rectsH.entries()) {
       const lines = p.floor(rect.h / cellSize);
-      const color = p.random(colors);
+      const color = colors[i % colors.length];
 
       for (let row = 0; row < lines; row++) {
         const bx = rect.x;
