@@ -1,0 +1,440 @@
+const ROUGHNESS = {
+  lineOffset: 3,
+  arcOffset: 2,
+  scale: 0.02,
+  lineSteps: 8,
+  arcSteps: 8,
+  skipProb: 0.1
+};
+
+// Hex colors for Staedtler pens
+const staedtlerPens = [
+  "#E0D135",
+  "#EB8C2C",
+  "#E23415",
+  "#B23C32",
+  "#F07BAA",
+  "#BB4BC2",
+  "#47459A",
+  "#2172C5",
+  "#5BBDE1",
+  "#1D5D3C",
+  "#7BB333",
+  "#646F2C",
+  "#B78033",
+  "#C1C3B3",
+  "#171515",
+];
+function setup() {
+  createCanvas(700, 850, SVG);
+  background(255);
+  strokeWeight(0.5);
+  noFill();
+  noiseDetail(100, 0.5);
+
+  const cols = 14;
+  const rows = 17;
+  const cellW = width / cols;
+  const cellH = height / rows;
+
+  for (let row = 0; row < rows; row++) {
+    let baseY = (row + 1) * cellH;
+    for (let col = 0; col < cols; col++) {
+      let cx = col * cellW + cellW / 2;
+      let bottomW = random(cellW * 0.3, cellW * 0.5);
+      let topW = bottomW * random(0.85, 1.15);
+      let h = random(cellH * 0.4, cellH * 0.6);
+      let hasBase = random() < 0.3;
+      let baseH = hasBase ? random(cellH * 0.04, cellH * 0.15) : 0;
+      let cy = baseY - baseH - h -10;
+      let radii = {
+        topLeft: random(cellH * 0.02, cellH * 0.04),
+        topRight: random(cellH * 0.02, cellH * 0.04),
+        bottomRight: random(cellH * 0.08, cellH * 0.1),
+        bottomLeft: random(cellH * 0.08, cellH * 0.1)
+      };
+      let seed = random(10000);
+      let patterns = [
+        'horizontal','vertical','cross','x',
+        'wavy','scallop','chevron','polka',
+        'brick','herringbone','folk', 
+      ];
+      let pattern = random(patterns);
+
+      drawPatternedTrapezoid(cx, cy, topW, bottomW, h, radii, seed, pattern);
+      if (random() < 0.9) {
+        drawHandle(
+          cx, cy, h, bottomW,
+          random() < 0.5 ? 'left' : 'right',
+          seed + 500,
+          bottomW < topW * 0.95
+        );
+      }
+      if (hasBase) {
+        drawRoughBase(
+          cx,
+          cy + h,
+          bottomW * random(0.5, 0.7),
+          bottomW * random(0.35, 0.63),
+          baseH,
+          seed
+        );
+      }
+    }
+  }
+}
+
+function drawPatternedTrapezoid(x, y, topW, bottomW, h, radii, seed, pattern) {
+  // Compute outline points
+  let halfT = topW / 2;
+  let halfB = bottomW / 2;
+  let tl = createVector(x - halfT, y);
+  let tr = createVector(x + halfT, y);
+  let br = createVector(x + halfB, y + h);
+  let bl = createVector(x - halfB, y + h);
+  let pts = [];
+  pts.push(...roughLineSegment(tl.x + radii.topLeft, tl.y, tr.x - radii.topRight, tr.y, seed));
+  pts.push(...roughArcSegment(
+    {cx: tr.x - radii.topRight, cy: tr.y + radii.topRight, a1: -HALF_PI, a2: 0},
+    radii.topRight, seed
+  ));
+  pts.push(...roughLineSegment(
+    tr.x, tr.y + radii.topRight,
+    br.x, br.y - radii.bottomRight,
+    seed
+  ));
+  pts.push(...roughArcSegment(
+    {cx: br.x - radii.bottomRight, cy: br.y - radii.bottomRight, a1: 0, a2: HALF_PI},
+    radii.bottomRight, seed
+  ));
+  pts.push(...roughLineSegment(
+    br.x - radii.bottomRight, br.y,
+    bl.x + radii.bottomLeft, bl.y,
+    seed
+  ));
+  pts.push(...roughArcSegment(
+    {cx: bl.x + radii.bottomLeft, cy: bl.y - radii.bottomLeft, a1: HALF_PI, a2: PI},
+    radii.bottomLeft, seed
+  ));
+  pts.push(...roughLineSegment(
+    bl.x, bl.y - radii.bottomLeft,
+    tl.x, tl.y + radii.topLeft,
+    seed
+  ));
+  pts.push(...roughArcSegment(
+    {cx: tl.x + radii.topLeft, cy: tl.y + radii.topLeft, a1: PI, a2: PI + HALF_PI},
+    radii.topLeft, seed
+  ));
+
+  // Determine stripe bounds
+  let ys = pts.map(p => p.y);
+  let xs = pts.map(p => p.x);
+  let yMin = min(...ys);
+  let yMax = max(...ys);
+  let xMin = min(...xs);
+  let xMax = max(...xs);
+  let stripeH = random((yMax - yMin) / 3, (yMax - yMin) / 2);
+  let y1 = yMin + ((yMax - yMin) - stripeH) / 2;
+  let y2 = y1 + stripeH;
+
+  // Clip to trapezoid
+  push();
+  noFill();
+  strokeWeight(0.5);
+  strokeJoin(ROUND);
+  drawingContext.save();
+  beginShape();
+    pts.forEach(p => vertex(p.x, p.y));
+  endShape(CLOSE);
+  drawingContext.clip();
+
+  let colsArr = shuffle(staedtlerPens).slice(0, floor(random(2, 4)));
+
+  // Horizontal & Cross (denser)
+  if (pattern === 'horizontal' || pattern === 'cross') {
+    let cur = y1;
+    let alt = true;
+    while (cur <= y2) {
+      let gap = alt ? random(1, 2) : random(2, 4);
+      alt = !alt;
+      colsArr.forEach((c, i) => {
+        stroke(c);
+        let yy = cur + map(i, 0, colsArr.length - 1, -gap/2, gap/2);
+        let seg = roughLineSegment(xMin, yy, xMax, yy, seed + floor(yy * 100));
+        beginShape(); seg.forEach(p => vertex(p.x, p.y)); endShape();
+      });
+      cur += gap;
+    }
+  }
+  // Vertical & Cross (denser)
+  else if (pattern === 'vertical' || pattern === 'cross') {
+    let curX = xMin;
+    let alt = true;
+    while (curX <= xMax) {
+      let gap = alt ? random(1, 2) : random(2, 4);
+      alt = !alt;
+      colsArr.forEach((c, i) => {
+        stroke(c);
+        let xx = curX + i * (gap / colsArr.length);
+        let seg = roughLineSegment(xx, y1, xx, y2, seed + floor(xx * 100));
+        beginShape(); seg.forEach(p => vertex(p.x, p.y)); endShape();
+      });
+      curX += gap;
+    }
+  }
+  // Diagonal
+  else if (pattern === 'diagonal') {
+    colsArr.forEach(c => {
+      stroke(c);
+      let dirMode = floor(random(3));
+      for (let xx = xMin - stripeH; xx <= xMax; xx += stripeH / 4) {
+        if (dirMode !== 1) {
+          let seg = roughLineSegment(xx, y1, xx + stripeH, y2, seed + floor(xx * 100));
+          beginShape(); seg.forEach(p => vertex(p.x, p.y)); endShape();
+        }
+        if (dirMode !== 0) {
+          let seg = roughLineSegment(xx, y2, xx + stripeH, y1, seed + floor(xx * 100) + 1);
+          beginShape(); seg.forEach(p => vertex(p.x, p.y)); endShape();
+        }
+      }
+    });
+  }
+  // X
+  else if (pattern === 'x') {
+    for (let xx = xMin; xx < xMax; xx += stripeH / 4) {
+      let c = random(colsArr);
+      stroke(c);
+      let d = 5;
+      let p1 = roughLineSegment(xx, y1, xx + d, y1 + d, seed + xx);
+      beginShape(); p1.forEach(p => vertex(p.x, p.y)); endShape();
+      let p2 = roughLineSegment(xx + d, y1, xx, y1 + d, seed + xx * 2);
+      beginShape(); p2.forEach(p => vertex(p.x, p.y)); endShape();
+    }
+  }
+  // Wavy
+  else if (pattern === 'wavy') {
+    let waveCount = floor(random(4, 10));
+    let steps = ceil((xMax - xMin) / 5);
+    for (let w = 0; w < waveCount; w++) {
+      let amp = stripeH * random(0.05, 0.15);
+      let freq = random(2, 4);
+      let segPts = [];
+      for (let i = 0; i <= steps; i++) {
+        let t = i / steps;
+        let xx = lerp(xMin, xMax, t);
+        let yy = (y1 + y2) / 2 + sin(t * TWO_PI * freq + w * PI / waveCount) * amp;
+        segPts.push(
+          createVector(
+            xx + random(-ROUGHNESS.lineOffset, ROUGHNESS.lineOffset),
+            yy + random(-ROUGHNESS.lineOffset, ROUGHNESS.lineOffset)
+          )
+        );
+      }
+      stroke(random(colsArr));
+      beginShape(); segPts.forEach(p => vertex(p.x, p.y)); endShape();
+    }
+  }
+  // Dots
+  else if (pattern === 'dots') {
+    for (let xx = xMin; xx <= xMax; xx += stripeH / 4) {
+      for (let k = 0; k < 5; k++) {
+        stroke(random(colsArr));
+        point(xx + random(-2, 2), y1 + random(0, stripeH));
+      }
+    }
+  }
+  // Scallop
+  else if (pattern === 'scallop') {
+    let rowsC = floor(random(1, 5));
+    let w = stripeH * 0.3;
+    let rArc = stripeH * 0.15;
+    for (let ri = 0; ri < rowsC; ri++) {
+      let offsetY = (ri - (rowsC - 1) / 2) * (rArc * 1.2);
+      let cy0 = y1 + stripeH / 2 + offsetY;
+      let count = floor((xMax - xMin) / w);
+      for (let i = 0; i < count; i++) {
+        let cx0 = xMin + (i + 0.5) * w;
+        let arcPts = roughArcSegment(
+          {cx: cx0, cy: cy0, a1: PI, a2: 0},
+          rArc, seed + i * 10, 12
+        );
+        stroke(random(colsArr));
+        beginShape(); arcPts.forEach(p => vertex(p.x, p.y)); endShape(CLOSE);
+      }
+    }
+  }
+  // Chevron
+  else if (pattern === 'chevron') {
+    let w = stripeH * 0.2;
+    let count = ceil((xMax - xMin) / w);
+    let dy = stripeH * 0.4;
+    for (let i = 0; i < count; i++) {
+      let x0 = xMin + i * w;
+      let y0 = y1 + stripeH / 2 - dy / 2;
+      let x1 = x0 + w / 2, y1p = y0 + dy, x2 = x0 + w;
+      let l1 = roughLineSegment(x0, y0, x1, y1p, seed + i * 20);
+      let l2 = roughLineSegment(x1, y1p, x2, y0, seed + i * 20 + 1);
+      stroke(random(colsArr)); beginShape(); l1.forEach(p => vertex(p.x, p.y)); endShape();
+      stroke(random(colsArr)); beginShape(); l2.forEach(p => vertex(p.x, p.y)); endShape();
+    }
+  }
+  // Polka
+  else if (pattern === 'polka') {
+    let dotSpacing = stripeH * 0.24;
+    let colsCount = ceil((xMax - xMin) / dotSpacing);
+    let rowsCount = ceil(stripeH / dotSpacing);
+    for (let i = 0; i <= colsCount; i++) {
+      for (let j = 0; j <= rowsCount; j++) {
+        let cx0 = xMin + i * dotSpacing + random(-dotSpacing*0.1, dotSpacing*0.1);
+        let cy0 = y1 + j * dotSpacing + random(-dotSpacing*0.1, dotSpacing*0.1);
+        let rDot = random(dotSpacing * 0.2, dotSpacing * 0.4);
+        let circ = roughArcSegment(
+          {cx: cx0, cy: cy0, a1: 0, a2: TWO_PI},
+          rDot, seed + i * (rowsCount+1) + j, 12
+        );
+        stroke(random(colsArr));
+        beginShape(); circ.forEach(p => vertex(p.x, p.y)); endShape(CLOSE);
+      }
+    }
+  }
+  // Brick
+  else if (pattern === 'brick') {
+    let bw = stripeH * 0.5, bh = stripeH * 0.2;
+    let rowsC = ceil(stripeH / bh), colsC = ceil((xMax - xMin) / bw);
+    for (let ry = 0; ry < rowsC; ry++) {
+      for (let ci = 0; ci < colsC; ci++) {
+        let bx = xMin + ci*bw + (ry%2)*bw/2;
+        let by = y1 + ry*bh;
+        let ptsB = [];
+        ptsB.push(...roughLineSegment(bx, by, bx+bw, by, seed));
+        ptsB.push(...roughLineSegment(bx+bw, by, bx+bw, by+bh, seed+1));
+        ptsB.push(...roughLineSegment(bx+bw, by+bh, bx, by+bh, seed+2));
+        ptsB.push(...roughLineSegment(bx, by+bh, bx, by, seed+3));
+        stroke(random(colsArr)); beginShape(); ptsB.forEach(p => vertex(p.x, p.y)); endShape(CLOSE);
+      }
+    }
+  }
+  // Vine
+  else if (pattern === 'vine') {
+    let steps = ceil((xMax - xMin) / 5);
+    let prev = null;
+    for (let i = 0; i <= steps; i++) {
+      let t = i/steps;
+      let xx = lerp(xMin, xMax, t);
+      let yy = y1 + stripeH/2 + sin(t * TWO_PI * 3)*stripeH*0.1;
+      let pt = createVector(xx + random(-2,2), yy + random(-2,2));
+      if (prev) {
+        let seg = roughLineSegment(prev.x, prev.y, pt.x, pt.y, seed + i);
+        stroke(random(colsArr)); beginShape(); seg.forEach(p=>vertex(p.x,p.y)); endShape();
+      }
+      if (i % floor(steps/5) === 0) {
+        let leaf = roughArcSegment(
+          {cx: pt.x, cy: pt.y, a1: PI/4, a2: 5*PI/4},
+          stripeH*0.05, seed+i, 8
+        );
+        stroke(random(colsArr)); beginShape(); leaf.forEach(p=>vertex(p.x,p.y)); endShape();
+      }
+      prev = pt;
+    }
+  }
+  // Herringbone
+  else if (pattern === 'herringbone') {
+    let w = stripeH * 0.3;
+    let rowsC = ceil(stripeH / w);
+    for (let ry = 0; ry < rowsC; ry++) {
+      for (let ci = 0; ci < ceil((xMax - xMin)/(w/2)); ci++) {
+        let x0 = xMin + ci*w/2;
+        let y0 = y1 + ry*w;
+        let x1 = x0 + w/2, y1p = y0 + w/2;
+        let seg = ((ci+ry)%2)
+          ? roughLineSegment(x0,y0,x1,y1p,seed+ci+ry)
+          : roughLineSegment(x1,y0,x0,y1p,seed+ci+ry);
+        stroke(random(colsArr)); beginShape(); seg.forEach(p=>vertex(p.x,p.y)); endShape();
+      }
+    }
+  }
+  // Folk
+  else if (pattern==='folk') {
+    let w = stripeH * 0.4;
+    let count = ceil((xMax - xMin)/w);
+    for (let i = 0; i < count; i++) {
+      let cx0 = xMin + i*w;
+      let cy0 = y1 + stripeH/2;
+      let diamond = [
+        createVector(cx0, cy0 - w*0.2),
+        createVector(cx0 + w*0.2, cy0),
+        createVector(cx0, cy0 + w*0.2),
+        createVector(cx0 - w*0.2, cy0)
+      ];
+      stroke(random(colsArr));
+      beginShape(); diamond.forEach(p=>vertex(p.x,p.y)); endShape(CLOSE);
+    }
+  }
+
+  drawingContext.restore(); pop();
+
+  // Outline
+  noFill(); stroke(0); strokeWeight(0.5);
+  beginShape();
+  pts.forEach((p,i) => {
+    if (random() > ROUGHNESS.skipProb || i===0 || i===pts.length-1) {
+      vertex(p.x, p.y);
+    }
+  });
+  endShape(CLOSE);
+}
+
+function drawHandle(cx, cy, bodyH, bodyW, side, seed, bottomIsWider = true) {
+  let loopW = random(bodyW * 0.15, bodyW * 0.25) * random(1, 1.25);
+  let loopH = random(bodyH * 0.3, bodyH * 0.5);
+  let offsetY = random(bodyH * 0.4, bodyH * 0.6);
+  let hCY = cy + offsetY;
+  let offsetX = (bodyW / 2) + (loopW / 2) * 0.45;
+  let hCX = cx + (side === 'right' ? offsetX : -offsetX);
+  let a1 = side==='left' ?(bottomIsWider?1.3:1.15):-1.7;
+  let a2 = side==='left' ?(bottomIsWider?5.05:4.85):1.7;
+  let handlePts = roughArcSegment(
+    {cx: hCX, cy: hCY, a1: a1, a2: a2},
+    1, seed, 30,
+    loopW * random(0.7, 0.9),
+    loopH * random(0.2, 0.6)
+  );
+  noFill(); stroke(0);
+  beginShape(); handlePts.forEach(p=>vertex(p.x,p.y)); endShape();
+}
+
+function drawRoughBase(cx, yBottom, topW, bottomW, h, seed) {
+  let halfTop = topW/2, halfBot = bottomW/2;
+  let pts = [];
+  pts.push(...roughLineSegment(cx+halfTop, yBottom, cx+halfBot, yBottom+h, seed+1));
+  pts.push(...roughLineSegment(cx+halfBot, yBottom+h, cx-halfBot, yBottom+h, seed+2));
+  pts.push(...roughLineSegment(cx-halfBot, yBottom+h, cx-halfTop, yBottom, seed+3));
+  noFill(); stroke(0);
+  beginShape(); pts.forEach(p=>vertex(p.x,p.y)); endShape(CLOSE);
+}
+
+function roughLineSegment(x1, y1, x2, y2, seed, steps = ROUGHNESS.lineSteps) {
+  let pts = [];
+  for (let i = 0; i <= steps; i++) {
+    let t = i/steps;
+    let x = lerp(x1, x2, t);
+    let y = lerp(y1, y2, t);
+    let oX = (noise(x * ROUGHNESS.scale, y * ROUGHNESS.scale, seed) - 0.5) * ROUGHNESS.lineOffset;
+    let oY = (noise(y * ROUGHNESS.scale, x * ROUGHNESS.scale, seed + 100) - 0.5) * ROUGHNESS.lineOffset;
+    pts.push(createVector(x + oX, y + oY));
+  }
+  return pts;
+}
+
+function roughArcSegment({cx, cy, a1, a2}, r, seed, steps = ROUGHNESS.arcSteps, rx = r, ry = r) {
+  let pts = [];
+  for (let i = 0; i <= steps; i++) {
+    let ang = lerp(a1, a2, i/steps);
+    let x = cx + cos(ang) * rx;
+    let y = cy + sin(ang) * ry;
+    let oX = (noise(x * ROUGHNESS.scale, y * ROUGHNESS.scale, seed + 200) - 0.5) * ROUGHNESS.arcOffset;
+    let oY = (noise(y * ROUGHNESS.scale, x * ROUGHNESS.scale, seed + 300) - 0.5) * ROUGHNESS.arcOffset;
+    pts.push(createVector(x + oX, y + oY));
+  }
+  return pts;
+}
