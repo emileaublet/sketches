@@ -8,10 +8,19 @@ import type { Meta } from "./types";
 
 function App() {
   const [sketches, setSketches] = useState<Meta[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadSketches().then(setSketches);
+    loadSketches().then((loadedSketches) => {
+      setSketches(loadedSketches);
+      setIsLoading(false);
+    });
   }, []);
+
+  // Don't render routes until sketches are loaded
+  if (isLoading) {
+    return <div>Loading...</div>; // You could replace this with a proper loading component
+  }
 
   return (
     <Routes>

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import P5Wrapper from "../components/P5Wrapper";
-import { Maximize, Minimize, Moon, RefreshCw, Sun } from "lucide-react";
 import type { Meta } from "../types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { Rel } from "@/components/Rel";
 import { cx } from "class-variance-authority";
 import { Helmet } from "react-helmet-async";
@@ -23,7 +21,7 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
     // Simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, []);
@@ -36,13 +34,6 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
     setMode((prevMode) => (prevMode === "dark" ? "light" : "dark"));
   };
 
-  const refresh = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-  };
-
   const ogImage = window.location.origin + sketch.thumbnail;
 
   return (
@@ -52,81 +43,44 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
         <meta name="twitter:image" content={ogImage} />
       </Helmet>
       <div>
-        {isLoading ? (
-          <Skeleton className="w-full h-96" />
-        ) : (
-          <>
-            {!isFullscreen && (
-              <div className="py-8">
-                <h1 className="text-4xl">{sketch.title}</h1>
-                <p className="text-xl text-muted-foreground">
-                  {sketch.description}
-                </p>
-                <Rel rel={sketch.rel} relHref={sketch.relHref} />
-              </div>
-            )}
+        <>
+          {!isFullscreen && (
+            <div className="py-8">
+              <h1 className="text-4xl">{sketch.title}</h1>
+              <p className="text-xl text-muted-foreground">
+                {sketch.description}
+              </p>
+              <Rel rel={sketch.rel} relHref={sketch.relHref} />
+            </div>
+          )}
 
-            <div
-              className={cx(
-                "flex items-center justify-center overflow-hidden rounded-lg border-muted aspect-square bg-background",
-                isFullscreen
-                  ? "absolute w-screen h-screen top-0 left-0"
-                  : "relative border-2"
-              )}
-            >
+          <div
+            className={cx(
+              "flex items-center justify-center overflow-hidden rounded-lg border-muted aspect-square bg-background",
+              isFullscreen
+                ? "absolute w-screen h-screen top-0 left-0"
+                : "relative border-2"
+            )}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center w-full h-full">
+                <Skeleton className="w-full h-full" />
+              </div>
+            ) : (
               <P5Wrapper
                 className={cx(
                   "transition-colors",
                   mode === "dark" ? "bg-background" : "bg-foreground"
                 )}
+                handleViewFullscreen={toggleFullscreen}
+                handleModeToggle={toggleMode}
+                mode={mode}
+                isFullscreen={isFullscreen}
                 slug={sketch.slug ?? ""}
               />
-
-              <div className="absolute top-0 right-0 z-10 flex items-center justify-between p-4">
-                <Button
-                  size={"icon"}
-                  variant={"ghost"}
-                  className={cx(
-                    "cursor-pointer",
-                    mode === "dark" ? "text-white" : "text-black"
-                  )}
-                  onClick={toggleMode}
-                  aria-label={`Switch to ${
-                    mode === "dark" ? "light" : "dark"
-                  } mode`}
-                >
-                  {mode === "dark" ? <Sun /> : <Moon />}
-                </Button>
-                <Button
-                  size={"icon"}
-                  variant={"ghost"}
-                  className={cx(
-                    "cursor-pointer",
-                    mode === "dark" ? "text-white" : "text-black"
-                  )}
-                  onClick={refresh}
-                  aria-label={"Refresh sketch"}
-                >
-                  <RefreshCw />
-                </Button>
-                <Button
-                  size={"icon"}
-                  variant={"ghost"}
-                  className={cx(
-                    "cursor-pointer",
-                    mode === "dark" ? "text-white" : "text-black"
-                  )}
-                  onClick={toggleFullscreen}
-                  aria-label={
-                    isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
-                  }
-                >
-                  {isFullscreen ? <Minimize /> : <Maximize />}
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
+            )}
+          </div>
+        </>
       </div>
       <div
         className={cx(
