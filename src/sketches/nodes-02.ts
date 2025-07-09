@@ -117,13 +117,13 @@ const nodesSketch = (p: p5SVG) => {
     }
 
     const penIndex = p.floor(p.random(8, 11));
-    const pen = staedtlerPens[penIndex];
+    const pen = Object.values(staedtlerPens)[penIndex];
 
     const chance = p.random();
     if (chance < 0.99) {
-      p.stroke(pen);
+      p.stroke(...pen);
     } else {
-      p.stroke(staedtlerPens[2]);
+      p.stroke(...staedtlerPens.red);
     }
 
     p.beginShape();

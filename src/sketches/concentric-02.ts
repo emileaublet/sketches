@@ -3,10 +3,10 @@ import { Meta } from "../types";
 
 import { staedtlerPens } from "@/pens";
 const pensSubset = [
-  staedtlerPens[2],
-  staedtlerPens[4],
-  staedtlerPens[9],
-  staedtlerPens[0],
+  staedtlerPens.orange,
+  staedtlerPens.fuchsia,
+  staedtlerPens.blue,
+  staedtlerPens.yellow,
 ];
 
 export const meta: Meta = {
@@ -36,7 +36,7 @@ const concentricSketch = (p: p5SVG) => {
 
     for (let layer = 1; layer <= layers; layer++) {
       const color = pensSubset[Math.floor(p.random(pensSubset.length))];
-      p.stroke(color);
+      p.stroke(...color);
       const t = layer / layers;
       const eased = t * t * 2 + 0.1;
 

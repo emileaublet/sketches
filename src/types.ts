@@ -7,7 +7,11 @@ export interface Meta {
   slug?: string;
   relHref?: string;
   rel?: string;
+  hidden?: boolean;
 }
 export interface Sketch extends Meta {
   sketch: (p: p5) => void;
 }
+
+export type Color = [number, number, number, number];
+export type Pens = Record<string, Color>;

@@ -13,7 +13,7 @@ export const meta: Meta = {
 const cartesianSketch = (p: p5SVG) => {
   const canvasXMargin = 120;
   const canvasYMargin = 120;
-  const colors = staedtlerPens;
+  const colors = Object.values(staedtlerPens);
 
   p.setup = () => {
     p.createCanvas(700, 850, p.SVG);
@@ -62,7 +62,7 @@ const cartesianSketch = (p: p5SVG) => {
         const maxYOffset = 0.2;
         const segmentCount = p.floor(p.random(100, 200));
 
-        p.stroke(color);
+        p.stroke(...color);
 
         // segment length spans full draw width
         const segmentLen = rect.w / segmentCount;

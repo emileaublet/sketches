@@ -14,25 +14,25 @@ const distortionSketch = (p: p5SVG) => {
   const canvasYMargin = 120;
   const lines = 280;
   const colors = [
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[6],
-    staedtlerPens[2],
-    staedtlerPens[11],
-    staedtlerPens[11],
-    staedtlerPens[11],
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.violet,
+    staedtlerPens.red,
+    staedtlerPens.teal,
+    staedtlerPens.teal,
+    staedtlerPens.teal,
   ];
 
   p.setup = () => {
@@ -64,15 +64,15 @@ const distortionSketch = (p: p5SVG) => {
 
       drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
     }
-    drawDots("white");
-    drawDots(staedtlerPens[0]);
+    drawDots([255, 255, 255, 255]); // white
+    drawDots(staedtlerPens.yellow);
   };
 
-  function drawDots(color: string) {
+  function drawDots(color: [number, number, number, number]) {
     // Add white dots
     const dotCount = p.random(100, 200);
     p.strokeWeight(6);
-    p.stroke(color); // white
+    p.stroke(...color); // white
     for (let i = 0; i < dotCount; i++) {
       const x = p.random(canvasXMargin, p.width - canvasXMargin);
       const y = p.random(canvasYMargin, p.height - canvasYMargin);
