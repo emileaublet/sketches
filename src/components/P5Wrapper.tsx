@@ -10,6 +10,8 @@ import {
   Minimize,
   Maximize,
   Check,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { useClipboard } from "@custom-react-hooks/use-clipboard";
 
@@ -32,7 +34,8 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   isFullscreen = false,
   mode = "dark",
 }) => {
-  const [seed, setSeed] = useState<number | undefined>(undefined);
+  const [pos, setPos] = useState(0);
+  const [seed, setSeed] = useState<number[]>([]);
   const [sketch, setSketch] = useState();
   const { copyToClipboard } = useClipboard();
   const [copying, setCopying] = useState(false);
@@ -48,7 +51,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   };
   // Set a random seed for the sketch on mount and on redraw
   useEffect(() => {
-    setSeed(getRandomSeed());
+    setSeed((s) => [getRandomSeed(), ...s]);
   }, [slug]);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
         const { default: sketchModule } = await import(
           `../sketches/${slug}.ts`
         );
-        setSketch(() => sketchModule(seed));
+        setSketch(() => sketchModule(seed[pos]));
       } catch (error) {
         console.error("Error loading sketch:", error);
       }
@@ -67,7 +70,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     if (seed !== undefined) {
       loadSketch();
     }
-  }, [slug, seed]);
+  }, [slug, seed, pos]);
   useEffect(() => {
     // wait for the container to be available
     if (!containerRef.current || !sketch) {
@@ -91,7 +94,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
 
   const handleRedraw = () => {
     // Change seed for new randomization, which will trigger sketch reload
-    setSeed(getRandomSeed());
+    setSeed((s) => [getRandomSeed(), ...s]);
     setIsRedrawing(true);
     setTimeout(() => {
       setIsRedrawing(false);
@@ -134,6 +137,30 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     }
   }, [copied]);
 
+  // Back = older (higher index), Next = newer (lower index)
+  const handleBack = () => {
+    setPos((prev) => {
+      const nextPos = prev + 1;
+      if (nextPos >= seed.length) {
+        return seed.length - 1; // Wrap to oldest
+      }
+      return nextPos;
+    });
+  };
+
+  const handleNext = () => {
+    setPos((prev) => {
+      const nextPos = prev - 1;
+      if (nextPos < 0) {
+        return 0; // Wrap to newest
+      }
+      return nextPos;
+    });
+  };
+
+  const canBack = pos < seed.length - 1;
+  const canNext = pos > 0;
+
   return (
     <>
       <div className="relative w-full h-full">
@@ -142,17 +169,45 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
       <div className="absolute bottom-0 left-0 z-50 flex items-center justify-between w-full p-4 bg-background/80 backdrop-blur-md">
         {process.env.NODE_ENV === "development" ? (
           <input
-            onChange={(e) => setSeed(Number(e.target.value))}
-            value={seed !== undefined ? seed : "Loading..."}
+            onChange={(e) => setSeed((s) => [Number(e.target.value), ...s])}
+            value={seed[pos]}
             className="text-sm text-muted-foreground"
           />
         ) : (
-          <span className="text-sm text-muted-foreground">
-            {seed !== undefined ? seed : "Loading..."}
-          </span>
+          <span className="text-sm text-muted-foreground">{seed[pos]}</span>
         )}
       </div>
-      <div className="absolute top-0 right-0 z-50 flex items-center justify-between p-4">
+      <div className="absolute top-0 right-0 z-50 flex items-center justify-end p-4 w-full">
+        {process.env.NODE_ENV === "development" && (
+          <div className="flex-grow">
+            <Button
+              disabled={isRedrawing || !canBack}
+              size={"icon"}
+              variant={"ghost"}
+              className={cx(
+                "cursor-pointer",
+                mode === "dark" ? "text-white" : "text-black"
+              )}
+              onClick={handleBack}
+              aria-label={`Back`}
+            >
+              <ArrowLeft />
+            </Button>
+            <Button
+              disabled={isRedrawing || !canNext}
+              size={"icon"}
+              variant={"ghost"}
+              className={cx(
+                "cursor-pointer",
+                mode === "dark" ? "text-white" : "text-black"
+              )}
+              onClick={handleNext}
+              aria-label={`Next`}
+            >
+              <ArrowRight />
+            </Button>
+          </div>
+        )}
         <Button
           disabled={isRedrawing}
           size={"icon"}
