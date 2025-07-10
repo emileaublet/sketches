@@ -163,15 +163,15 @@ const distortionSketch = (p: p5SVG) => {
     strokeColor: Color
   ) => {
     p.stroke(...strokeColor);
+    p.noFill();
     const count = p.floor(p.random(3, 10));
     const step = size / count;
 
     for (let i = 0; i < count; i++) {
       const offset = i * step;
-      p.noFill();
 
       // Rotate starting point for each square to avoid aligned seams
-      const startRotation = ((i * p.PI) / p.random([2, 4])) % p.TWO_PI; // Rotate by 45° increments
+      const startRotation = ((i * p.PI) / p.random([2, 4])) % p.TWO_PI;
       const squareSize = size - 2 * offset;
       const centerX = x + offset + squareSize / 2;
       const centerY = y + offset + squareSize / 2;
