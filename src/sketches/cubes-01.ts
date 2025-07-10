@@ -165,10 +165,22 @@ const distortionSketch = (p: p5SVG) => {
     p.stroke(...strokeColor);
     const count = p.floor(p.random(3, 10));
     const step = size / count;
+
     for (let i = 0; i < count; i++) {
       const offset = i * step;
       p.noFill();
-      p.rect(x + offset, y + offset, size - 2 * offset, size - 2 * offset);
+
+      // Rotate starting point for each square to avoid aligned seams
+      const startRotation = ((i * p.PI) / p.random([2, 4])) % p.TWO_PI; // Rotate by 45° increments
+      const squareSize = size - 2 * offset;
+      const centerX = x + offset + squareSize / 2;
+      const centerY = y + offset + squareSize / 2;
+
+      p.push();
+      p.translate(centerX, centerY);
+      p.rotate(startRotation);
+      p.rect(-squareSize / 2, -squareSize / 2, squareSize, squareSize);
+      p.pop();
     }
   };
 
@@ -236,12 +248,24 @@ const distortionSketch = (p: p5SVG) => {
 
     for (let i = 0; i < count; i++) {
       const offset = i * step;
+
+      // Rotate starting point for each diamond to avoid aligned seams
+      const startRotation = ((i * p.PI) / 2) % p.TWO_PI; // Rotate by 30° increments
+      const centerX = x + size / 2;
+      const centerY = y + size / 2;
+
+      p.push();
+      p.translate(centerX, centerY);
+      p.rotate(startRotation);
+
       p.beginShape();
-      p.vertex(x + size / 2, y + offset); // Top vertex
-      p.vertex(x + size - offset, y + size / 2); // Right vertex
-      p.vertex(x + size / 2, y + size - offset); // Bottom vertex
-      p.vertex(x + offset, y + size / 2); // Left vertex
+      p.vertex(0, -size / 2 + offset); // Top vertex
+      p.vertex(size / 2 - offset, 0); // Right vertex
+      p.vertex(0, size / 2 - offset); // Bottom vertex
+      p.vertex(-size / 2 + offset, 0); // Left vertex
       p.endShape(p.CLOSE);
+
+      p.pop();
     }
   };
 
@@ -308,22 +332,49 @@ const distortionSketch = (p: p5SVG) => {
     p.stroke(...strokeColor);
     p.noFill();
     const squareCount = p.floor(p.random(2, 8)); // Random number of squares per side
-    const squareSize = size / squareCount; // 8 squares per side
-    const lineSpacing = 1; // Very close lines for dense fill
+    const squareSize = size / squareCount;
 
     for (let i = 0; i < squareCount; i++) {
       for (let j = 0; j < squareCount; j++) {
         const squareX = x + i * squareSize;
         const squareY = y + j * squareSize;
 
-        // Fill alternating squares with dense horizontal lines (no outline)
+        // Fill alternating squares with very dense zigzag lines
         if ((i + j) % 2 === 1) {
+          const lineSpacing = p.random(1, 2); // Very close lines for dense fill
+          const zigzagWidth = p.random(0.5, 2); // Very small zigzag segments
+          const zigzagHeight = p.random(0.5, 1.5); // Very small amplitude
+
           for (
-            let lineY = squareY + lineSpacing;
-            lineY < squareY + squareSize;
-            lineY += lineSpacing
+            let currentY = squareY + lineSpacing;
+            currentY < squareY + squareSize;
+            currentY += lineSpacing
           ) {
-            p.line(squareX, lineY, squareX + squareSize, lineY);
+            p.beginShape();
+            p.noFill();
+
+            let isUp = true; // Start going up
+            for (
+              let currentX = squareX;
+              currentX <= squareX + squareSize;
+              currentX += zigzagWidth
+            ) {
+              let vertexY;
+              if (isUp) {
+                vertexY = currentY - zigzagHeight / 2;
+              } else {
+                vertexY = currentY + zigzagHeight / 2;
+              }
+
+              // Constrain to square bounds
+              vertexY = p.constrain(vertexY, squareY, squareY + squareSize);
+              const vertexX = p.min(currentX, squareX + squareSize);
+
+              p.vertex(vertexX, vertexY);
+              isUp = !isUp; // Alternate direction
+            }
+
+            p.endShape();
           }
         }
       }
