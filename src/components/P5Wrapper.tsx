@@ -95,6 +95,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   const handleRedraw = () => {
     // Change seed for new randomization, which will trigger sketch reload
     setSeed((s) => [getRandomSeed(), ...s]);
+    setPos(0); // Reset to the newest sketch
     setIsRedrawing(true);
     setTimeout(() => {
       setIsRedrawing(false);
