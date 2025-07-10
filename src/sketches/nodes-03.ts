@@ -18,7 +18,7 @@ const colors = [
   gellyRollPens["438"],
 ];
 
-const nodesSketch = (p: p5SVG) => {
+const nodesSketch = (seed?: number) => (p: p5SVG) => {
   const ballRadius = 300;
   const spacing = 20;
   const minDotSize = 12;
@@ -29,6 +29,7 @@ const nodesSketch = (p: p5SVG) => {
   const packingTightness = 1.24;
 
   p.setup = () => {
+    if (seed !== undefined) p.randomSeed(seed);
     p.createCanvas(700, 850, p.SVG);
     p.noStroke();
     if (debug) {

@@ -9,13 +9,14 @@ export const meta: Meta = {
   thumbnail: "/distortion-01.png",
 };
 
-const distortionSketch = (p: p5SVG) => {
+const distortionSketch = (seed?: number) => (p: p5SVG) => {
   const canvasXMargin = 120;
   const canvasYMargin = 120;
   const lines = 180;
   const colors = ["#007BFF", "#FF4081", "#FF5722", "#5E35B1"];
 
   p.setup = () => {
+    if (seed !== undefined) p.randomSeed(seed);
     p.createCanvas(700, 850, p.SVG);
 
     p.strokeWeight(1);

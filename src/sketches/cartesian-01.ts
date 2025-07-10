@@ -10,16 +10,19 @@ export const meta: Meta = {
   thumbnail: "/cartesian-01.png",
 };
 
-const cartesianSketch = (p: p5SVG) => {
+const cartesianSketch = (seed?: number) => (p: p5SVG) => {
   const canvasXMargin = 120;
   const canvasYMargin = 120;
   const colors = Object.values(staedtlerPens);
 
+  if (seed !== undefined) p.randomSeed(seed);
   p.setup = () => {
     p.createCanvas(700, 850, p.SVG);
-
     p.strokeWeight(1);
     p.noFill();
+    if (seed !== undefined) {
+      p.randomSeed(seed);
+    }
 
     const drawW = p.width - 2 * canvasXMargin;
     const drawH = p.height - 2 * canvasYMargin;
@@ -148,7 +151,7 @@ const cartesianSketch = (p: p5SVG) => {
       return [{ x, y, w, h }];
     }
 
-    let splitVertically = Math.random() < 0.5;
+    let splitVertically = p.random() < 0.5;
 
     // Force split direction to avoid skinny slices
     if (w > h * 1.5) splitVertically = true;
@@ -178,10 +181,10 @@ const cartesianSketch = (p: p5SVG) => {
     return [{ x, y, w, h }];
   }
   function randomBetween(min: number, max: number): number {
-    return Math.random() * (max - min) + min;
+    return p.random() * (max - min) + min;
   }
   function snapToGrid(value: number, cellSize: number): number {
-    return Math.round(value / cellSize) * cellSize;
+    return p.round(value / cellSize) * cellSize;
   }
 };
 

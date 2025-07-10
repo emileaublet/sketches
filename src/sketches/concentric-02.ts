@@ -2,6 +2,7 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 
 import { staedtlerPens } from "@/pens";
+
 const pensSubset = [
   staedtlerPens.orange,
   staedtlerPens.fuchsia,
@@ -16,7 +17,8 @@ export const meta: Meta = {
   thumbnail: "/concentric-02.png",
 };
 
-const concentricSketch = (p: p5SVG) => {
+const concentricSketch = (seed?: number) => (p: p5SVG) => {
+  if (seed !== undefined) p.randomSeed(seed);
   const layers = 120;
   const minPoints = 50;
   const maxPoints = 800;

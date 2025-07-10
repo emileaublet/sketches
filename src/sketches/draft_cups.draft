@@ -131,7 +131,7 @@ const cups = (p: p5SVG) => {
     const tr = p.createVector(x + halfT, y);
     const br = p.createVector(x + halfB, y + h);
     const bl = p.createVector(x - halfB, y + h);
-    const pts = [];
+    const pts: any[] = [];
     pts.push(
       ...roughLineSegment(
         tl.x + radii.topLeft,

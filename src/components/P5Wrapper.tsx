@@ -32,6 +32,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   isFullscreen = false,
   mode = "dark",
 }) => {
+  const [seed, setSeed] = useState<number | undefined>(undefined);
   const [sketch, setSketch] = useState();
   const { copyToClipboard } = useClipboard();
   const [copying, setCopying] = useState(false);
@@ -40,6 +41,16 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
 
+  const getRandomSeed = () => {
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0];
+  };
+  // Set a random seed for the sketch on mount and on redraw
+  useEffect(() => {
+    setSeed(getRandomSeed());
+  }, [slug]);
+
   useEffect(() => {
     // Dynamically import the sketch module
     const loadSketch = async () => {
@@ -47,14 +58,16 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
         const { default: sketchModule } = await import(
           `../sketches/${slug}.ts`
         );
-        setSketch(() => sketchModule);
+        setSketch(() => sketchModule(seed));
       } catch (error) {
         console.error("Error loading sketch:", error);
       }
     };
 
-    loadSketch();
-  }, [slug]);
+    if (seed !== undefined) {
+      loadSketch();
+    }
+  }, [slug, seed]);
   useEffect(() => {
     // wait for the container to be available
     if (!containerRef.current || !sketch) {
@@ -77,37 +90,12 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   }, [sketch]);
 
   const handleRedraw = () => {
-    if (!containerRef.current || !sketch) {
-      return;
-    }
-
+    // Change seed for new randomization, which will trigger sketch reload
+    setSeed(getRandomSeed());
     setIsRedrawing(true);
-
-    // Use setTimeout with 0ms to ensure the state update is processed first
     setTimeout(() => {
-      if (!containerRef.current || !sketch) {
-        setIsRedrawing(false);
-        return;
-      }
-
-      // Clean up existing instance
-      if (p5InstanceRef.current) {
-        p5InstanceRef.current.remove();
-        p5InstanceRef.current = null;
-      }
-
-      // Clear the container
-      containerRef.current.innerHTML = "";
-
-      // Create new p5 instance
-      const newInstance = new p5(sketch, containerRef.current);
-      p5InstanceRef.current = newInstance;
-
-      // Show spinning animation for at least 600ms
-      setTimeout(() => {
-        setIsRedrawing(false);
-      }, 100);
-    }, 0);
+      setIsRedrawing(false);
+    }, 100);
   };
 
   const handleCopy = async (textToCopy: string) => {
@@ -150,6 +138,19 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     <>
       <div className="relative w-full h-full">
         <div id="sketch-canvas" ref={containerRef} className={className} />
+      </div>
+      <div className="absolute bottom-0 left-0 z-50 flex items-center justify-between w-full p-4 bg-background/80 backdrop-blur-md">
+        {process.env.NODE_ENV === "development" ? (
+          <input
+            onChange={(e) => setSeed(Number(e.target.value))}
+            value={seed !== undefined ? seed : "Loading..."}
+            className="text-sm text-muted-foreground"
+          />
+        ) : (
+          <span className="text-sm text-muted-foreground">
+            {seed !== undefined ? seed : "Loading..."}
+          </span>
+        )}
       </div>
       <div className="absolute top-0 right-0 z-50 flex items-center justify-between p-4">
         <Button

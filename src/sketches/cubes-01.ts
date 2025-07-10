@@ -9,11 +9,13 @@ export const meta: Meta = {
   thumbnail: "/cubes-01.png",
 };
 
-const distortionSketch = (p: p5SVG) => {
+const distortionSketch = (seed?: number) => (p: p5SVG) => {
   p.setup = () => {
     p.createCanvas(900, 900, p.SVG);
     p.noStroke();
     p.noLoop();
+
+    if (seed !== undefined) p.randomSeed(seed);
   };
 
   // Reusable function to draw the grid with a specified color

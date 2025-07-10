@@ -9,8 +9,9 @@ export const meta: Meta = {
   thumbnail: "/concentric-01.png",
 };
 
-const concentricSketch = (p: p5SVG) => {
+const concentricSketch = (seed?: number) => (p: p5SVG) => {
   p.setup = () => {
+    if (seed !== undefined) p.randomSeed(seed);
     p.createCanvas(500, 500, p.SVG);
     p.colorMode(p.RGB);
     p.angleMode(p.DEGREES);

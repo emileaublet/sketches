@@ -32,7 +32,7 @@ const allPens = [
   })),
 ];
 
-const nodesSketch = (p: p5SVG) => {
+const nodesSketch = (seed?: number) => (p: p5SVG) => {
   const margin = 0;
   const penTestWidth = 280;
   const penTestHeight = 50;
@@ -41,6 +41,7 @@ const nodesSketch = (p: p5SVG) => {
 
   p.setup = () => {
     // Calculate canvas height based on number of pens
+    if (seed !== undefined) p.randomSeed(seed);
     const rows = Math.ceil(allPens.length / cols);
     const canvasHeight =
       margin * 2 + rows * (penTestHeight + spacing) - spacing;

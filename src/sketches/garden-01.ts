@@ -12,7 +12,7 @@ export const meta: Meta = {
   thumbnail: "/garden-01.png",
 };
 
-const circleWaveSketch = (p: p5SVG) => {
+const circleWaveSketch = (seed?: number) => (p: p5SVG) => {
   let particles: Particle[] = [];
   const n = 100; // even fewer lines
   const squiggliness = 1 / 100;
@@ -24,6 +24,7 @@ const circleWaveSketch = (p: p5SVG) => {
   const width = 500;
   const height = 500;
   p.setup = () => {
+    if (seed !== undefined) p.randomSeed(seed);
     p.createCanvas(width, height, p.SVG);
     p.colorMode(p.HSB, 100);
     p.angleMode(p.DEGREES);

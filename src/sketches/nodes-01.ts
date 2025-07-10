@@ -9,7 +9,7 @@ export const meta: Meta = {
   thumbnail: "/nodes-01.png",
 };
 
-const nodesSketch = (p: p5SVG) => {
+const nodesSketch = (seed?: number) => (p: p5SVG) => {
   // overall canvas padding (horizontal only)
   const canvasMargin = 120;
 
@@ -34,6 +34,7 @@ const nodesSketch = (p: p5SVG) => {
   const colors = ["#007BFF", "#FF4081", "#FF5722", "#5E35B1"];
 
   p.setup = () => {
+    if (seed !== undefined) p.randomSeed(seed);
     p.createCanvas(700, 850, p.SVG);
     p.strokeWeight(1);
     p.noFill();
