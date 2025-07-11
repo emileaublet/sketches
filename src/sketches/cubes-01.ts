@@ -341,43 +341,38 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
         const squareX = x + i * squareSize;
         const squareY = y + j * squareSize;
 
-        // Fill alternating squares with very dense zigzag lines
+        // Only fill alternating squares
         if ((i + j) % 2 === 1) {
-          const lineSpacing = p.random(1, 2); // Very close lines for dense fill
-          const zigzagWidth = p.random(0.5, 2); // Very small zigzag segments
-          const zigzagHeight = p.random(0.5, 1.5); // Very small amplitude
+          // Continuous, tight zigzag path for the whole square
+          const zigzagWidth = p.random(0.5, 1.2); // Tighter horizontal step
+          const zigzagHeight = p.random(0.5, 1.2); // Tighter vertical step
+          const cols = Math.ceil(squareSize / zigzagWidth);
+          const rows = Math.ceil(squareSize / zigzagHeight);
 
-          for (
-            let currentY = squareY + lineSpacing;
-            currentY < squareY + squareSize;
-            currentY += lineSpacing
-          ) {
-            p.beginShape();
-            p.noFill();
-
-            let isUp = true; // Start going up
-            for (
-              let currentX = squareX;
-              currentX <= squareX + squareSize;
-              currentX += zigzagWidth
-            ) {
-              let vertexY;
-              if (isUp) {
-                vertexY = currentY - zigzagHeight / 2;
-              } else {
-                vertexY = currentY + zigzagHeight / 2;
+          p.beginShape();
+          for (let row = 0; row < rows; row++) {
+            const yPos = squareY + row * zigzagHeight;
+            if (row % 2 === 0) {
+              // Left to right
+              for (let col = 0; col < cols; col++) {
+                const xPos = squareX + col * zigzagWidth;
+                p.vertex(
+                  Math.min(xPos, squareX + squareSize),
+                  Math.min(yPos, squareY + squareSize)
+                );
               }
-
-              // Constrain to square bounds
-              vertexY = p.constrain(vertexY, squareY, squareY + squareSize);
-              const vertexX = p.min(currentX, squareX + squareSize);
-
-              p.vertex(vertexX, vertexY);
-              isUp = !isUp; // Alternate direction
+            } else {
+              // Right to left
+              for (let col = cols - 1; col >= 0; col--) {
+                const xPos = squareX + col * zigzagWidth;
+                p.vertex(
+                  Math.min(xPos, squareX + squareSize),
+                  Math.min(yPos, squareY + squareSize)
+                );
+              }
             }
-
-            p.endShape();
           }
+          p.endShape();
         }
       }
     }
