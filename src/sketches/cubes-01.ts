@@ -103,7 +103,11 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
 
         // Draw the selected pattern with the specified color
         const selectedPattern = patterns[selectedPatternIndex];
-        selectedPattern(drawX, drawY, drawSize, strokeColor);
+
+        const drawOrNotToDraw = p.random() < 0.5; // 80% chance to draw
+        if (drawOrNotToDraw) {
+          selectedPattern(drawX, drawY, drawSize, strokeColor);
+        }
 
         p.pop();
       }
@@ -116,8 +120,9 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
     // subtle color
     drawGrid(
       p.random([
-        gellyRollPens["431"],
+        gellyRollPens["415"],
         gellyRollPens["417"],
+        gellyRollPens["422"],
         gellyRollPens["438"],
       ])
     );
@@ -127,11 +132,113 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
         gellyRollPens["423"],
         gellyRollPens["425"],
         gellyRollPens["432"],
+        gellyRollPens["431"],
+        gellyRollPens["428"],
       ])
     );
   };
 
-  // Pattern functions
+  const drawSpiral = (
+    x: number,
+    y: number,
+    size: number,
+    strokeColor: Color
+  ) => {
+    p.stroke(...strokeColor);
+    p.noFill();
+    const turns = p.random(3, 8);
+    const points = 200;
+    const centerX = x + size / 2;
+    const centerY = y + size / 2;
+    const maxR = size / 2;
+    p.beginShape();
+    for (let i = 0; i < points; i++) {
+      const t = (i / points) * turns * p.TWO_PI;
+      const r = (i / points) * maxR;
+      p.vertex(centerX + r * Math.cos(t), centerY + r * Math.sin(t));
+    }
+    p.endShape();
+  };
+
+  const drawWaves = (
+    x: number,
+    y: number,
+    size: number,
+    strokeColor: Color
+  ) => {
+    p.stroke(...strokeColor);
+    p.noFill();
+    const lines = p.floor(p.random(4, 10));
+    const amp = p.random(4, 12);
+    const freq = p.random(1, 4);
+    for (let i = 0; i < lines; i++) {
+      const yPos = y + (i / (lines - 1)) * size;
+      p.beginShape();
+      for (let j = 0; j <= size; j += 2) {
+        const xPos = x + j;
+        const wave = Math.sin((j / size) * freq * p.TWO_PI + i) * amp;
+        p.vertex(xPos, yPos + wave);
+      }
+      p.endShape();
+    }
+  };
+
+  const drawRadial = (
+    x: number,
+    y: number,
+    size: number,
+    strokeColor: Color
+  ) => {
+    p.stroke(...strokeColor);
+    p.noFill();
+    const centerX = x + size / 2;
+    const centerY = y + size / 2;
+    const rays = p.floor(p.random(12, 32));
+    for (let i = 0; i < rays; i++) {
+      const angle = (i / rays) * p.TWO_PI;
+      p.line(
+        centerX,
+        centerY,
+        centerX + (size / 2) * Math.cos(angle),
+        centerY + (size / 2) * Math.sin(angle)
+      );
+    }
+  };
+
+  const drawPolygonWeb = (
+    x: number,
+    y: number,
+    size: number,
+    strokeColor: Color
+  ) => {
+    p.stroke(...strokeColor);
+    p.noFill();
+    const sides = p.floor(p.random(3, 8));
+    const centerX = x + size / 2;
+    const centerY = y + size / 2;
+    const layers = p.floor(p.random(2, 5));
+    for (let l = 1; l <= layers; l++) {
+      const r = (l / layers) * (size / 2);
+      p.beginShape();
+      for (let i = 0; i < sides; i++) {
+        // Start at angle -PI/2 (top), so first vertex is centered x, min y
+        const angle = (i / sides) * p.TWO_PI - p.HALF_PI;
+        p.vertex(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
+      }
+      p.endShape(p.CLOSE);
+    }
+    // Connect vertices (start at angle -PI/2 to align with polygon vertices)
+    for (let i = 0; i < sides; i++) {
+      const angle = (i / sides) * p.TWO_PI - p.HALF_PI;
+      p.line(
+        centerX,
+        centerY,
+        centerX + (size / 2) * Math.cos(angle),
+        centerY + (size / 2) * Math.sin(angle)
+      );
+    }
+  };
+
   const drawVerticalLines = (
     x: number,
     y: number,
@@ -168,16 +275,16 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
     p.noFill();
     const count = p.floor(p.random(3, 10));
     const step = size / count;
-
+    let lastSize = null;
     for (let i = 0; i < count; i++) {
       const offset = i * step;
-
+      const squareSize = size - 2 * offset;
+      if (squareSize <= 0 || squareSize === lastSize) continue;
+      lastSize = squareSize;
       // Rotate starting point for each square to avoid aligned seams
       const startRotation = ((i * p.PI) / p.random([2, 4])) % p.TWO_PI;
-      const squareSize = size - 2 * offset;
       const centerX = x + offset + squareSize / 2;
       const centerY = y + offset + squareSize / 2;
-
       p.push();
       p.translate(centerX, centerY);
       p.rotate(startRotation);
@@ -194,9 +301,9 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
   ) => {
     p.stroke(...strokeColor);
 
-    const zigzagWidth = p.random(3, 10); // Width of each zigzag segment
-    const zigzagHeight = p.random(4, 10); // Height of each peak/valley
-    const lineSpacing = p.random(2, 8); // Spacing between zigzag lines
+    const zigzagWidth = p.random(3, size / 2); // Width of each zigzag segment
+    const zigzagHeight = p.random(2, size / 2); // Height of each peak/valley
+    const lineSpacing = p.random(zigzagHeight, zigzagHeight * 2); // Spacing between zigzag lines
 
     // Fill the square with horizontal zigzag lines from bottom to top
     for (
@@ -226,15 +333,6 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
 
       p.endShape();
     }
-  };
-
-  const drawNothing = (
-    _x: number,
-    _y: number,
-    _size: number,
-    _strokeColor: Color
-  ) => {
-    // Do nothing
   };
 
   const drawConcentricDiamonds = (
@@ -395,28 +493,50 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
     // Randomly choose pattern type
     const useRhythmicPattern = p.random() < 0.5;
 
+    // Number of points per circle (higher = smoother)
+    const pointsPerCircle = 120;
+
+    // To avoid all seams at the same angle, rotate each ring's start
+    let rotationOffset = p.random(p.TWO_PI);
+
     if (useRhythmicPattern) {
       // Rhythmic pattern: small-small-small-large
       const smallSpacing = p.random(2, 6);
       const largeSpacing = p.random(8, 15);
 
       for (let i = 0; i < count && currentRadius > 2; i++) {
-        // Draw ring at current radius
-        p.ellipse(centerX, centerY, currentRadius * 2, currentRadius * 2);
+        // Draw ring at current radius as a polyline
+        p.beginShape();
+        for (let j = 0; j <= pointsPerCircle; j++) {
+          const theta = (j / pointsPerCircle) * p.TWO_PI + rotationOffset;
+          const px = centerX + currentRadius * Math.cos(theta);
+          const py = centerY + currentRadius * Math.sin(theta);
+          p.vertex(px, py);
+        }
+        p.endShape();
 
         // Every 4th ring gets large spacing, others get small
         const spacing = (i + 1) % 4 === 0 ? largeSpacing : smallSpacing;
         currentRadius -= spacing;
+        rotationOffset += p.random(0.2, 1.5); // Rotate seam for next ring
       }
     } else {
       // Consistent spacing
       const consistentSpacing = p.random(3, 8);
 
       for (let i = 0; i < count && currentRadius > 2; i++) {
-        // Draw ring at current radius
-        p.ellipse(centerX, centerY, currentRadius * 2, currentRadius * 2);
+        // Draw ring at current radius as a polyline
+        p.beginShape();
+        for (let j = 0; j <= pointsPerCircle; j++) {
+          const theta = (j / pointsPerCircle) * p.TWO_PI + rotationOffset;
+          const px = centerX + currentRadius * Math.cos(theta);
+          const py = centerY + currentRadius * Math.sin(theta);
+          p.vertex(px, py);
+        }
+        p.endShape();
 
         currentRadius -= consistentSpacing;
+        rotationOffset += p.random(0.2, 1.5); // Rotate seam for next ring
       }
     }
   };
@@ -425,12 +545,6 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
   const patterns = [
     drawVerticalLines,
     drawHorizontalLines,
-    drawNothing,
-    drawNothing,
-    drawNothing,
-    drawNothing,
-    drawNothing,
-    drawNothing,
     drawConcentricSquares,
     drawConcentricDiamonds,
     drawOneDiagonal,
@@ -438,6 +552,10 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
     drawDiagonalLines,
     drawCheckers,
     drawBullseye,
+    drawSpiral,
+    drawWaves,
+    drawRadial,
+    drawPolygonWeb,
   ];
 };
 

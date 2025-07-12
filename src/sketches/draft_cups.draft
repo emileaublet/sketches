@@ -38,13 +38,15 @@ const staedtlerPens = [
   "#171515",
 ];
 
-const cups = (p: p5SVG) => {
+const cups = (seed?: number) => (p: p5SVG) => {
   p.setup = () => {
     p.createCanvas(700, 850);
     p.background(255);
     p.strokeWeight(0.5);
     p.noFill();
     p.noiseDetail(100, 0.5);
+
+    if (seed !== undefined) p.randomSeed(seed);
 
     const cols = 14;
     const rows = 17;
