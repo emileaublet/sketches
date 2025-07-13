@@ -86,7 +86,7 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
         p.strokeWeight(0.5);
 
         const hasPadding = p.random() < 0.5;
-        const padding = hasPadding ? p.random(10, 30) : 0;
+        const padding = hasPadding ? p.random(8, 24) : 0;
 
         // Apply padding to the drawing area
         const drawX = x + padding;
@@ -146,7 +146,7 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
   ) => {
     p.stroke(...strokeColor);
     p.noFill();
-    const turns = p.random(3, 8);
+    const turns = p.random(3, size / 10);
     const points = 200;
     const centerX = x + size / 2;
     const centerY = y + size / 2;
@@ -168,15 +168,19 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
   ) => {
     p.stroke(...strokeColor);
     p.noFill();
-    const lines = p.floor(p.random(4, 10));
-    const amp = p.random(4, 12);
-    const freq = p.random(1, 4);
+    const lines = p.floor(p.random(4, size / 10));
+    const amp = p.random(2, 7);
+    const freq = p.random(1, 3);
     for (let i = 0; i < lines; i++) {
       const yPos = y + (i / (lines - 1)) * size;
       p.beginShape();
       for (let j = 0; j <= size; j += 2) {
         const xPos = x + j;
         const wave = Math.sin((j / size) * freq * p.TWO_PI + i) * amp;
+        if (isNaN(xPos) || isNaN(yPos + wave)) {
+          // skip this vertex if it results in NaN
+          continue;
+        }
         p.vertex(xPos, yPos + wave);
       }
       p.endShape();
@@ -193,7 +197,7 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
     p.noFill();
     const centerX = x + size / 2;
     const centerY = y + size / 2;
-    const rays = p.floor(p.random(12, 32));
+    const rays = p.floor(p.random(12, size / 3));
     for (let i = 0; i < rays; i++) {
       const angle = (i / rays) * p.TWO_PI;
       p.line(
@@ -431,7 +435,7 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
   ) => {
     p.stroke(...strokeColor);
     p.noFill();
-    const squareCount = p.floor(p.random(2, 8)); // Random number of squares per side
+    const squareCount = p.floor(p.random(2, size / 10)); // Random number of squares per side
     const squareSize = size / squareCount;
 
     for (let i = 0; i < squareCount; i++) {
@@ -484,7 +488,7 @@ const distortionSketch = (seed?: number) => (p: p5SVG) => {
   ) => {
     p.stroke(...strokeColor);
     p.noFill();
-    const count = p.floor(p.random(6, 15)); // Random number of rings
+    const count = p.floor(p.random(6, size / 4)); // Random number of rings
 
     let currentRadius = size / 2; // Start from the outside
     const centerX = x + size / 2;
