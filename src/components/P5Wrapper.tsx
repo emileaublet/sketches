@@ -13,6 +13,8 @@ import {
   ArrowLeft,
   ArrowRight,
   DownloadIcon,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { useClipboard } from "@custom-react-hooks/use-clipboard";
 
@@ -44,6 +46,59 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   const [isRedrawing, setIsRedrawing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
+  // Zoom/pan state for SVG
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+  const lastMouse = useRef({ x: 0, y: 0 });
+
+  // Zoom controls handlers (must be inside component)
+  // Helper to zoom from center
+  const zoomFromCenter = (scaleAmount: number) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const svg = container.querySelector("svg");
+    if (!svg) return;
+    // Prefer SVG viewBox center if available
+    let centerX: number, centerY: number;
+    const viewBox = svg.getAttribute("viewBox");
+    if (viewBox) {
+      const [, , vbWidth, vbHeight] = viewBox.split(" ").map(Number);
+      centerX = vbWidth / 2;
+      centerY = vbHeight / 2;
+    } else if (svg.width && svg.height) {
+      // Use SVG width/height attributes if present
+      centerX = Number(svg.getAttribute("width")) / 2;
+      centerY = Number(svg.getAttribute("height")) / 2;
+    } else {
+      // Fallback to bounding rect (may be inaccurate in fullscreen)
+      const rect = svg.getBoundingClientRect();
+      centerX = rect.width / 2;
+      centerY = rect.height / 2;
+    }
+    setZoom((z: number) => {
+      const newZoom = Math.max(0.1, Math.min(z * scaleAmount, 10));
+      setPan((prev) => {
+        const dx = centerX - prev.x;
+        const dy = centerY - prev.y;
+        return {
+          x: centerX - (dx * newZoom) / z,
+          y: centerY - (dy * newZoom) / z,
+        };
+      });
+      return newZoom;
+    });
+  };
+  const handleZoomIn = () => {
+    zoomFromCenter(1.2);
+  };
+  const handleZoomOut = () => {
+    zoomFromCenter(1 / 1.2);
+  };
+  const handleZoomReset = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
 
   const getRandomSeed = () => {
     const array = new Uint32Array(1);
@@ -64,16 +119,13 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
         );
         setSketch(() => sketchModule(seed[pos]));
       } catch (error) {
-        console.error("Error loading sketch:", error);
+        console.error("Failed to load sketch:", error);
       }
     };
-
-    if (seed !== undefined) {
-      loadSketch();
-    }
+    loadSketch();
   }, [slug, seed, pos]);
+
   useEffect(() => {
-    // wait for the container to be available
     if (!containerRef.current || !sketch) {
       return;
     }
@@ -93,11 +145,74 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     };
   }, [sketch]);
 
+  // SVG zoom/pan logic
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const svg = container.querySelector("svg");
+    if (!svg) return;
+
+    // Wrap all SVG children in a <g id="zoom-group"> if not already
+    let zoomGroup = svg.querySelector("#zoom-group");
+    if (!zoomGroup) {
+      zoomGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      zoomGroup.setAttribute("id", "zoom-group");
+      while (svg.firstChild) {
+        zoomGroup.appendChild(svg.firstChild);
+      }
+      svg.appendChild(zoomGroup);
+    }
+
+    // Apply transform
+    zoomGroup.setAttribute(
+      "transform",
+      `translate(${pan.x},${pan.y}) scale(${zoom})`
+    );
+
+    // Wheel to zoom (centered on SVG center)
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const scaleAmount = e.deltaY < 0 ? 1.1 : 0.9;
+      zoomFromCenter(scaleAmount);
+    };
+
+    // Drag to pan
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      isDragging.current = true;
+      lastMouse.current = { x: e.clientX, y: e.clientY };
+      e.preventDefault();
+    };
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+      const dx = e.clientX - lastMouse.current.x;
+      const dy = e.clientY - lastMouse.current.y;
+      setPan((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+      lastMouse.current = { x: e.clientX, y: e.clientY };
+    };
+    const handleMouseUp = () => {
+      isDragging.current = false;
+    };
+
+    svg.addEventListener("wheel", handleWheel, { passive: false });
+    svg.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      svg.removeEventListener("wheel", handleWheel);
+      svg.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [zoom, pan, sketch]);
+
   const handleRedraw = React.useCallback(() => {
     // Change seed for new randomization, which will trigger sketch reload
     setSeed((s) => [getRandomSeed(), ...s]);
     setPos(0); // Reset to the newest sketch
     setIsRedrawing(true);
+    handleZoomReset();
     setTimeout(() => {
       setIsRedrawing(false);
     }, 100);
@@ -235,19 +350,68 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   return (
     <>
       <div className="relative w-full h-full">
-        <div id="sketch-canvas" ref={containerRef} className={className} />
+        <div
+          id="sketch-canvas"
+          ref={containerRef}
+          className={className}
+          style={{ cursor: zoom !== 1 ? "grab" : undefined }}
+        />
+        <div className="absolute bottom-0 left-0 z-50 flex items-center justify-between w-full p-4 bg-background/80 backdrop-blur-md">
+          {process.env.NODE_ENV === "development" ? (
+            <input
+              onChange={(e) => setSeed((s) => [Number(e.target.value), ...s])}
+              value={seed[pos] ?? 0}
+              className="text-sm text-muted-foreground"
+            />
+          ) : (
+            <span className="text-sm text-muted-foreground">{seed[pos]}</span>
+          )}
+        </div>
+        <div className="absolute bottom-4 right-4 z-50 flex flex-col gap-2 items-end">
+          <div className="flex flex-row">
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cx(
+                "mb-1",
+                mode === "dark" ? "text-white" : "text-black"
+              )}
+              onClick={handleZoomIn}
+              aria-label="Zoom in"
+              title="Zoom in"
+            >
+              <ZoomIn />
+            </Button>
+
+            <Button
+              variant="ghost"
+              className={cx(
+                mode === "dark" ? "text-white" : "text-black",
+                "min-w-16"
+              )}
+              onClick={handleZoomReset}
+              aria-label="Reset zoom"
+              title="Reset zoom"
+            >
+              {Math.round(zoom * 10) / 10}&thinsp;x
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cx(
+                "mb-1",
+                mode === "dark" ? "text-white" : "text-black"
+              )}
+              onClick={handleZoomOut}
+              aria-label="Zoom out"
+              title="Zoom out"
+            >
+              <ZoomOut />
+            </Button>
+          </div>
+        </div>
       </div>
-      <div className="absolute bottom-0 left-0 z-50 flex items-center justify-between w-full p-4 bg-background/80 backdrop-blur-md">
-        {process.env.NODE_ENV === "development" ? (
-          <input
-            onChange={(e) => setSeed((s) => [Number(e.target.value), ...s])}
-            value={seed[pos] ?? 0}
-            className="text-sm text-muted-foreground"
-          />
-        ) : (
-          <span className="text-sm text-muted-foreground">{seed[pos]}</span>
-        )}
-      </div>
+
       <div className="absolute top-0 right-0 z-50 flex items-center justify-end p-4 w-full">
         {process.env.NODE_ENV === "development" && (
           <div className="flex-grow flex items-center justify-start">
