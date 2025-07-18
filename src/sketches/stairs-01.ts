@@ -1,6 +1,7 @@
 import { p5SVG } from "p5.js-svg";
 
-import { Meta } from "../types";
+import { Color, Meta } from "../types";
+import { staedtlerPens } from "@/pens";
 
 export const meta: Meta = {
   id: "stairs-01",
@@ -11,48 +12,128 @@ export const meta: Meta = {
 
 const stairsSketch = (seed?: number) => (p: p5SVG) => {
   const colors = [
-    // more saturated light colors
-    "#FF5252", // Light Red
-    "#69F0AE", // Light Green
-    "#40C4FF", // Light Blue
-    "#B388FF", // Light Purple
-    "#FFFF00", // Light Yellow
-    "#FF9100", // Light Orange
-    "#18FFFF", // Light Cyan
-    "#00E676", // Light Mint
+    staedtlerPens.yellow,
+    staedtlerPens.orange,
+    staedtlerPens.red,
+    staedtlerPens.fuchsia,
+    staedtlerPens.rose,
+    staedtlerPens.violet,
+    staedtlerPens.blue,
+    staedtlerPens.teal,
+    staedtlerPens.green,
   ];
 
   p.setup = () => {
     if (seed !== undefined) p.randomSeed(seed);
-    p.createCanvas(700, 850, p.SVG);
+    p.createCanvas(550, 700, p.SVG);
     p.noFill();
 
     const lineWidth = 0.5;
-    const lineGap = lineWidth * p.random(4, 12);
     p.strokeWeight(lineWidth);
 
-    const marginX = 120;
-    const marginY = 120;
+    const marginX = 80;
+    const marginY = 80;
 
     const drawW = p.width - 2 * marginX;
-    const drawH = p.height - 2 * marginY;
 
-    const columnsGap = p.random(2, 6);
-    const columns = p.floor(p.random(16, 28));
+    const columnsGap = p.random(2, 10);
+    const columns = p.floor(p.random(12, 22));
+    //const columnsGap = 5;
+    //const columns = 20;
     const columnWidth = (drawW - (columns - 1) * columnsGap) / columns;
-    const linesPerColumn = p.floor(drawH / (lineWidth + lineGap));
 
-    for (let i = 0; i < columns; i++) {
-      for (let j = 0; j < linesPerColumn; j++) {
+    for (let c = 0; c < colors.length; c++) {
+      for (let i = 0; i < columns; i++) {
         const x = marginX + i * (columnWidth + columnsGap);
-        const y = marginY + j * (lineWidth + lineGap);
-        const shouldRender = p.random() < 0.8;
-        if (!shouldRender) continue;
-        p.stroke(colors[p.floor(p.random(colors.length))]);
-        p.line(x, y, x + columnWidth, y);
+        const availableHeight = p.height - 2 * marginY;
+
+        // Pre-generate rectangles to fill the column
+        const rectangles = [];
+        let totalHeight = 0;
+
+        // Generate rectangles until we have enough to fill the column
+        while (totalHeight < availableHeight) {
+          const columnPos = i / (columns - 1);
+          const colorPos = c / (colors.length - 1);
+          const colorAndColumnDiff = Math.abs(columnPos - colorPos);
+
+          // Decide whether to skip or render, based on color and column position
+          // Close positions = high render probability, far positions = low render probability
+          const renderProbability = Math.max(
+            0.08,
+            1 - colorAndColumnDiff * 1.5
+          );
+          const shouldRender = p.random() < renderProbability;
+
+          if (shouldRender) {
+            const rectHeight = p.random(10, 100);
+            rectangles.push({ type: "rect", height: rectHeight });
+            totalHeight += rectHeight;
+          } else {
+            const gap = p.random(2, 8);
+            rectangles.push({ type: "gap", height: gap });
+            totalHeight += gap;
+          }
+
+          // Add spacing
+          const spacing = p.random(5, 30);
+          rectangles.push({ type: "spacing", height: spacing });
+          totalHeight += spacing;
+        }
+
+        // Shuffle the rectangles to randomize their order
+        for (let j = rectangles.length - 1; j > 0; j--) {
+          const k = p.floor(p.random() * (j + 1));
+          [rectangles[j], rectangles[k]] = [rectangles[k], rectangles[j]];
+        }
+
+        // Draw the shuffled rectangles, adjusting to fit exactly
+        let currentY = marginY;
+        let remainingHeight = availableHeight;
+
+        for (let j = 0; j < rectangles.length && remainingHeight > 0; j++) {
+          const item = rectangles[j];
+          const height = Math.min(item.height, remainingHeight);
+
+          if (item.type === "rect") {
+            drawHorizontalLinesWithinRectangle(
+              x,
+              currentY,
+              columnWidth,
+              height,
+              colors[c]
+            );
+          }
+
+          currentY += height;
+          remainingHeight -= height;
+        }
       }
     }
   };
+
+  function drawHorizontalLinesWithinRectangle(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: Color
+  ) {
+    p.stroke(...color);
+    p.strokeWeight(0.5);
+
+    // Calculate how many lines can fit in the rectangle height
+    const lineSpacing = p.random(1, 8); // Space between lines
+    const numberOfLines = Math.floor(height / lineSpacing);
+
+    // Draw horizontal lines to fill the rectangle
+    for (let i = 0; i < numberOfLines; i++) {
+      const lineY = y + i * lineSpacing;
+      if (lineY < y + height) {
+        p.line(x, lineY, x + width, lineY);
+      }
+    }
+  }
 };
 
 export default stairsSketch;

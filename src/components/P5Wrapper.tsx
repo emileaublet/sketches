@@ -348,81 +348,15 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   const canNext = pos > 0;
 
   return (
-    <>
-      <div className="relative w-full h-full">
-        <div
-          id="sketch-canvas"
-          ref={containerRef}
-          className={className}
-          style={{ cursor: zoom !== 1 ? "grab" : undefined }}
-        />
-        <div className="absolute bottom-0 left-0 z-50 flex items-center justify-between w-full p-4 bg-background/80 backdrop-blur-md">
-          {process.env.NODE_ENV === "development" ? (
-            <input
-              onChange={(e) => setSeed((s) => [Number(e.target.value), ...s])}
-              value={seed[pos] ?? 0}
-              className="text-sm text-muted-foreground"
-            />
-          ) : (
-            <span className="text-sm text-muted-foreground">{seed[pos]}</span>
-          )}
-        </div>
-        <div className="absolute bottom-4 right-4 z-50 flex flex-col gap-2 items-end">
-          <div className="flex flex-row">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cx(
-                "mb-1",
-                mode === "dark" ? "text-white" : "text-black"
-              )}
-              onClick={handleZoomIn}
-              aria-label="Zoom in"
-              title="Zoom in"
-            >
-              <ZoomIn />
-            </Button>
-
-            <Button
-              variant="ghost"
-              className={cx(
-                mode === "dark" ? "text-white" : "text-black",
-                "min-w-16"
-              )}
-              onClick={handleZoomReset}
-              aria-label="Reset zoom"
-              title="Reset zoom"
-            >
-              {Math.round(zoom * 10) / 10}&thinsp;x
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cx(
-                "mb-1",
-                mode === "dark" ? "text-white" : "text-black"
-              )}
-              onClick={handleZoomOut}
-              aria-label="Zoom out"
-              title="Zoom out"
-            >
-              <ZoomOut />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute top-0 right-0 z-50 flex items-center justify-end p-4 w-full">
+    <div className="w-full h-full grid grid-cols-1 grid-rows-[auto_1fr_auto]">
+      <div className="flex items-center justify-end p-2 w-full border-b-2">
         {process.env.NODE_ENV === "development" && (
           <div className="flex-grow flex items-center justify-start">
             <Button
               disabled={isRedrawing || !canBack}
               size={"icon"}
               variant={"ghost"}
-              className={cx(
-                "cursor-pointer",
-                mode === "dark" ? "text-white" : "text-black"
-              )}
+              className={cx("cursor-pointer", "text-white")}
               onClick={handleBack}
               aria-label={`Back`}
             >
@@ -438,10 +372,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
               disabled={isRedrawing || !canNext}
               size={"icon"}
               variant={"ghost"}
-              className={cx(
-                "cursor-pointer",
-                mode === "dark" ? "text-white" : "text-black"
-              )}
+              className={cx("cursor-pointer", "text-white")}
               onClick={handleNext}
               aria-label={`Next`}
             >
@@ -453,10 +384,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
           disabled={isRedrawing}
           size={"icon"}
           variant={"ghost"}
-          className={cx(
-            "cursor-pointer",
-            mode === "dark" ? "text-white" : "text-black"
-          )}
+          className={cx("cursor-pointer", "text-white")}
           onClick={handleModeToggle}
           aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
         >
@@ -466,10 +394,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
           disabled={isRedrawing}
           size={"icon"}
           variant={"ghost"}
-          className={cx(
-            "cursor-pointer",
-            mode === "dark" ? "text-white" : "text-black"
-          )}
+          className={cx("cursor-pointer", "text-white")}
           onClick={handleRedraw}
           aria-label={"Refresh sketch"}
         >
@@ -479,10 +404,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
           disabled={isRedrawing || copying || copied}
           size={"icon"}
           variant={"ghost"}
-          className={cx(
-            "cursor-pointer",
-            mode === "dark" ? "text-white" : "text-black"
-          )}
+          className={cx("cursor-pointer", "text-white")}
           onClick={handleViewCode}
           aria-label={"View code"}
         >
@@ -493,10 +415,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
             disabled={isRedrawing}
             size={"icon"}
             variant={"ghost"}
-            className={cx(
-              "cursor-pointer",
-              mode === "dark" ? "text-white" : "text-black"
-            )}
+            className={cx("cursor-pointer", "text-white")}
             onClick={handleDownloadSVG}
             aria-label={"Download SVG"}
           >
@@ -507,17 +426,66 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
           disabled={isRedrawing}
           size={"icon"}
           variant={"ghost"}
-          className={cx(
-            "cursor-pointer",
-            mode === "dark" ? "text-white" : "text-black"
-          )}
+          className={cx("cursor-pointer", "text-white")}
           onClick={handleViewFullscreen}
           aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
         >
           {isFullscreen ? <Minimize /> : <Maximize />}
         </Button>
       </div>
-    </>
+      <div
+        id="sketch-canvas"
+        ref={containerRef}
+        className={cx(className, "aspect-[8/7]")}
+        style={{ cursor: zoom !== 1 ? "grab" : undefined }}
+      />
+      <div className="flex items-center justify-between p-2 w-full border-t-2">
+        {process.env.NODE_ENV === "development" ? (
+          <input
+            onChange={(e) => setSeed((s) => [Number(e.target.value), ...s])}
+            value={seed[pos] ?? 0}
+            className="text-sm text-muted-foreground ml-2 pt-0.5"
+          />
+        ) : (
+          <span className="text-sm text-muted-foreground ml-2">
+            {seed[pos]}
+          </span>
+        )}
+
+        <div className="flex flex-row justify-center items-center">
+          <Button
+            size="icon"
+            variant="ghost"
+            className={cx("text-white")}
+            onClick={handleZoomIn}
+            aria-label="Zoom in"
+            title="Zoom in"
+          >
+            <ZoomIn />
+          </Button>
+
+          <Button
+            variant="ghost"
+            className={cx("text-white", "min-w-16")}
+            onClick={handleZoomReset}
+            aria-label="Reset zoom"
+            title="Reset zoom"
+          >
+            {Math.round(zoom * 10) / 10}&thinsp;x
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className={cx("text-white")}
+            onClick={handleZoomOut}
+            aria-label="Zoom out"
+            title="Zoom out"
+          >
+            <ZoomOut />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -56,7 +56,7 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
 
           <div
             className={cx(
-              "flex items-center justify-center overflow-hidden rounded-lg border-muted aspect-square bg-background",
+              "flex items-center justify-center rounded-lg border-muted bg-background",
               isFullscreen
                 ? "absolute w-screen h-screen top-0 left-0"
                 : "relative border-2"

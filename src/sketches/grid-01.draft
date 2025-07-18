@@ -1,0 +1,141 @@
+import { p5SVG } from "p5.js-svg";
+
+import { Color, Meta } from "../types";
+import { staedtlerPens } from "@/pens";
+
+export const meta: Meta = {
+  id: "grid-01",
+  title: "Grid 01",
+  description: "Grid",
+  thumbnail: "/grid-01.png",
+};
+
+const gridSketch = (seed?: number) => (p: p5SVG) => {
+  p.setup = () => {
+    p.createCanvas(550, 700, p.SVG);
+    p.strokeWeight(0.25);
+
+    p.noFill();
+    if (seed !== undefined) {
+      p.randomSeed(seed);
+    }
+
+    const cellSize = 32;
+    const canvasXMargin = 83;
+    const canvasYMargin = 94;
+    const drawW = p.width - 2 * canvasXMargin;
+    const drawH = p.height - 2 * canvasYMargin;
+
+    const columns = p.floor(drawW / cellSize);
+    const rows = p.floor(drawH / cellSize);
+
+    const hMargin = canvasXMargin;
+    const vMargin = canvasYMargin;
+
+    const colors = [staedtlerPens.red, staedtlerPens.blue];
+    for (let c = 0; c < colors.length; c++) {
+      const color = colors[c];
+      for (let i = 0; i < columns; i++) {
+        for (let j = 0; j < rows; j++) {
+          const x = hMargin + i * cellSize;
+          const y = vMargin + j * cellSize;
+
+          // Use a low-frequency noise field to create larger blocks of same density
+          // Add randomness to the noise coordinates so the pattern changes each run
+          const noiseScale = 0.3; // lower = bigger blocks
+          // Use a symbol to store noise offsets on the p5 instance without 'any'
+          const NOISE_OFFSET_X = Symbol.for("noiseOffsetX");
+          const NOISE_OFFSET_Y = Symbol.for("noiseOffsetY");
+          if (i === 0 && j === 0) {
+            // @ts-expect-error: Storing a symbol property on p5 instance for noise offset
+            p[NOISE_OFFSET_X] = p.random(1000);
+            // @ts-expect-error: Storing a symbol property on p5 instance for noise offset
+            p[NOISE_OFFSET_Y] = p.random(1000);
+          }
+          // @ts-expect-error: Reading a symbol property from p5 instance for noise offset
+          const noiseOffsetX = p[NOISE_OFFSET_X] || 0;
+          // @ts-expect-error: Reading a symbol property from p5 instance for noise offset
+          const noiseOffsetY = p[NOISE_OFFSET_Y] || 0;
+          const n = p.noise(
+            i * noiseScale + noiseOffsetX,
+            j * noiseScale + noiseOffsetY
+          );
+          let density;
+          if (n < 0.25) density = 2; // dense
+          else if (n < 0.5) density = 4; // medium
+          else if (n < 0.75) density = 8; // sparse
+          else continue; // skip
+
+          // With some probability, override density randomly
+          if (p.random() < 0.12) {
+            density = p.random([2, 4, 8]);
+          }
+
+          drawDiagonalLines(
+            x,
+            y,
+            cellSize,
+            color,
+            density,
+            c === 0 ? "ltr" : "rtl"
+          );
+        }
+      }
+    }
+  };
+
+  type DiagonalDirection = "ltr" | "rtl";
+  const drawDiagonalLines = (
+    x: number,
+    y: number,
+    size: number,
+    strokeColor: Color,
+    density: number = 1,
+    direction: DiagonalDirection = "ltr" // 'ltr' = bottom-left to top-right, 'rtl' = bottom-right to top-left
+  ) => {
+    p.stroke(...strokeColor);
+    p.strokeCap(p.SQUARE);
+    const spacing = Math.max(1, Math.floor(density));
+    if (direction === "ltr") {
+      // Bottom-left to top-right
+      for (let i = 0; i <= size; i += spacing) {
+        const x1 = x;
+        const y1 = y + i;
+        const x2 = x + i;
+        const y2 = y;
+        p.line(x1, y1, x2, y2);
+      }
+      for (let i = spacing; i <= size; i += spacing) {
+        const x1 = x + i;
+        const y1 = y + size;
+        const x2 = x + size;
+        const y2 = y + i;
+        p.line(x1, y1, x2, y2);
+      }
+      if (size % spacing !== 0) {
+        p.line(x, y + size, x + size, y);
+      }
+    } else {
+      // Bottom-right to top-left
+      for (let i = 0; i <= size; i += spacing) {
+        const x1 = x + size;
+        const y1 = y + i;
+        const x2 = x + size - i;
+        const y2 = y;
+        p.line(x1, y1, x2, y2);
+      }
+      for (let i = spacing; i <= size; i += spacing) {
+        const x1 = x + size - i;
+        const y1 = y + size;
+        const x2 = x;
+        const y2 = y + i;
+        p.line(x1, y1, x2, y2);
+      }
+      if (size % spacing !== 0) {
+        p.line(x + size, y + size, x, y);
+      }
+    }
+  };
+};
+
+export default gridSketch;
