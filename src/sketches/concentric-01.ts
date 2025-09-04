@@ -8,64 +8,73 @@ export const meta: Meta = {
   description: "Concentric circles",
   thumbnail: "/concentric-01.png",
 };
+export const constants = {
+  width: 500,
+  height: 500,
+};
 
-const concentricSketch = (seed?: number) => (p: p5SVG) => {
-  p.setup = () => {
-    if (seed !== undefined) p.randomSeed(seed);
-    p.createCanvas(500, 500, p.SVG);
-    p.colorMode(p.RGB);
-    p.angleMode(p.DEGREES);
-    p.noFill();
-    p.noLoop();
+const concentricSketch =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    if (seed !== null) p.randomSeed(seed);
+    p.setup = () => {
+      p.createCanvas(
+        vars.width ?? constants.width,
+        vars.height ?? constants.height,
+        p.SVG
+      );
+      p.colorMode(p.RGB);
+      p.angleMode(p.DEGREES);
+      p.noFill();
+      p.noLoop();
 
-    p.translate(p.width / 2, p.height / 2);
+      p.translate(p.width / 2, p.height / 2);
 
-    const segments = 22;
+      const segments = 22;
 
-    const colors = [
-      p.color(255, 190, 11, 230),
-      p.color(251, 86, 7, 230),
-      p.color(255, 0, 110, 230),
-      p.color(131, 56, 236, 230),
-      p.color(58, 134, 255, 230),
-    ];
+      const colors = [
+        p.color(255, 190, 11, 230),
+        p.color(251, 86, 7, 230),
+        p.color(255, 0, 110, 230),
+        p.color(131, 56, 236, 230),
+        p.color(58, 134, 255, 230),
+      ];
 
-    for (let s = 0; s < segments; s++) {
-      const angleStart = p.int(p.random(0, 360));
-      const arcSpan = p.int(p.random(15, 45));
-      const arcWidth = 3;
-      const totalRings = p.int(p.random(40, 60));
-      const skipRings = p.int(p.random(0, 30));
-      const visibleRings = totalRings - skipRings;
-      const col = colors[s % colors.length];
+      for (let s = 0; s < segments; s++) {
+        const angleStart = p.int(p.random(0, 360));
+        const arcSpan = p.int(p.random(15, 45));
+        const arcWidth = 3;
+        const totalRings = p.int(p.random(40, 60));
+        const skipRings = p.int(p.random(0, 30));
+        const visibleRings = totalRings - skipRings;
+        const col = colors[s % colors.length];
 
-      p.stroke(col);
-      p.strokeWeight(0.5);
+        p.stroke(col);
+        p.strokeWeight(0.5);
 
-      p.beginShape();
+        p.beginShape();
 
-      for (let r = 0; r < visibleRings; r++) {
-        const ringIndex = r + skipRings;
-        const radius = 30 + ringIndex * arcWidth;
+        for (let r = 0; r < visibleRings; r++) {
+          const ringIndex = r + skipRings;
+          const radius = 30 + ringIndex * arcWidth;
 
-        if (r % 2 === 0) {
-          for (let a = angleStart; a <= angleStart + arcSpan; a++) {
-            const x = p.cos(a) * radius;
-            const y = p.sin(a) * radius;
-            p.vertex(x, y);
-          }
-        } else {
-          for (let a = angleStart + arcSpan; a >= angleStart; a--) {
-            const x = p.cos(a) * radius;
-            const y = p.sin(a) * radius;
-            p.vertex(x, y);
+          if (r % 2 === 0) {
+            for (let a = angleStart; a <= angleStart + arcSpan; a++) {
+              const x = p.cos(a) * radius;
+              const y = p.sin(a) * radius;
+              p.vertex(x, y);
+            }
+          } else {
+            for (let a = angleStart + arcSpan; a >= angleStart; a--) {
+              const x = p.cos(a) * radius;
+              const y = p.sin(a) * radius;
+              p.vertex(x, y);
+            }
           }
         }
-      }
 
-      p.endShape();
-    }
+        p.endShape();
+      }
+    };
   };
-};
 
 export default concentricSketch;

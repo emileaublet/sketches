@@ -1,6 +1,6 @@
 import { Pens } from "./types";
 
-export const staedtlerPens: Pens = {
+export const staedtlerPens = {
   yellow: [224, 209, 53, 255], // #e0d135
   orange: [235, 140, 44, 255], // #eb8c2c
   red: [226, 52, 21, 255], // #e23415
@@ -21,7 +21,7 @@ export const staedtlerPens: Pens = {
   light_grey: [193, 195, 179, 255], // #c1c3b3
   grey: [48, 47, 41, 255], // #302f29
   black: [23, 21, 21, 255], // #171515
-};
+} satisfies Pens;
 
 export const schneiderMetallicPens: Pens = {
   silver: [236, 232, 205, 255], // #ece8cd
@@ -31,9 +31,9 @@ export const schneiderMetallicPens: Pens = {
   polar_blue: [172, 203, 207, 255], // #accbcf
   vintage_red: [220, 160, 149, 255], // #dca095
   frosted_violet: [81, 75, 98, 255], // #514b62
-};
+} satisfies Pens;
 
-export const gellyRollPens: Pens = {
+export const gellyRollPens = {
   "423": [207, 190, 222, 255], // #cfbedf
   "428": [155, 215, 117, 255], // #9bd775
   "431": [106, 194, 203, 255], // #6ac2cb
@@ -55,16 +55,16 @@ export const gellyRollPens: Pens = {
   "405": [247, 191, 123, 255], // #f7bf7b
   "418": [255, 155, 164, 255], // #ff9ba4
   "50": [225, 232, 218, 255], // #e1e8da
-};
+} satisfies Pens;
 
-export const micronPens: Pens = {
+export const micronPens = {
   brown_012: [153, 102, 51, 255], // #996633
   blue_036: [0, 102, 204, 255], // #0066cc
   black_049: [0, 0, 0, 255], // #000000
   green_029: [0, 153, 0, 255], // #009900
   red_019: [204, 0, 0, 255], // #cc0000
   purple_024: [153, 0, 153, 255], // #990099
-};
+} satisfies Pens;
 
 export const allPens: Pens = {
   ...staedtlerPens,

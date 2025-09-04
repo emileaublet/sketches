@@ -9,70 +9,83 @@ export const meta: Meta = {
   thumbnail: "/distortion-01.png",
 };
 
-const distortionSketch = (seed?: number) => (p: p5SVG) => {
-  const canvasXMargin = 120;
-  const canvasYMargin = 120;
-  const lines = 180;
-  const colors = ["#007BFF", "#FF4081", "#FF5722", "#5E35B1"];
+export const constants = {
+  canvasXMargin: 120,
+  canvasYMargin: 120,
+  lines: 180,
+  width: 700,
+  height: 850,
+};
 
-  p.setup = () => {
-    if (seed !== undefined) p.randomSeed(seed);
-    p.createCanvas(700, 850, p.SVG);
+const distortionSketch =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
+    const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
+    const lines = vars.lines ?? constants.lines;
+    const colors = ["#007BFF", "#FF4081", "#FF5722", "#5E35B1"];
 
-    p.strokeWeight(1);
-    p.noFill();
+    p.setup = () => {
+      if (seed !== null) p.randomSeed(seed);
+      p.createCanvas(
+        vars.width ?? constants.width,
+        vars.height ?? constants.height,
+        p.SVG
+      );
 
-    const drawW = p.width - 2 * canvasXMargin;
-    const drawH = p.height - 2 * canvasYMargin;
-    const cellH = drawH / lines;
-    const hMargin = canvasXMargin;
-    const vMargin = canvasYMargin;
+      p.strokeWeight(1);
+      p.noFill();
 
-    for (let row = 0; row < lines; row++) {
-      const bx = hMargin + 1;
-      const by = vMargin + row * cellH + 1;
+      const drawW = p.width - 2 * canvasXMargin;
+      const drawH = p.height - 2 * canvasYMargin;
+      const cellH = drawH / lines;
+      const hMargin = canvasXMargin;
+      const vMargin = canvasYMargin;
 
-      // how “wavy” each line is
-      const maxYOffset = 0.2 * row + 1;
-      // how many zig-zags per row
-      const segmentCount = p.floor(p.random(100, 200));
+      for (let row = 0; row < lines; row++) {
+        const bx = hMargin + 1;
+        const by = vMargin + row * cellH + 1;
 
-      // pick a color and set once
-      const col = p.random(colors);
-      p.stroke(col);
+        // how “wavy” each line is
+        const maxYOffset = 0.2 * row + 1;
+        // how many zig-zags per row
+        const segmentCount = p.floor(p.random(100, 200));
 
-      // segment length spans full draw width
-      const segmentLen = drawW / segmentCount;
+        // pick a color and set once
+        const col = p.random(colors);
+        p.stroke(col);
 
-      drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
+        // segment length spans full draw width
+        const segmentLen = drawW / segmentCount;
+
+        drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
+      }
+    };
+
+    /**
+     * @param startX     absolute x
+     * @param startY     absolute y
+     * @param segmentLen horizontal spacing between vertices
+     * @param segments   number of segments
+     * @param maxYOffset max random vertical perturbation
+     */
+    function drawZigzag(
+      startX: number,
+      startY: number,
+      segmentLen: number,
+      segments: number,
+      maxYOffset: number
+    ) {
+      p.push();
+      p.translate(startX, startY);
+      p.beginShape();
+      for (let i = 0; i <= segments; i++) {
+        const x = i * segmentLen;
+        const y = p.random(-maxYOffset, maxYOffset);
+        p.vertex(x, y);
+      }
+      p.endShape();
+      p.pop();
     }
   };
-
-  /**
-   * @param startX     absolute x
-   * @param startY     absolute y
-   * @param segmentLen horizontal spacing between vertices
-   * @param segments   number of segments
-   * @param maxYOffset max random vertical perturbation
-   */
-  function drawZigzag(
-    startX: number,
-    startY: number,
-    segmentLen: number,
-    segments: number,
-    maxYOffset: number
-  ) {
-    p.push();
-    p.translate(startX, startY);
-    p.beginShape();
-    for (let i = 0; i <= segments; i++) {
-      const x = i * segmentLen;
-      const y = p.random(-maxYOffset, maxYOffset);
-      p.vertex(x, y);
-    }
-    p.endShape();
-    p.pop();
-  }
-};
 
 export default distortionSketch;

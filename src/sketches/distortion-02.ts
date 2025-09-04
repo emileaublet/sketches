@@ -9,112 +9,130 @@ export const meta: Meta = {
   thumbnail: "/distortion-02.png",
 };
 
-const distortionSketch = (seed?: number) => (p: p5SVG) => {
-  const canvasXMargin = 120;
-  const canvasYMargin = 120;
-  const lines = 280;
-  const colors = [
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.violet,
-    staedtlerPens.red,
-    staedtlerPens.teal,
-    staedtlerPens.teal,
-    staedtlerPens.teal,
-  ];
+export const constants = {
+  canvasXMargin: 120,
+  canvasYMargin: 120,
+  lines: 280,
+  width: 700,
+  height: 850,
+  dotsMin: 100,
+  dotsMax: 200,
+};
 
-  p.setup = () => {
-    if (seed !== undefined) p.randomSeed(seed);
-    p.createCanvas(700, 850, p.SVG);
-    p.strokeWeight(1);
-    p.noFill();
+const distortionSketch =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
+    const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
+    const lines = vars.lines ?? constants.lines;
+    const colors = [
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.violet,
+      staedtlerPens.red,
+      staedtlerPens.teal,
+      staedtlerPens.teal,
+      staedtlerPens.teal,
+    ];
 
-    const drawW = p.width - 2 * canvasXMargin;
-    const drawH = p.height - 2 * canvasYMargin;
-    const cellH = drawH / lines;
-    const hMargin = canvasXMargin;
-    const vMargin = canvasYMargin;
+    p.setup = () => {
+      if (seed !== null) p.randomSeed(seed);
+      p.createCanvas(
+        vars.width ?? constants.width,
+        vars.height ?? constants.height,
+        p.SVG
+      );
+      p.strokeWeight(1);
+      p.noFill();
 
-    for (let row = 0; row < lines; row++) {
-      const bx = hMargin + 1;
+      const drawW = p.width - 2 * canvasXMargin;
+      const drawH = p.height - 2 * canvasYMargin;
+      const cellH = drawH / lines;
+      const hMargin = canvasXMargin;
+      const vMargin = canvasYMargin;
 
-      const by = vMargin + row * cellH + 1;
+      for (let row = 0; row < lines; row++) {
+        const bx = hMargin + 1;
 
-      // how “wavy” each line is
-      const maxYOffset = 0.1 * row + 1;
-      // how many zig-zags per row
-      const segmentCount = p.floor(p.random(100, 200));
+        const by = vMargin + row * cellH + 1;
 
-      p.stroke(p.random(colors));
+        // how “wavy” each line is
+        const maxYOffset = 0.1 * row + 1;
+        // how many zig-zags per row
+        const segmentCount = p.floor(p.random(100, 200));
 
-      // segment length spans full draw width
-      const segmentLen = drawW / segmentCount;
+        p.stroke(p.random(colors));
 
-      drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
-    }
-    drawDots([255, 255, 255, 255]); // white
-    drawDots(staedtlerPens.yellow);
-  };
+        // segment length spans full draw width
+        const segmentLen = drawW / segmentCount;
 
-  function drawDots(color: [number, number, number, number]) {
-    // Add white dots
-    const dotCount = p.random(100, 200);
-    p.strokeWeight(6);
-    p.stroke(...color); // white
-    for (let i = 0; i < dotCount; i++) {
-      const x = p.random(canvasXMargin, p.width - canvasXMargin);
-      const y = p.random(canvasYMargin, p.height - canvasYMargin);
-      p.point(x, y);
-    }
-  }
+        drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
+      }
+      drawDots([255, 255, 255, 255]); // white
+      drawDots(staedtlerPens.yellow);
+    };
 
-  /**
-   * @param startX     absolute x
-   * @param startY     absolute y
-   * @param segmentLen horizontal spacing between vertices
-   * @param segments   number of segments
-   * @param maxYOffset max random vertical perturbation
-   */
-  function drawZigzag(
-    startX: number,
-    startY: number,
-    segmentLen: number,
-    segments: number,
-    maxYOffset: number
-  ) {
-    p.push();
-    const xNoise = p.random(-3, 3);
-    p.translate(startX + xNoise, startY);
-
-    p.beginShape();
-    for (let i = 0; i <= segments; i++) {
-      const x = i * segmentLen;
-      const y = p.random(-maxYOffset, maxYOffset);
-      p.vertex(x, y);
-
-      // ~10% chance to split the line here
-      if (p.random() < 0.1 && i < segments - 1) {
-        p.endShape();
-        p.stroke(p.random(colors)); // pick a new color
-        p.beginShape();
-        p.vertex(x, y); // continue from the same point
+    function drawDots(color: [number, number, number, number]) {
+      // Add white dots
+      const dotCount = p.random(
+        vars.dotsMin ?? constants.dotsMin,
+        vars.dotsMax ?? constants.dotsMax
+      );
+      p.strokeWeight(6);
+      p.stroke(...color); // white
+      for (let i = 0; i < dotCount; i++) {
+        const x = p.random(canvasXMargin, p.width - canvasXMargin);
+        const y = p.random(canvasYMargin, p.height - canvasYMargin);
+        p.point(x, y);
       }
     }
-    p.endShape();
-    p.pop();
-  }
-};
+
+    /**
+     * @param startX     absolute x
+     * @param startY     absolute y
+     * @param segmentLen horizontal spacing between vertices
+     * @param segments   number of segments
+     * @param maxYOffset max random vertical perturbation
+     */
+    function drawZigzag(
+      startX: number,
+      startY: number,
+      segmentLen: number,
+      segments: number,
+      maxYOffset: number
+    ) {
+      p.push();
+      const xNoise = p.random(-3, 3);
+      p.translate(startX + xNoise, startY);
+
+      p.beginShape();
+      for (let i = 0; i <= segments; i++) {
+        const x = i * segmentLen;
+        const y = p.random(-maxYOffset, maxYOffset);
+        p.vertex(x, y);
+
+        // ~10% chance to split the line here
+        if (p.random() < 0.1 && i < segments - 1) {
+          p.endShape();
+          p.stroke(p.random(colors)); // pick a new color
+          p.beginShape();
+          p.vertex(x, y); // continue from the same point
+        }
+      }
+      p.endShape();
+      p.pop();
+    }
+  };
 
 export default distortionSketch;

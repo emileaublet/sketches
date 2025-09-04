@@ -17,6 +17,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { useClipboard } from "@custom-react-hooks/use-clipboard";
+import { useControls } from "leva";
 
 interface P5WrapperProps {
   slug: string;
@@ -29,6 +30,24 @@ interface P5WrapperProps {
   mode?: "dark" | "light";
 }
 
+const Controls = ({
+  controls,
+  setControls,
+}: {
+  controls: any;
+  setControls: (c: any) => void;
+}) => {
+  const controlValues = useControls({ ...controls }, [
+    JSON.stringify(controls),
+  ]);
+
+  useEffect(() => {
+    setControls(controlValues);
+  }, [controlValues]);
+
+  return <></>;
+};
+
 const P5Wrapper: React.FC<P5WrapperProps> = ({
   slug,
   className,
@@ -37,8 +56,10 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   isFullscreen = false,
   mode = "dark",
 }) => {
+  const [controls, setControls] = useState({});
+  const [controlValues, setControlValues] = useState({});
   const [pos, setPos] = useState(0);
-  const [seed, setSeed] = useState<number[]>([]);
+  const [seed, setSeed] = useState<number[]>([0]);
   const [sketch, setSketch] = useState();
   const { copyToClipboard } = useClipboard();
   const [copying, setCopying] = useState(false);
@@ -114,16 +135,17 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     // Dynamically import the sketch module
     const loadSketch = async () => {
       try {
-        const { default: sketchModule } = await import(
+        const { default: sketchModule, constants } = await import(
           `../sketches/${slug}.ts`
         );
-        setSketch(() => sketchModule(seed[pos]));
+        setControls(constants || {});
+        setSketch(() => sketchModule(seed[pos], controlValues));
       } catch (error) {
         console.error("Failed to load sketch:", error);
       }
     };
     loadSketch();
-  }, [slug, seed, pos]);
+  }, [slug, seed, pos, controlValues]);
 
   useEffect(() => {
     if (!containerRef.current || !sketch) {
@@ -352,6 +374,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
       <div className="flex items-center justify-end p-2 w-full border-b-2">
         {process.env.NODE_ENV === "development" && (
           <div className="flex-grow flex items-center justify-start">
+            <Controls controls={controls} setControls={setControlValues} />
             <Button
               disabled={isRedrawing || !canBack}
               size={"icon"}
