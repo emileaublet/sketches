@@ -1,7 +1,8 @@
 import { p5SVG } from "p5.js-svg";
 
-import { Color, Meta } from "../types";
-import { staedtlerPens } from "@/pens";
+import { Meta } from "../types";
+import { DotPen } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "stairs-01",
@@ -22,16 +23,16 @@ export const constants = {
 
 const stairsSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    const colors = [
-      staedtlerPens.yellow,
-      staedtlerPens.orange,
-      //staedtlerPens.red,
-      //staedtlerPens.fuchsia,
-      //staedtlerPens.rose,
-      //staedtlerPens.violet,
-      staedtlerPens.blue,
-      staedtlerPens.teal,
-      staedtlerPens.green,
+    const colors: DotPen[] = [
+      "staedtlerPens.yellow",
+      "staedtlerPens.orange",
+      //"staedtlerPens.red",
+      //"staedtlerPens.fuchsia",
+      //"staedtlerPens.rose",
+      //"staedtlerPens.violet",
+      "staedtlerPens.blue",
+      "staedtlerPens.teal",
+      "staedtlerPens.green",
     ];
 
     p.setup = () => {
@@ -132,10 +133,9 @@ const stairsSketch =
       y: number,
       width: number,
       height: number,
-      color: Color
+      color: DotPen
     ) {
-      p.stroke(...color);
-      p.strokeWeight(0.5);
+      setStroke(color, p);
 
       // Calculate how many lines can fit in the rectangle height
       const lineSpacing = p.random(1, 8); // Space between lines

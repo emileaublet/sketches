@@ -1,6 +1,7 @@
 import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
-import { gellyRollPens } from "@/pens";
+
+import { findColor } from "@/utils/findColor";
 
 export const meta: Meta = {
   id: "nodes-03",
@@ -10,12 +11,12 @@ export const meta: Meta = {
 };
 
 const colors = [
-  gellyRollPens["429"],
-  gellyRollPens["424"],
-  gellyRollPens["422"],
-  gellyRollPens["421"],
-  gellyRollPens["427"],
-  gellyRollPens["438"],
+  findColor("gellyRollPens.429").color,
+  findColor("gellyRollPens.424").color,
+  findColor("gellyRollPens.422").color,
+  findColor("gellyRollPens.421").color,
+  findColor("gellyRollPens.427").color,
+  findColor("gellyRollPens.438").color,
 ];
 
 export const constants = {

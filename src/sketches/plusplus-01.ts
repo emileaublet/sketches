@@ -1,8 +1,9 @@
 import { p5SVG } from "p5.js-svg";
 
-import { micronPens } from "@/pens";
+import { DotPen, micronPens } from "@/pens";
 
 import { Meta } from "../types";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "plusplus-01",
@@ -11,9 +12,9 @@ export const meta: Meta = {
   thumbnail: "plusplus-01.png",
 };
 
-const dark = micronPens["blue_036"];
-const light = micronPens["red_019"];
-const medium = micronPens["green_029"];
+const dark = "micronPens.blue_036";
+const light = "micronPens.red_019";
+const medium = "micronPens.green_029";
 
 export const constants = {
   canvasMargin: 200,
@@ -44,8 +45,8 @@ const plusPlusSketch =
       p.noLoop();
     };
 
-    function drawGrid(plusSize: number, color: number[]) {
-      p.stroke(color);
+    function drawGrid(plusSize: number, color: DotPen) {
+      setStroke(color, p);
       const gradientInfo = getGradientInfo(plusSize);
       const horizontalSpacing = plusSize;
       const cols = Math.floor((p.width - canvasMargin) / horizontalSpacing);
@@ -187,7 +188,6 @@ const plusPlusSketch =
       lineCount: number
     ) {
       p.rectMode(p.CENTER);
-      p.strokeWeight(0.25);
 
       // Draw vertical rectangle with vertical lines
       const vertRectWidth = size / 3;

@@ -1,8 +1,9 @@
 import { p5SVG } from "p5.js-svg";
 
-import { gellyRollPens } from "@/pens";
+import { all, DotPen, gellyRollPens } from "@/pens";
 
 import { Meta } from "../types";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "flowerpot-01",
@@ -34,7 +35,7 @@ const flowerpotSketch =
     }
 
     const potAreas: PotArea[] = []; // Store area for each pot
-    const usedColors: any[] = []; // Track used colors to avoid duplicates
+    const usedColors: DotPen[] = []; // Track used colors to avoid duplicates
 
     p.setup = () => {
       if (seed !== null) p.randomSeed(seed);
@@ -88,7 +89,7 @@ const flowerpotSketch =
 
     function generatePot(potArea: PotArea) {
       // Select a unique color that hasn't been used yet
-      const availableColors = Object.values(gellyRollPens).filter(
+      const availableColors = Object.values(all("gellyRollPens")).filter(
         (color) =>
           !usedColors.some(
             (usedColor) =>
@@ -102,14 +103,13 @@ const flowerpotSketch =
       // If we've used all colors, reset the list (shouldn't happen with reasonable pot counts)
       if (availableColors.length === 0) {
         usedColors.length = 0;
-        availableColors.push(...Object.values(gellyRollPens));
+        availableColors.push(...Object.values(all("gellyRollPens")));
       }
 
       const selectedColor = p.random(availableColors);
       usedColors.push(selectedColor);
 
-      p.stroke(selectedColor);
-      p.strokeWeight(0.5);
+      setStroke(selectedColor, p);
       const numLines = p.random(42, 78);
       const potHeight = potArea.height; // Use area height
       const baseY = potArea.bottomY; // Use area bottom

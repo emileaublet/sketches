@@ -1,7 +1,8 @@
 import { p5SVG } from "p5.js-svg";
-import { staedtlerPens } from "@/pens";
+import { DotPen, staedtlerPens } from "@/pens";
 
 import { Meta } from "../types";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "cartesian-01",
@@ -21,7 +22,9 @@ const cartesianSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
     const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
-    const colors = Object.values(staedtlerPens);
+    const colors: DotPen[] = Object.keys(staedtlerPens.pens).map(
+      (pen) => `staedtlerPens.${pen}` as DotPen
+    );
 
     if (seed !== null) p.randomSeed(seed);
     p.setup = () => {
@@ -64,8 +67,6 @@ const cartesianSketch =
         cellSize
       );
 
-      p.strokeWeight(0.5);
-
       for (const [i, rect] of rectsH.entries()) {
         const lines = p.floor(rect.h / cellSize);
         const color = colors[i % colors.length];
@@ -77,7 +78,7 @@ const cartesianSketch =
           const maxYOffset = 0.2;
           const segmentCount = p.floor(p.random(100, 200));
 
-          p.stroke(...color);
+          setStroke(color, p);
 
           // segment length spans full draw width
           const segmentLen = rect.w / segmentCount;
@@ -97,7 +98,7 @@ const cartesianSketch =
           const maxXOffset = 0.2;
           const segmentCount = p.floor(p.random(100, 200));
 
-          p.stroke(color);
+          setStroke(color, p);
 
           // segment length spans full draw height
           const segmentLen = rect.h / segmentCount;

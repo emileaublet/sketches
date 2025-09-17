@@ -1,13 +1,13 @@
 import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
+import { DotPen } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
 
-import { staedtlerPens } from "@/pens";
-
-const pensSubset = [
-  staedtlerPens.orange,
-  staedtlerPens.fuchsia,
-  staedtlerPens.blue,
-  staedtlerPens.yellow,
+const pensSubset: DotPen[] = [
+  "staedtlerPens.orange",
+  "staedtlerPens.fuchsia",
+  "staedtlerPens.blue",
+  "staedtlerPens.yellow",
 ];
 
 export const meta: Meta = {
@@ -50,7 +50,7 @@ const concentricSketch =
 
       for (let layer = 1; layer <= layers; layer++) {
         const color = pensSubset[Math.floor(p.random(pensSubset.length))];
-        p.stroke(...color);
+        setStroke(color, p);
         const t = layer / layers;
         const eased = t * t * 2 + 0.1;
 

@@ -1,6 +1,8 @@
 import { p5SVG } from "p5.js-svg";
 
 import { Meta } from "../types";
+import { DotPen } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "nodes-01",
@@ -47,12 +49,16 @@ const nodesSketch =
     const innerJitterFrac = vars.innerJitterFrac ?? constants.innerJitterFrac;
 
     // define a 4-color palette
-    const colors = ["#007BFF", "#FF4081", "#FF5722", "#5E35B1"];
+    const colors: DotPen[] = [
+      "staedtlerPens.teal",
+      "staedtlerPens.mauve",
+      "staedtlerPens.rose",
+      "staedtlerPens.yellow",
+    ];
 
     p.setup = () => {
       if (seed !== null) p.randomSeed(seed);
       p.createCanvas(700, 850, p.SVG);
-      p.strokeWeight(1);
       p.noFill();
 
       // available width after side-margins
@@ -141,7 +147,7 @@ const nodesSketch =
       // draw segments with random colors
       for (let i = 1; i < pts.length; i++) {
         const c = p.random(colors);
-        p.stroke(c);
+        setStroke(c, p);
         p.line(pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y);
       }
     }

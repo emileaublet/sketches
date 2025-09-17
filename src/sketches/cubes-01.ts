@@ -1,6 +1,7 @@
 import { p5SVG } from "p5.js-svg";
 import { Color, Meta } from "../types";
-import { gellyRollPens } from "@/pens";
+import { DotPen, gellyRollPens } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "cubes-01",
@@ -32,7 +33,7 @@ const distortionSketch =
     };
 
     // Reusable function to draw the grid with a specified color
-    const drawGrid = (strokeColor: Color) => {
+    const drawGrid = (strokeColor: DotPen) => {
       const marginY = vars.marginY ?? constants.marginY;
       const marginX = vars.marginX ?? constants.marginX;
       const cellSizes = vars.cellSizes ?? constants.cellSizes;
@@ -96,8 +97,6 @@ const distortionSketch =
 
           p.push();
 
-          p.strokeWeight(0.5);
-
           const hasPadding = p.random() < 0.5;
           const padding = hasPadding ? p.random(8, 24) : 0;
 
@@ -129,24 +128,24 @@ const distortionSketch =
 
     p.draw = () => {
       // always a white base
-      drawGrid(gellyRollPens["50"]);
+      drawGrid("gellyRollPens.50");
       // subtle color
       drawGrid(
         p.random([
-          gellyRollPens["415"],
-          gellyRollPens["417"],
-          gellyRollPens["422"],
-          gellyRollPens["438"],
+          "gellyRollPens.415",
+          "gellyRollPens.417",
+          "gellyRollPens.422",
+          "gellyRollPens.438",
         ])
       );
       // highlight color
       drawGrid(
         p.random([
-          gellyRollPens["423"],
-          gellyRollPens["425"],
-          gellyRollPens["432"],
-          gellyRollPens["431"],
-          gellyRollPens["428"],
+          "gellyRollPens.423",
+          "gellyRollPens.425",
+          "gellyRollPens.432",
+          "gellyRollPens.431",
+          "gellyRollPens.428",
         ])
       );
     };
@@ -155,9 +154,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const turns = p.random(3, size / 10);
       const points = 200;
@@ -177,9 +176,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const lines = p.floor(p.random(4, size / 10));
       const amp = p.random(2, 7);
@@ -204,9 +203,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const centerX = x + size / 2;
       const centerY = y + size / 2;
@@ -226,9 +225,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const sides = p.floor(p.random(3, 8));
       const centerX = x + size / 2;
@@ -263,9 +262,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       const spacing = p.random(0.5, 12);
       for (let i = x; i < x + size; i += spacing) {
         p.line(i, y, i, y + size);
@@ -276,9 +275,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       const spacing = p.random(0.5, 12);
       for (let i = y; i < y + size; i += spacing) {
         p.line(x, i, x + size, i);
@@ -289,9 +288,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const count = p.floor(p.random(3, 10));
       const step = size / count;
@@ -317,9 +316,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
 
       const zigzagWidth = p.random(3, size / 2); // Width of each zigzag segment
       const zigzagHeight = p.random(2, size / 2); // Height of each peak/valley
@@ -359,9 +358,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const count = p.floor(p.random(1, 4));
       const step = size / (count * 2); // Divide by 2 so diamonds fit properly
@@ -393,9 +392,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       const left = p.random(0, 1) < 0.5; // Randomly choose left or right diagonal
       if (left) {
         p.line(x + size, y, x, y + size); // Top-right to bottom-left diagonal
@@ -408,9 +407,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       const spacing = p.random(3, 8);
       const direction = p.random() < 0.5; // true for /, false for \
 
@@ -447,9 +446,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const squareCount = p.floor(p.random(2, size / 10)); // Random number of squares per side
       const squareSize = size / squareCount;
@@ -500,9 +499,9 @@ const distortionSketch =
       x: number,
       y: number,
       size: number,
-      strokeColor: Color
+      strokeColor: DotPen
     ) => {
-      p.stroke(...strokeColor);
+      setStroke(strokeColor, p);
       p.noFill();
       const count = p.floor(p.random(6, size / 4)); // Random number of rings
 

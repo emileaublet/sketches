@@ -14,4 +14,12 @@ export interface Sketch extends Meta {
 }
 
 export type Color = [number, number, number, number];
+
 export type Pens = Record<string, Color>;
+
+export type PenFamily = {
+  name: string;
+  lineWidth: number;
+  opaque: boolean;
+  pens: Pens;
+};

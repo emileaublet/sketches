@@ -1,6 +1,7 @@
 import { p5SVG } from "p5.js-svg";
-import { staedtlerPens } from "@/pens";
+
 import { Meta } from "../types";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "nodes-02",
@@ -53,7 +54,6 @@ const nodesSketch =
         vars.height ?? constants.height,
         p.SVG
       );
-      p.strokeWeight(1);
       p.noFill();
 
       // available width after side-margins
@@ -137,14 +137,11 @@ const nodesSketch =
         y = ny;
       }
 
-      const penIndex = p.floor(p.random(8, 11));
-      const pen = Object.values(staedtlerPens)[penIndex];
-
       const chance = p.random();
       if (chance < 0.99) {
-        p.stroke(...pen);
+        setStroke("staedtlerPens.baby_blue", p);
       } else {
-        p.stroke(...staedtlerPens.red);
+        setStroke("staedtlerPens.red", p);
       }
 
       p.beginShape();

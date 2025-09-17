@@ -1,6 +1,8 @@
 import { p5SVG } from "p5.js-svg";
 
 import { Meta } from "../types";
+import { all, DotPen } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "distortion-01",
@@ -22,7 +24,7 @@ const distortionSketch =
     const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
     const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
     const lines = vars.lines ?? constants.lines;
-    const colors = ["#007BFF", "#FF4081", "#FF5722", "#5E35B1"];
+    const colors: DotPen[] = all("staedtlerPens");
 
     p.setup = () => {
       if (seed !== null) p.randomSeed(seed);
@@ -32,7 +34,6 @@ const distortionSketch =
         p.SVG
       );
 
-      p.strokeWeight(1);
       p.noFill();
 
       const drawW = p.width - 2 * canvasXMargin;
@@ -52,7 +53,7 @@ const distortionSketch =
 
         // pick a color and set once
         const col = p.random(colors);
-        p.stroke(col);
+        setStroke(col, p);
 
         // segment length spans full draw width
         const segmentLen = drawW / segmentCount;

@@ -1,6 +1,7 @@
 import { p5SVG } from "p5.js-svg";
-import { staedtlerPens } from "@/pens";
+import { all, DotPen, staedtlerPens } from "@/pens";
 import { Meta } from "../types";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "distortion-02",
@@ -24,27 +25,7 @@ const distortionSketch =
     const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
     const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
     const lines = vars.lines ?? constants.lines;
-    const colors = [
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.violet,
-      staedtlerPens.red,
-      staedtlerPens.teal,
-      staedtlerPens.teal,
-      staedtlerPens.teal,
-    ];
+    const colors: DotPen[] = all("staedtlerPens");
 
     p.setup = () => {
       if (seed !== null) p.randomSeed(seed);
@@ -53,7 +34,6 @@ const distortionSketch =
         vars.height ?? constants.height,
         p.SVG
       );
-      p.strokeWeight(1);
       p.noFill();
 
       const drawW = p.width - 2 * canvasXMargin;
@@ -80,7 +60,7 @@ const distortionSketch =
         drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
       }
       drawDots([255, 255, 255, 255]); // white
-      drawDots(staedtlerPens.yellow);
+      drawDots(staedtlerPens.pens.yellow);
     };
 
     function drawDots(color: [number, number, number, number]) {
@@ -115,6 +95,7 @@ const distortionSketch =
       p.push();
       const xNoise = p.random(-3, 3);
       p.translate(startX + xNoise, startY);
+      setStroke(p.random(colors), p);
 
       p.beginShape();
       for (let i = 0; i <= segments; i++) {
@@ -125,7 +106,6 @@ const distortionSketch =
         // ~10% chance to split the line here
         if (p.random() < 0.1 && i < segments - 1) {
           p.endShape();
-          p.stroke(p.random(colors)); // pick a new color
           p.beginShape();
           p.vertex(x, y); // continue from the same point
         }

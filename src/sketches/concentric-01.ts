@@ -1,6 +1,8 @@
 import { p5SVG } from "p5.js-svg";
 
 import { Meta } from "../types";
+import { DotPen } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {
   id: "concentric-01",
@@ -31,12 +33,11 @@ const concentricSketch =
 
       const segments = 22;
 
-      const colors = [
-        p.color(255, 190, 11, 230),
-        p.color(251, 86, 7, 230),
-        p.color(255, 0, 110, 230),
-        p.color(131, 56, 236, 230),
-        p.color(58, 134, 255, 230),
+      const colors: DotPen[] = [
+        "schneiderMetallicPens.frosted_violet",
+        "schneiderMetallicPens.gold",
+        "schneiderMetallicPens.polar_blue",
+        "schneiderMetallicPens.silver",
       ];
 
       for (let s = 0; s < segments; s++) {
@@ -48,8 +49,7 @@ const concentricSketch =
         const visibleRings = totalRings - skipRings;
         const col = colors[s % colors.length];
 
-        p.stroke(col);
-        p.strokeWeight(0.5);
+        setStroke(col, p);
 
         p.beginShape();
 
