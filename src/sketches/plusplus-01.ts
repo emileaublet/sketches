@@ -1,6 +1,6 @@
 import { p5SVG } from "p5.js-svg";
 
-import { DotPen, micronPens } from "@/pens";
+import { DotPen } from "@/pens";
 
 import { Meta } from "../types";
 import { setStroke } from "@/utils/setStroke";

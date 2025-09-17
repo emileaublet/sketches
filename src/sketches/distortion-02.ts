@@ -1,7 +1,8 @@
 import { p5SVG } from "p5.js-svg";
-import { all, DotPen, staedtlerPens } from "@/pens";
+import { all, DotPen } from "@/pens";
 import { Meta } from "../types";
 import { setStroke } from "@/utils/setStroke";
+import { findColor } from "@/utils/findColor";
 
 export const meta: Meta = {
   id: "distortion-02",
@@ -60,7 +61,7 @@ const distortionSketch =
         drawZigzag(bx, by, segmentLen, segmentCount, maxYOffset);
       }
       drawDots([255, 255, 255, 255]); // white
-      drawDots(staedtlerPens.pens.yellow);
+      drawDots(findColor("staedtlerPens.yellow").color);
     };
 
     function drawDots(color: [number, number, number, number]) {

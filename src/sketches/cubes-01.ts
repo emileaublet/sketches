@@ -1,6 +1,6 @@
 import { p5SVG } from "p5.js-svg";
-import { Color, Meta } from "../types";
-import { DotPen, gellyRollPens } from "@/pens";
+import { Meta } from "../types";
+import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
 
 export const meta: Meta = {

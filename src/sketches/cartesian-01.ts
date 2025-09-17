@@ -1,5 +1,5 @@
 import { p5SVG } from "p5.js-svg";
-import { DotPen, staedtlerPens } from "@/pens";
+import { all, DotPen } from "@/pens";
 
 import { Meta } from "../types";
 import { setStroke } from "@/utils/setStroke";
@@ -22,9 +22,7 @@ const cartesianSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
     const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
-    const colors: DotPen[] = Object.keys(staedtlerPens.pens).map(
-      (pen) => `staedtlerPens.${pen}` as DotPen
-    );
+    const colors: DotPen[] = all("staedtlerPens");
 
     if (seed !== null) p.randomSeed(seed);
     p.setup = () => {
