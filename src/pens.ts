@@ -1,4 +1,4 @@
-import { PenFamily } from "./types";
+import { PenFamily } from "./types.ts";
 
 export const staedtlerPens = {
   name: "Staedtler Triplus Fineliner",
