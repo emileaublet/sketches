@@ -1,4 +1,38 @@
 {
+  "lePenPastelPens": {
+    "name": "Le Pen Pastel",
+    "opaque": false,
+    "lineWidth": 0.4,
+    "pens": {
+      "pink": [233, 129, 150, 255],
+      "orange": [227, 164, 137, 255],
+      "rose": [224, 192, 175, 255],
+      "yellow": [228, 211, 121, 255],
+      "teal": [181, 206, 184, 255],
+      "baby_blue": [157, 183, 188, 255],
+      "blue": [155, 159, 183, 255],
+      "mauve": [193, 180, 191, 255],
+      "sea": [63, 115, 126, 255],
+      "taupe": [97, 88, 89, 255]
+    }
+  },
+  "lePenPens": {
+    "name": "Le Pen",
+    "opaque": false,
+    "lineWidth": 0.4,
+    "pens": {
+      "taupe": [99, 87, 78, 255],
+      "silver": [145, 138, 132, 255],
+      "blood_orange": [220, 86, 83, 255],
+      "red": [162, 63, 68, 255],
+      "wine": [107, 70, 78, 255],
+      "green": [65, 102, 92, 255],
+      "soil": [82, 85, 58, 255],
+      "blue": [44, 44, 93, 255],
+      "sky": [78, 113, 138, 255],
+      "gray": [80, 79, 86, 255]
+    }
+  },
   "staedtlerPens": {
     "name": "Staedtler Triplus Fineliner",
     "opaque": false,
