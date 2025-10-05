@@ -84,7 +84,15 @@ export function createControls<T extends Record<string, any>>(
   constants: T,
   controlConfig?: Partial<Record<keyof T, LevaControlType>>
 ): Record<keyof T, LevaControlType> {
-  const controls = {} as Record<keyof T, LevaControlType>;
+  let controls = {} as Record<keyof T, LevaControlType>;
+
+  // reorder so debug at the end
+  const { debug, ...rest } = constants;
+
+  controls = {
+    ...rest,
+    ...(debug !== undefined ? { debug } : {}),
+  } as Record<keyof T, LevaControlType>;
 
   for (const [key, value] of Object.entries(constants)) {
     const configKey = key as keyof T;
@@ -147,20 +155,3 @@ export function createControls<T extends Record<string, any>>(
 
   return controls;
 }
-
-export const PAPER_SIZES_MM = {
-  A4: { width: 210, height: 297 },
-  A3: { width: 297, height: 420 },
-  A2: { width: 420, height: 594 },
-  A1: { width: 594, height: 841 },
-  A0: { width: 841, height: 1189 },
-  Letter: { width: 216, height: 279 },
-  Legal: { width: 216, height: 356 },
-  ["9x12"]: { width: 229, height: 305 },
-  ["11x14"]: { width: 279, height: 356 },
-  ["11x17"]: { width: 279, height: 432 },
-  ["12x16"]: { width: 305, height: 406 },
-  ["12x18"]: { width: 305, height: 457 },
-  ["14x17"]: { width: 356, height: 432 },
-  ["18x24"]: { width: 457, height: 610 },
-} as const;
