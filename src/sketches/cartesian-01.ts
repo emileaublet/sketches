@@ -3,6 +3,11 @@ import { all, DotPen } from "@/pens";
 
 import { Meta } from "../types";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+import { calculateDrawArea } from "@/utils/drawingArea";
+
+type Constants = BaseConstants;
 
 export const meta: Meta = {
   id: "cartesian-01",
@@ -11,45 +16,41 @@ export const meta: Meta = {
   thumbnail: "/cartesian-01.png",
 };
 
-export const constants = {
+export const constants: Constants = {
   width: 700,
   height: 850,
-  canvasXMargin: 120,
-  canvasYMargin: 120,
+  marginX: 120,
+  marginY: 120,
+  debug: false,
 };
 
 const cartesianSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
-    const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
+    const marginX = vars.marginX ?? constants.marginX;
+    const marginY = vars.marginY ?? constants.marginY;
     const colors: DotPen[] = all("staedtlerPens");
 
     if (seed !== null) p.randomSeed(seed);
     p.setup = () => {
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-      p.strokeWeight(1);
-      p.noFill();
-      if (seed !== null) {
-        p.randomSeed(seed);
-      }
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        strokeWeight: 1,
+        noFill: true,
+        debug: vars.debug ?? constants.debug,
+        marginX,
+        marginY,
+      });
 
-      const drawW = p.width - 2 * canvasXMargin;
-      const drawH = p.height - 2 * canvasYMargin;
-
+      const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);
       const cellSize = 2;
-
-      const hMargin = canvasXMargin;
-      const vMargin = canvasYMargin;
 
       // Split the canvas into random rectangles
       const rectCount = p.floor(p.random(4, 8));
       const rectsH = splitSpace(
-        hMargin,
-        vMargin,
+        marginX,
+        marginY,
         drawW,
         drawH,
         rectCount,
@@ -57,8 +58,8 @@ const cartesianSketch =
       );
 
       const rectsV = splitSpace(
-        hMargin,
-        vMargin,
+        marginX,
+        marginY,
         drawW,
         drawH,
         rectCount,
@@ -69,6 +70,11 @@ const cartesianSketch =
         const lines = p.floor(rect.h / cellSize);
         const color = colors[i % colors.length];
 
+        if (vars.debug ?? constants.debug) {
+          p.stroke("red");
+          p.noFill();
+          p.rect(rect.x, rect.y, rect.w, rect.h);
+        }
         for (let row = 0; row < lines; row++) {
           const bx = rect.x;
           const by = rect.y + row * cellSize;
@@ -88,6 +94,11 @@ const cartesianSketch =
       for (const rect of rectsV) {
         const lines = p.floor(rect.w / cellSize);
 
+        if (vars.debug ?? constants.debug) {
+          p.stroke("red");
+          p.noFill();
+          p.rect(rect.x, rect.y, rect.w, rect.h);
+        }
         const color = p.random(colors);
         for (let col = 0; col < lines; col++) {
           const bx = rect.x + col * cellSize;

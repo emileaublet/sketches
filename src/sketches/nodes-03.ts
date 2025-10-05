@@ -2,6 +2,8 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 
 import { findColor } from "@/utils/findColor";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
 
 export const meta: Meta = {
   id: "nodes-03",
@@ -19,11 +21,22 @@ const colors = [
   findColor("gellyRollPens.438").color,
 ];
 
-export const constants = {
-  ballRadius: 300,
-  spacing: 20,
+type Constants = BaseConstants & {
+  ballRadius: number;
+  spacing: number;
+  minDotSize: number;
+  maxDotSize: number;
+  packingTightness: number;
+};
+
+export const constants: Constants = {
   width: 700,
   height: 850,
+  marginX: 70,
+  marginY: 85,
+  debug: false,
+  ballRadius: 300,
+  spacing: 20,
   minDotSize: 12,
   maxDotSize: 80,
   packingTightness: 1.24,
@@ -42,12 +55,14 @@ const nodesSketch =
       vars.packingTightness ?? constants.packingTightness;
 
     p.setup = () => {
-      if (seed !== null) p.randomSeed(seed);
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+      });
       p.noStroke();
       if (debug) {
         // In debug mode, redraw on mouse movement for interactive lighting

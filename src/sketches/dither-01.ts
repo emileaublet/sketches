@@ -3,6 +3,10 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+import { calculateDrawArea } from "@/utils/drawingArea";
+import { getBayerThreshold } from "@/utils/ditherUtils";
 
 export const meta: Meta = {
   id: "dither-01",
@@ -11,24 +15,31 @@ export const meta: Meta = {
   thumbnail: "/dither-01.png",
 };
 
-export const constants = {
+type Constants = BaseConstants & {
+  cellSize: number;
+};
+
+export const constants: Constants = {
   width: 550,
   height: 700,
   marginX: 80,
   marginY: 80,
+  debug: false,
   cellSize: 16,
 };
 
 const ditherSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     p.setup = () => {
-      if (seed !== null) p.randomSeed(seed);
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-      //p.noFill();
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+      });
 
       drawGrid(vars.cellSize ?? constants.cellSize, [
         "micronPens.red_019",
@@ -40,7 +51,6 @@ const ditherSketch =
         staedtlerPens.teal,
         staedtlerPens.violet,
       ]); */
-      p.noLoop();
     };
 
     function drawGrid(
@@ -54,8 +64,7 @@ const ditherSketch =
       const marginX = vars.marginX ?? constants.marginX;
       const marginY = vars.marginY ?? constants.marginY;
 
-      const drawW = p.width - 2 * marginX;
-      const drawH = p.height - 2 * marginY;
+      const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);
 
       // Create pixelated gradient
       const cols = Math.floor(drawW / cellSize);
@@ -146,17 +155,7 @@ const ditherSketch =
     }
 
     function bayer8x8(x: number, y: number): number {
-      const bayerMatrix = [
-        [0, 48, 12, 60, 3, 51, 15, 63],
-        [32, 16, 44, 28, 35, 19, 47, 31],
-        [8, 56, 4, 52, 11, 59, 7, 55],
-        [40, 24, 36, 20, 43, 27, 39, 23],
-        [2, 50, 14, 62, 1, 49, 13, 61],
-        [34, 18, 46, 30, 33, 17, 45, 29],
-        [10, 58, 6, 54, 9, 57, 5, 53],
-        [42, 26, 38, 22, 41, 25, 37, 21],
-      ];
-      return bayerMatrix[y % 8][x % 8];
+      return getBayerThreshold(x, y, 8);
     }
   };
 

@@ -4,6 +4,8 @@ import { all, DotPen } from "@/pens";
 
 import { Meta } from "../types";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
 
 export const meta: Meta = {
   id: "flowerpot-01",
@@ -12,17 +14,23 @@ export const meta: Meta = {
   thumbnail: "flowerpot-01.png", // Add a thumbnail path if available
 };
 
-export const constants = {
-  canvasMargin: 120,
-  asymmetry: 400,
-  width: 600,
-  height: 600,
+type Constants = BaseConstants & {
+  asymmetry: number;
 };
 
-// Add asymmetry parameter (default 1) and region settings
+export const constants: Constants = {
+  width: 700,
+  height: 850,
+  marginX: 120,
+  marginY: 120,
+  debug: false,
+  asymmetry: 1,
+};
+
 const flowerpotSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    const canvasMargin = vars.canvasMargin ?? constants.canvasMargin;
+    const marginX = vars.marginX ?? constants.marginX;
+    const marginY = vars.marginY ?? constants.marginY;
     const asymmetry = vars.asymmetry ?? constants.asymmetry;
     const numPots = Math.floor(p.random(3, 6)); // Random number of pots
 
@@ -38,14 +46,15 @@ const flowerpotSketch =
     const usedColors: DotPen[] = []; // Track used colors to avoid duplicates
 
     p.setup = () => {
-      if (seed !== null) p.randomSeed(seed);
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-
-      p.noLoop();
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX,
+        marginY,
+      });
 
       // Generate pot areas
       generatePotAreas();
@@ -57,15 +66,15 @@ const flowerpotSketch =
     };
 
     function generatePotAreas() {
-      const availableWidth = p.width - canvasMargin;
+      const availableWidth = p.width - marginX;
       for (let i = 0; i < numPots; i++) {
-        const availableHeight = (p.height - canvasMargin) * p.random(0.6, 1);
+        const availableHeight = (p.height - marginY) * p.random(0.6, 1);
         // Random area width (smaller range for better distribution)
         const areaWidth = availableWidth * p.random(0.2, 0.4);
 
         // Start with roughly evenly distributed positions, then add variation
         const basePosition =
-          (availableWidth / (numPots + 1)) * (i + 1) + canvasMargin / 2;
+          (availableWidth / (numPots + 1)) * (i + 1) + marginX / 2;
 
         // Add random variation to create slight overlaps (±30% of spacing)
         const spacing = availableWidth / (numPots + 1);
@@ -73,16 +82,16 @@ const flowerpotSketch =
         let centerX = basePosition + variation;
 
         // Ensure the area doesn't extend beyond canvas bounds
-        const minCenterX = canvasMargin / 2 + areaWidth / 2;
-        const maxCenterX = p.width - canvasMargin / 2 - areaWidth / 2;
+        const minCenterX = marginX / 2 + areaWidth / 2;
+        const maxCenterX = p.width - marginX / 2 - areaWidth / 2;
         centerX = p.constrain(centerX, minCenterX, maxCenterX);
 
         potAreas.push({
           centerX: centerX,
           width: areaWidth,
           height: availableHeight,
-          topY: canvasMargin / 2,
-          bottomY: p.height - (canvasMargin / 2) * p.random(1, 1.5),
+          topY: marginY / 2,
+          bottomY: p.height - (marginY / 2) * p.random(1, 1.5),
         });
       }
     }

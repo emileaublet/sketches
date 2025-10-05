@@ -3,6 +3,13 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+import { calculateDrawArea } from "@/utils/drawingArea";
+import {
+  calculatePathDistances,
+  findPathSegmentIndex as binarySearchIndex,
+} from "@/utils/pathUtils";
 
 export const meta: Meta = {
   id: "stairs-02",
@@ -11,7 +18,11 @@ export const meta: Meta = {
   thumbnail: "/stairs-02.png",
 };
 
-export const constants = {
+type Constants = BaseConstants & {
+  columns: [number, number];
+};
+
+export const constants: Constants = {
   width: 550,
   height: 700,
   marginX: 80,
@@ -23,24 +34,27 @@ export const constants = {
 
 const stairsSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    if (seed !== null) p.randomSeed(seed);
     let path: any[] = [];
 
     let lineThickness = 0.5; // strokeWeight
     let lineLen = p.random(8, 14); // length of each line
     p.setup = () => {
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-      p.noLoop();
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+      });
 
       generateRibbonPath();
 
-      if (vars.rotate ?? constants.rotate) {
+      const rotateValue = vars.rotate ?? constants.rotate;
+      if (rotateValue) {
         // rotate the path if needed
-        const angle = ((vars.rotate ?? constants.rotate) * Math.PI) / 180;
+        const angle = (rotateValue * Math.PI) / 180;
         const centerX = p.width / 2;
         const centerY = p.height / 2;
         path = path.map((v) => {
@@ -59,9 +73,8 @@ const stairsSketch =
 
       // draw the path for debugging
       if (vars.debug ?? constants.debug) {
-        p.background(255);
-        p.stroke(0, 50, 100);
-        p.strokeWeight(1);
+        p.stroke("yellow");
+        p.strokeWeight(2);
         p.beginShape();
         for (let v of path) {
           p.vertex(v.x, v.y);
@@ -89,8 +102,7 @@ const stairsSketch =
       const marginX = vars.marginX ?? constants.marginX;
       const marginY = vars.marginY ?? constants.marginY;
 
-      const drawW = p.width - 2 * marginX;
-      const drawH = p.height - 2 * marginY;
+      const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);
 
       const columnsGap = 0;
       const columns = p.floor(p.random(vars.columns ?? constants.columns));
@@ -153,26 +165,8 @@ const stairsSketch =
       }
     }
 
-    function binarySearchIndex(dists: number[], target: number) {
-      let lo = 0,
-        hi = dists.length - 2;
-      while (lo <= hi) {
-        let mid = Math.floor((lo + hi) / 2);
-        if (dists[mid] <= target && target < dists[mid + 1]) return mid;
-        if (dists[mid] < target) lo = mid + 1;
-        else hi = mid - 1;
-      }
-      return Math.max(0, Math.min(dists.length - 2, lo));
-    }
-
     function drawPath(color: DotPen, index = 0, totalColors = 1) {
-      let dists = [0];
-      for (let i = 1; i < path.length; i++) {
-        const dx = path[i].x - path[i - 1].x;
-        const dy = path[i].y - path[i - 1].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        dists[i] = dists[i - 1] + dist;
-      }
+      const dists = calculatePathDistances(path);
       let total = dists[dists.length - 1];
 
       // items must be adjusted to path length

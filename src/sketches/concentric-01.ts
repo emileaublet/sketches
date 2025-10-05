@@ -3,6 +3,10 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+
+type Constants = BaseConstants;
 
 export const meta: Meta = {
   id: "concentric-01",
@@ -10,24 +14,30 @@ export const meta: Meta = {
   description: "Concentric circles",
   thumbnail: "/concentric-01.png",
 };
-export const constants = {
+export const constants: Constants = {
   width: 500,
   height: 500,
+  marginX: 50,
+  marginY: 50,
+  debug: false,
 };
 
 const concentricSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     if (seed !== null) p.randomSeed(seed);
     p.setup = () => {
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-      p.colorMode(p.RGB);
-      p.angleMode(p.DEGREES);
-      p.noFill();
-      p.noLoop();
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        colorMode: "RGB",
+        angleMode: "DEGREES",
+        noFill: true,
+        noLoop: true,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+        debug: vars.debug ?? constants.debug,
+      });
 
       p.translate(p.width / 2, p.height / 2);
 

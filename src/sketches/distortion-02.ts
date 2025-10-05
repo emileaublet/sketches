@@ -3,6 +3,9 @@ import { all, DotPen } from "@/pens";
 import { Meta } from "../types";
 import { setStroke } from "@/utils/setStroke";
 import { findColor } from "@/utils/findColor";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+import { calculateDrawArea } from "@/utils/drawingArea";
 
 export const meta: Meta = {
   id: "distortion-02",
@@ -11,49 +14,52 @@ export const meta: Meta = {
   thumbnail: "/distortion-02.png",
 };
 
-export const constants = {
-  canvasXMargin: 120,
-  canvasYMargin: 120,
-  lines: 280,
+type Constants = BaseConstants & {
+  lines: number;
+  dotsMin: number;
+  dotsMax: number;
+};
+
+export const constants: Constants = {
   width: 700,
   height: 850,
+  marginX: 120,
+  marginY: 120,
+  debug: false,
+  lines: 280,
   dotsMin: 100,
   dotsMax: 200,
 };
 
 const distortionSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    const canvasXMargin = vars.canvasXMargin ?? constants.canvasXMargin;
-    const canvasYMargin = vars.canvasYMargin ?? constants.canvasYMargin;
+    const marginX = vars.marginX ?? constants.marginX;
+    const marginY = vars.marginY ?? constants.marginY;
     const lines = vars.lines ?? constants.lines;
     const colors: DotPen[] = all("staedtlerPens");
 
     p.setup = () => {
-      if (seed !== null) p.randomSeed(seed);
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-      p.noFill();
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noFill: true,
+        debug: vars.debug ?? constants.debug,
+        marginX,
+        marginY,
+      });
 
-      const drawW = p.width - 2 * canvasXMargin;
-      const drawH = p.height - 2 * canvasYMargin;
+      const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);
       const cellH = drawH / lines;
-      const hMargin = canvasXMargin;
-      const vMargin = canvasYMargin;
 
       for (let row = 0; row < lines; row++) {
-        const bx = hMargin + 1;
+        const bx = marginX + 1;
+        const by = marginY + row * cellH + 1;
 
-        const by = vMargin + row * cellH + 1;
-
-        // how “wavy” each line is
+        // how "wavy" each line is
         const maxYOffset = 0.1 * row + 1;
         // how many zig-zags per row
         const segmentCount = p.floor(p.random(100, 200));
-
-        p.stroke(p.random(colors));
 
         // segment length spans full draw width
         const segmentLen = drawW / segmentCount;
@@ -73,8 +79,8 @@ const distortionSketch =
       p.strokeWeight(6);
       p.stroke(...color); // white
       for (let i = 0; i < dotCount; i++) {
-        const x = p.random(canvasXMargin, p.width - canvasXMargin);
-        const y = p.random(canvasYMargin, p.height - canvasYMargin);
+        const x = p.random(marginX, p.width - marginX);
+        const y = p.random(marginY, p.height - marginY);
         p.point(x, y);
       }
     }

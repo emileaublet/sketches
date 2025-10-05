@@ -1,8 +1,11 @@
 import { p5SVG } from "p5.js-svg";
-
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { createGrid } from "@/utils/gridUtils";
+import { BaseConstants, GridConstants } from "../utils/constants";
+import { generatePivotPath } from "@/utils/pathGeneration";
 
 export const meta: Meta = {
   id: "nodes-01",
@@ -11,30 +14,45 @@ export const meta: Meta = {
   thumbnail: "/nodes-01.png",
 };
 
-export const constants = {
-  canvasMargin: 120,
+type Constants = BaseConstants &
+  GridConstants & {
+    numNodes: number;
+    numSegments: number;
+    pivotMin: number;
+    pivotMax: number;
+    relativeMin: number;
+    relativeMax: number;
+    innerJitterFrac: number;
+  };
+
+export const constants: Constants = {
   width: 700,
   height: 850,
-  cols: 14,
-  rows: 17,
+  marginX: 120,
+  marginY: 120,
+  numNodes: 25,
+  debug: false,
+  cols: 20,
+  rows: 27,
   padding: 1,
   numSegments: 30,
   pivotMin: 200,
   pivotMax: 210,
   relativeMin: 0.2,
   relativeMax: 0.8,
-  innerJitterFrac: 0.05,
+  innerJitterFrac: 0.2,
 };
 
-const nodesSketch =
+export const nodesSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    // overall canvas padding (horizontal only)
-    const canvasMargin = vars.canvasMargin ?? constants.canvasMargin;
+    // overall canvas padding
+    const marginX = vars.marginX ?? constants.marginX;
+    const marginY = vars.marginY ?? constants.marginY;
 
     // grid settings
     const cols = vars.cols ?? constants.cols;
     const rows = vars.rows ?? constants.rows;
-    const padding = vars.padding ?? constants.padding;
+    const padding = vars.padding ?? constants.padding ?? 0;
 
     // pivot-path settings
     const numSegments = vars.numSegments ?? constants.numSegments;
@@ -57,100 +75,76 @@ const nodesSketch =
     ];
 
     p.setup = () => {
-      if (seed !== null) p.randomSeed(seed);
-      p.createCanvas(700, 850, p.SVG);
-      p.noFill();
+      setupCanvas(p, {
+        width: constants.width,
+        height: constants.height,
+        seed,
+        noFill: true,
+        debug: vars.debug ?? constants.debug,
+        marginX,
+        marginY,
+      });
 
-      // available width after side-margins
-      const drawW = p.width - 2 * canvasMargin;
-      // square cells
-      const cellW = drawW / cols;
-      const cellH = cellW;
+      const grid = createGrid({
+        width: constants.width,
+        height: constants.height,
+        marginX,
+        marginY,
+        cols,
+        rows,
+      });
 
-      // total grid height
-      const gridH = cellH * rows;
-      // vertical centering
-      const vMargin = (p.height - gridH) / 2;
-      const hMargin = canvasMargin;
+      for (const cell of grid.cells) {
+        // inset by per-cell padding
+        const bx = cell.x + padding;
+        const by = cell.y + padding;
+        const bw = cell.width - 2 * padding;
+        const bh = cell.height - 2 * padding;
 
-      for (let j = 0; j < rows; j++) {
-        for (let i = 0; i < cols; i++) {
-          // top-left corner of cell
-          const baseX = hMargin + i * cellW;
-          const baseY = vMargin + j * cellH;
+        const minLen = bw * relativeMin;
+        const maxLen = bw * relativeMax;
 
-          // inset by per-cell padding
-          const bx = baseX + padding;
-          const by = baseY + padding;
-          const bw = cellW - 2 * padding;
-          const bh = cellH - 2 * padding;
+        randomPivotPath(
+          numSegments,
+          minLen,
+          maxLen,
+          bx,
+          by,
+          bw,
+          bh,
+          innerJitterFrac
+        );
+      }
 
-          const minLen = bw * relativeMin;
-          const maxLen = bw * relativeMax;
+      function randomPivotPath(
+        steps: number,
+        minLength: number,
+        maxLength: number,
+        bx: number,
+        by: number,
+        bw: number,
+        bh: number,
+        jitterFrac: number
+      ) {
+        // Generate the pivot path using utility function
+        const pts = generatePivotPath(p, {
+          steps,
+          minLength,
+          maxLength,
+          boundingBox: { x: bx, y: by, width: bw, height: bh },
+          innerJitterFrac: jitterFrac,
+          pivotAngleMin: pivotMin,
+          pivotAngleMax: pivotMax,
+        });
 
-          randomPivotPath(
-            numSegments,
-            minLen,
-            maxLen,
-            bx,
-            by,
-            bw,
-            bh,
-            innerJitterFrac
-          );
+        // draw segments with random colors
+        for (let i = 1; i < pts.length; i++) {
+          const c = p.random(colors);
+          setStroke(c, p);
+          p.line(pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y);
         }
       }
     };
-
-    function randomPivotPath(
-      steps: number,
-      minLength: number,
-      maxLength: number,
-      bx: number,
-      by: number,
-      bw: number,
-      bh: number,
-      jitterFrac: number
-    ) {
-      const cx0 = bx + bw / 2;
-      const cy0 = by + bh / 2;
-      const maxR = p.min(bw, bh) / 2;
-
-      // small “inner” jump off center
-      const jR = p.random(-jitterFrac, jitterFrac) * maxR;
-      const jA = p.random(p.TWO_PI);
-      const cx1 = cx0 + p.cos(jA) * jR;
-      const cy1 = cy0 + p.sin(jA) * jR;
-
-      let heading = p.atan2(cy1 - cy0, cx1 - cx0);
-
-      // collect points
-      const pts = [];
-      pts.push({ x: cx0, y: cy0 });
-      pts.push({ x: cx1, y: cy1 });
-
-      let x = cx1;
-      let y = cy1;
-      for (let k = 0; k < steps; k++) {
-        let nx, ny;
-        do {
-          heading += p.radians(p.random(pivotMin, pivotMax));
-          const len = p.random(minLength, maxLength);
-          nx = x + p.cos(heading) * len;
-          ny = y + p.sin(heading) * len;
-        } while (nx < bx || nx > bx + bw || ny < by || ny > by + bh);
-        pts.push({ x: nx, y: ny });
-        x = nx;
-        y = ny;
-      }
-
-      // draw segments with random colors
-      for (let i = 1; i < pts.length; i++) {
-        const c = p.random(colors);
-        setStroke(c, p);
-        p.line(pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y);
-      }
-    }
   };
 
 export default nodesSketch;

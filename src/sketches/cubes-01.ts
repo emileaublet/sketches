@@ -2,6 +2,8 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
 
 export const meta: Meta = {
   id: "cubes-01",
@@ -10,26 +12,32 @@ export const meta: Meta = {
   thumbnail: "/cubes-01.png",
 };
 
-export const constants = {
+type Constants = BaseConstants & {
+  cellSizes: number[];
+};
+
+export const constants: Constants = {
   width: 900,
   height: 900,
   marginX: 100,
   marginY: 100,
+  debug: false,
   cellSizes: [60, 90, 120],
 };
 
 const distortionSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     p.setup = () => {
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+      });
       p.noStroke();
-      p.noLoop();
-
-      if (seed !== null) p.randomSeed(seed);
     };
 
     // Reusable function to draw the grid with a specified color

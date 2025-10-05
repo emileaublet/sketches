@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useClipboard } from "@custom-react-hooks/use-clipboard";
 import { useControls } from "leva";
+import { createControls } from "../utils/constants";
 
 interface P5WrapperProps {
   slug: string;
@@ -138,7 +139,10 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
         const { default: sketchModule, constants } = await import(
           `../sketches/${slug}.ts`
         );
-        setControls(constants || {});
+
+        // Convert constants to Leva controls using the standardized utility
+        const levaControls = createControls(constants || {});
+        setControls(levaControls);
         setSketch(() => sketchModule(seed[pos], controlValues));
       } catch (error) {
         console.error("Failed to load sketch:", error);

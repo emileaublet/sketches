@@ -4,6 +4,8 @@ import { DotPen } from "@/pens";
 
 import { Meta } from "../types";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
 
 export const meta: Meta = {
   id: "plusplus-01",
@@ -16,43 +18,51 @@ const dark = "micronPens.blue_036";
 const light = "micronPens.red_019";
 const medium = "micronPens.green_029";
 
-export const constants = {
-  canvasMargin: 200,
-  lineCount: 6,
+type Constants = BaseConstants & {
+  lineCount: number;
+  asymmetry: number;
+};
+
+export const constants: Constants = {
   width: 700,
   height: 850,
+  marginX: 200,
+  marginY: 200,
+  debug: false,
+  lineCount: 5,
+  asymmetry: 1,
 };
-// Add asymmetry parameter (default 1) and region settings
+
 const plusPlusSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    const canvasMargin = vars.canvasMargin ?? constants.canvasMargin;
+    const marginX = vars.marginX ?? constants.marginX;
+    const marginY = vars.marginY ?? constants.marginY;
     const lineCount = vars.lineCount ?? constants.lineCount;
 
     p.setup = () => {
-      if (seed !== null) p.randomSeed(seed);
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX,
+        marginY,
+      });
       //p.background(255);
 
       const plusSize = 20;
       drawGrid(plusSize, dark);
       drawGrid(plusSize, medium);
       drawGrid(plusSize, light);
-
-      p.noLoop();
     };
 
     function drawGrid(plusSize: number, color: DotPen) {
       setStroke(color, p);
       const gradientInfo = getGradientInfo(plusSize);
       const horizontalSpacing = plusSize;
-      const cols = Math.floor((p.width - canvasMargin) / horizontalSpacing);
-      const rows = Math.floor(
-        (p.height - canvasMargin) / ((plusSize / 3) * 2) - 1
-      );
+      const cols = Math.floor((p.width - marginX) / horizontalSpacing);
+      const rows = Math.floor((p.height - marginY) / ((plusSize / 3) * 2) - 1);
 
       const totalGridWidth = (cols - 1) * horizontalSpacing;
       const totalGridHeight = (rows - 1) * ((plusSize / 3) * 2);

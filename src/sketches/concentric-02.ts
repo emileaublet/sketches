@@ -2,6 +2,13 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+
+type Constants = BaseConstants & {
+  layers: number;
+  minPoints: number;
+};
 
 const pensSubset: DotPen[] = [
   "staedtlerPens.orange",
@@ -17,16 +24,18 @@ export const meta: Meta = {
   thumbnail: "/concentric-02.png",
 };
 
-export const constants = {
+export const constants: Constants = {
   width: 600,
   height: 600,
+  marginX: 60,
+  marginY: 60,
+  debug: false,
   layers: 120,
   minPoints: 50,
 };
 
 const concentricSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    if (seed !== null) p.randomSeed(seed);
     const layers = vars.layers ?? constants.layers;
     const minPoints = vars.minPoints ?? constants.minPoints;
     const maxPoints = 800;
@@ -35,15 +44,18 @@ const concentricSketch =
     const maxZigzagDepth = 10;
 
     p.setup = () => {
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-      p.colorMode(p.RGB);
-      p.angleMode(p.DEGREES);
-      p.noFill();
-      p.noLoop();
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        colorMode: "RGB",
+        angleMode: "DEGREES",
+        noFill: true,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+      });
 
       const centerX = p.width / 2;
       const centerY = p.height / 2;

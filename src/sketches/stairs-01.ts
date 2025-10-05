@@ -3,6 +3,8 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
 
 export const meta: Meta = {
   id: "stairs-01",
@@ -11,11 +13,18 @@ export const meta: Meta = {
   thumbnail: "/stairs-01.png",
 };
 
-export const constants = {
+type Constants = BaseConstants & {
+  columnsGap: [number, number];
+  columns: [number, number];
+  lineWidth: number;
+};
+
+export const constants: Constants = {
   width: 550,
   height: 700,
   marginX: 80,
   marginY: 80,
+  debug: false,
   columnsGap: [2, 10],
   columns: [12, 22],
   lineWidth: 0.5,
@@ -36,16 +45,16 @@ const stairsSketch =
     ];
 
     p.setup = () => {
-      if (seed !== null) p.randomSeed(seed);
-      p.createCanvas(
-        vars.width ?? constants.width,
-        vars.height ?? constants.height,
-        p.SVG
-      );
-      p.noFill();
-
-      const lineWidth = vars.lineWidth ?? constants.lineWidth;
-      p.strokeWeight(lineWidth);
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noFill: true,
+        strokeWeight: vars.lineWidth ?? constants.lineWidth,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+      });
 
       const marginX = vars.marginX ?? constants.marginX;
       const marginY = vars.marginY ?? constants.marginY;
