@@ -13,10 +13,10 @@ import { drawDebugPoints } from "@/utils/debugUtils";
 import { BaseConstants } from "../utils/constants";
 
 export const meta: Meta = {
-  id: "new-sketch-01",
-  title: "New Sketch 01",
+  id: "stairs-05",
+  title: "Stairs 05",
   description: "A new generative sketch",
-  thumbnail: "/new-sketch-01.png",
+  thumbnail: "/stairs-05.png",
 };
 
 type Constants = BaseConstants & {
@@ -48,7 +48,7 @@ export const constants: Constants = {
   gridSize: 10,
   radius: 25,
   linesPerSegment: 4,
-  lineThickness: 1,
+  lineThickness: 0.5,
   lineLengthMin: 8,
   lineLengthMax: 14,
   drawPatternLengthMin: 5,
@@ -110,19 +110,18 @@ const newSketch =
         numPoints: vars.numPoints ?? constants.numPoints,
         centerPoints: false,
       });
+      const pathPoints = createBezierRoundedPath(
+        points,
+        vars.radius ?? constants.radius,
+        vars.bezierSteps ?? constants.bezierSteps
+      );
 
       if (vars.debug ?? constants.debug) {
         drawDebugPoints(p, points);
         p.noFill();
-        p.stroke(100, 150, 255);
+        p.stroke("yellow");
+        drawSafePath(p, pathPoints);
       }
-      const pathPoints = createBezierRoundedPath(
-        points,
-        vars.radius ?? constants.radius
-      );
-
-      // Draw bezier curve
-      drawSafePath(p, pathPoints);
 
       const colors: DotPen[] = [
         "lePenPastelPens.rose",

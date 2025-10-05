@@ -154,7 +154,7 @@ export const drawDebugGrid = (
   const cellWidth = (config.width - 2 * config.marginX) / actualGridSize;
   const cellHeight = (config.height - 2 * config.marginY) / actualGridSize;
 
-  p.stroke(200);
+  p.stroke(255, 0, 0, 20);
 
   // Vertical lines
   for (let i = 0; i <= actualGridSize; i++) {
