@@ -1,0 +1,401 @@
+import { p5SVG } from "p5.js-svg";
+
+import { Meta } from "../types";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants, PathConstants } from "../utils/constants";
+import { calculateDrawArea } from "@/utils/drawingArea";
+
+export const meta: Meta = {
+  id: "hamilton-01",
+  title: "hamilton 01",
+  description: "Hamiltonian path",
+  thumbnail: "/hamilton-01.png",
+};
+
+type Constants = BaseConstants &
+  PathConstants & {
+    targetGridSize: number;
+    allowTwoStepJumps: boolean;
+  };
+
+export const constants: Constants = {
+  // Canvas dimensions
+  width: 700,
+  height: 850,
+  marginX: 80,
+  marginY: 80,
+
+  // Basic settings
+  debug: false,
+  rotate: 0,
+
+  // Grid settings
+  targetGridSize: 20, // Larger = fewer cells = faster
+  allowTwoStepJumps: false, // Simplified logic
+
+  // Path properties
+  cornerRadius: 0.3,
+  bezierSteps: 5, // Reduced for performance
+};
+
+const hamiltonSketch =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    let paths: any[][] = [];
+
+    p.setup = () => {
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+      });
+
+      const startTime = Date.now();
+      generateMultiplePaths();
+      const endTime = Date.now();
+
+      // Calculate grid info for debugging
+      const marginX = vars.marginX ?? constants.marginX;
+      const marginY = vars.marginY ?? constants.marginY;
+      const drawW = p.width - 2 * marginX;
+      const drawH = p.height - 2 * marginY;
+      const targetGridSize = vars.targetGridSize ?? constants.targetGridSize;
+      const stepLenByWidth = drawW / targetGridSize;
+      const stepLenByHeight = drawH / targetGridSize;
+      const stepLen = Math.min(stepLenByWidth, stepLenByHeight);
+      const M = Math.floor(drawW / stepLen);
+      const N = Math.floor(drawH / stepLen);
+      const totalCells = M * N;
+
+      console.log(
+        `Generated ${paths.length} paths in ${endTime - startTime}ms`
+      );
+      console.log(`Grid: ${M}x${N} = ${totalCells} total cells`);
+
+      // Draw all paths
+      for (let i = 0; i < paths.length; i++) {
+        const path = paths[i];
+        p.stroke(255); // White color
+        p.strokeWeight(1);
+        p.noFill();
+        p.beginShape();
+        // Add first point twice for curveVertex
+        if (path.length > 0) {
+          p.curveVertex(path[0].x, path[0].y);
+        }
+        for (let v of path) {
+          p.curveVertex(v.x, v.y);
+        }
+        // Add last point twice for curveVertex
+        if (path.length > 0) {
+          p.curveVertex(path[path.length - 1].x, path[path.length - 1].y);
+        }
+        p.endShape();
+      }
+    };
+
+    function generateMultiplePaths() {
+      // Generate multiple non-crossing paths to fill entire canvas
+      const marginX = vars.marginX ?? constants.marginX;
+      const marginY = vars.marginY ?? constants.marginY;
+      const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);
+      // Calculate optimal step size to maximize grid utilization
+      const targetGridSize = vars.targetGridSize ?? constants.targetGridSize;
+      const stepLenByWidth = drawW / targetGridSize;
+      const stepLenByHeight = drawH / targetGridSize;
+      const stepLen = Math.min(stepLenByWidth, stepLenByHeight);
+      const M = Math.floor(drawW / stepLen); // cols - use full width
+      const N = Math.floor(drawH / stepLen); // rows - use full height
+
+      // Global tracking of all visited cells across all paths
+      let globalVisitedCells: [number, number][] = [];
+
+      // Helper functions
+      function possibleNeighbors([i, j]: [number, number]): [number, number][] {
+        let possibilities: [number, number][] = [];
+        if (j < N - 1) possibilities.push([i, j + 1]);
+        if (j > 0) possibilities.push([i, j - 1]);
+        if (i < M - 1) possibilities.push([i + 1, j]);
+        if (i > 0) possibilities.push([i - 1, j]);
+        return possibilities;
+      }
+
+      function inArray(
+        [i, j]: [number, number],
+        arr: [number, number][] | [number, number, [number, number][]][]
+      ): boolean {
+        for (let e of arr) {
+          if (e[0] == i && e[1] == j) return true;
+        }
+        return false;
+      }
+
+      // Generate multiple paths to fill the entire grid
+      let maxPaths = M * N; // Allow one path per cell in worst case
+      let pathsGenerated = 0;
+
+      while (globalVisitedCells.length < M * N && pathsGenerated < maxPaths) {
+        pathsGenerated++;
+
+        // Initialize new path
+        let pathCells: [number, number, [number, number][]][] = [];
+        let currentPos: [number, number] | null = null;
+
+        // Find an unvisited starting position - optimized
+        for (let i = 0; i < M && !currentPos; i++) {
+          for (let j = 0; j < N && !currentPos; j++) {
+            if (!inArray([i, j], globalVisitedCells)) {
+              currentPos = [i, j];
+            }
+          }
+        }
+
+        if (!currentPos) break;
+
+        // Generate single path until stuck - with safety limit
+        let maxSteps = Math.min(M * N - globalVisitedCells.length, 1000);
+        let steps = 0;
+
+        while (steps < maxSteps) {
+          steps++;
+          let eventualNeighbors = possibleNeighbors(currentPos);
+
+          // Shuffle for randomness (simple Fisher-Yates)
+          for (let k = eventualNeighbors.length - 1; k > 0; k--) {
+            const randIdx = Math.floor(p.random() * (k + 1));
+            [eventualNeighbors[k], eventualNeighbors[randIdx]] = [
+              eventualNeighbors[randIdx],
+              eventualNeighbors[k],
+            ];
+          }
+
+          // Filter neighbors: avoid globally visited cells and cells visited in current path
+          let neighbors: [number, number][] = [];
+          for (let neigh of eventualNeighbors) {
+            // Check if already globally visited
+            if (inArray(neigh, globalVisitedCells)) continue;
+
+            // Check if in current path
+            let inCurrentPath = false;
+            for (let cell of pathCells) {
+              if (cell[0] === neigh[0] && cell[1] === neigh[1]) {
+                inCurrentPath = true;
+                break;
+              }
+            }
+            if (inCurrentPath) continue;
+
+            // Check if it's the current position
+            if (currentPos[0] === neigh[0] && currentPos[1] === neigh[1])
+              continue;
+
+            neighbors.push(neigh);
+          }
+          let flatNeighbors = neighbors;
+
+          // Backtrack if stuck
+          while (flatNeighbors.length == 0 && pathCells.length > 0) {
+            let previous = pathCells.pop()!;
+            currentPos = [previous[0], previous[1]];
+            flatNeighbors = previous[2];
+          }
+
+          if (flatNeighbors.length > 0) {
+            let nextPos = flatNeighbors.shift()!;
+            pathCells.push([...currentPos, flatNeighbors] as [
+              number,
+              number,
+              [number, number][]
+            ]);
+            currentPos = nextPos;
+          } else {
+            // Path is stuck - finalize this path and start a new one
+            break;
+          }
+        }
+
+        // Only process if we actually moved (created a path with cells)
+        // If stuck at start position, mark it as visited and continue to next starting point
+        if (pathCells.length === 0) {
+          // Mark this isolated cell as visited so we don't try it again
+          globalVisitedCells.push(currentPos);
+          console.log(
+            `Path ${pathsGenerated}: Isolated cell at (${currentPos[0]}, ${currentPos[1]})`
+          );
+          continue;
+        }
+
+        console.log(
+          `Path ${pathsGenerated}: ${pathCells.length + 1} cells visited`
+        );
+
+        // Convert to drawable path - ensure only grid-aligned moves
+        let drawnPath: [number, number][] = [];
+        for (let k = 0; k < pathCells.length - 1; k++) {
+          let p0: [number, number] = [pathCells[k][0], pathCells[k][1]];
+          let p1: [number, number] = [pathCells[k + 1][0], pathCells[k + 1][1]];
+          drawnPath.push(p0);
+
+          // For 2-step jumps, add intermediate point only if it maintains grid alignment
+          let dx = p1[0] - p0[0];
+          let dy = p1[1] - p0[1];
+          if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+            // Only add intermediate for pure horizontal/vertical 2-step moves
+            if (dx !== 0 && dy === 0) {
+              // Horizontal 2-step: add one intermediate point
+              drawnPath.push([p0[0] + Math.sign(dx), p0[1]]);
+            } else if (dy !== 0 && dx === 0) {
+              // Vertical 2-step: add one intermediate point
+              drawnPath.push([p0[0], p0[1] + Math.sign(dy)]);
+            }
+            // Skip diagonal or complex jumps to avoid weird angles
+          }
+        }
+        if (pathCells.length > 0) {
+          drawnPath.push([
+            pathCells[pathCells.length - 1][0],
+            pathCells[pathCells.length - 1][1],
+          ]);
+        }
+        drawnPath.push(currentPos);
+
+        // Convert cell path to coordinates
+        let gridPoints: { x: number; y: number }[] = [];
+
+        for (let k = 0; k < drawnPath.length; k++) {
+          let [i, j] = drawnPath[k];
+          let x = marginX + i * stepLen + stepLen / 2;
+          let y = marginY + j * stepLen + stepLen / 2;
+          gridPoints.push({ x, y });
+        }
+
+        // Create rounded path using Bezier method
+        const cornerRadius =
+          (vars.cornerRadius ?? constants.cornerRadius) * stepLen;
+        const roundedPath = createBezierRoundedPath(gridPoints, cornerRadius);
+
+        // Add this path to our collection
+        if (roundedPath.length > 0) {
+          paths.push(roundedPath);
+        }
+
+        // Mark all cells in this path as globally visited
+        for (let cell of pathCells) {
+          globalVisitedCells.push([cell[0], cell[1]]);
+        }
+        globalVisitedCells.push(currentPos);
+      }
+
+      console.log(`Total cells visited: ${globalVisitedCells.length}/${M * N}`);
+      console.log(`Paths generated: ${pathsGenerated}`);
+    }
+
+    function createBezierRoundedPath(
+      points: { x: number; y: number }[],
+      radius: number
+    ) {
+      if (points.length < 3) return points;
+
+      let roundedPath: { x: number; y: number }[] = [];
+
+      // Add the first point as-is (no rounding at start)
+      roundedPath.push(points[0]);
+
+      // Process middle points (with rounding)
+      for (let i = 1; i < points.length - 1; i++) {
+        const a = points[i - 1];
+        const b = points[i];
+        const c = points[i + 1];
+
+        // Create vectors (ba and bc)
+        const baX = a.x - b.x;
+        const baY = a.y - b.y;
+        const bcX = c.x - b.x;
+        const bcY = c.y - b.y;
+
+        // Normalize vectors
+        const baLen = Math.sqrt(baX * baX + baY * baY);
+        const bcLen = Math.sqrt(bcX * bcX + bcY * bcY);
+
+        if (baLen < 0.1 || bcLen < 0.1) {
+          roundedPath.push(b);
+          continue;
+        }
+
+        const baNormX = baX / baLen;
+        const baNormY = baY / baLen;
+        const bcNormX = bcX / bcLen;
+        const bcNormY = bcY / bcLen;
+
+        // Calculate angle between vectors
+        const dot = baNormX * bcNormX + baNormY * bcNormY;
+        const theta = Math.acos(Math.max(-1, Math.min(1, dot)));
+
+        // Skip if it's nearly a straight line
+        if (theta < 0.1) {
+          roundedPath.push(b);
+          continue;
+        }
+
+        // Calculate maximum radius and clamp
+        const distAB = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+        const distBC = Math.sqrt((c.x - b.x) ** 2 + (c.y - b.y) ** 2);
+        const maxR =
+          (Math.min(distAB, distBC) / 2) * Math.abs(Math.sin(theta / 2));
+        const cornerR = Math.min(radius, maxR);
+
+        // Calculate distance from corner
+        const distance = Math.abs(cornerR / Math.sin(theta / 2));
+
+        // Calculate control points for bezier
+        const c1X = b.x + baNormX * distance;
+        const c1Y = b.y + baNormY * distance;
+        const c2X = b.x + bcNormX * distance;
+        const c2Y = b.y + bcNormY * distance;
+
+        // Bezier control point distance (magic number for circular approximation)
+        const bezierDist = 0.5523;
+        const p1X = c1X - baNormX * 2 * cornerR * bezierDist;
+        const p1Y = c1Y - baNormY * 2 * cornerR * bezierDist;
+        const p2X = c2X - bcNormX * 2 * cornerR * bezierDist;
+        const p2Y = c2Y - bcNormY * 2 * cornerR * bezierDist;
+
+        // Add start point
+        roundedPath.push({ x: c1X, y: c1Y });
+
+        // Generate bezier curve points
+        const steps = vars.bezierSteps ?? constants.bezierSteps;
+        for (let t = 1; t <= steps; t++) {
+          const u = t / steps;
+          const u2 = u * u;
+          const u3 = u2 * u;
+          const oneMinusU = 1 - u;
+          const oneMinusU2 = oneMinusU * oneMinusU;
+          const oneMinusU3 = oneMinusU2 * oneMinusU;
+
+          const x =
+            oneMinusU3 * c1X +
+            3 * oneMinusU2 * u * p1X +
+            3 * oneMinusU * u2 * p2X +
+            u3 * c2X;
+          const y =
+            oneMinusU3 * c1Y +
+            3 * oneMinusU2 * u * p1Y +
+            3 * oneMinusU * u2 * p2Y +
+            u3 * c2Y;
+
+          roundedPath.push({ x, y });
+        }
+      }
+
+      // Add the last point as-is (no rounding at end)
+      roundedPath.push(points[points.length - 1]);
+
+      return roundedPath;
+    }
+  };
+
+export default hamiltonSketch;

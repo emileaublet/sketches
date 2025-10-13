@@ -97,11 +97,116 @@ export const createGrid = (
 };
 
 /**
+ * Sort points to create a smooth path without U-turns using nearest neighbor
+ * @param points - Array of points to sort
+ * @param smoothness - Controls how much to penalize direction changes (0-100)
+ *                     0 = only distance matters, 100 = heavily penalize U-turns
+ */
+const sortPointsForSmoothPath = (
+  points: { x: number; y: number }[],
+  smoothness: number = 80
+): { x: number; y: number }[] => {
+  if (points.length === 0) return points;
+
+  const sorted: { x: number; y: number }[] = [];
+  const remaining = [...points];
+
+  // Start with the top-left point
+  let current = remaining.reduce((closest, point) =>
+    point.x + point.y < closest.x + closest.y ? point : closest
+  );
+
+  sorted.push(current);
+  remaining.splice(remaining.indexOf(current), 1);
+
+  // Greedy nearest neighbor with look-ahead to avoid U-turns
+  while (remaining.length > 0) {
+    let bestNext = remaining[0];
+    let bestScore = Infinity;
+
+    for (const candidate of remaining) {
+      // Distance to candidate
+      const dist = Math.sqrt(
+        Math.pow(candidate.x - current.x, 2) +
+          Math.pow(candidate.y - current.y, 2)
+      );
+
+      // Check angle if we have previous points (avoid sharp reversals)
+      let angleScore = 0;
+      if (sorted.length >= 2) {
+        const prev = sorted[sorted.length - 2];
+
+        // Vector from prev to current
+        const v1x = current.x - prev.x;
+        const v1y = current.y - prev.y;
+
+        // Vector from current to candidate
+        const v2x = candidate.x - current.x;
+        const v2y = candidate.y - current.y;
+
+        // Dot product to measure alignment (-1 = opposite direction, 1 = same direction)
+        const dot = v1x * v2x + v1y * v2y;
+        const mag1 = Math.sqrt(v1x * v1x + v1y * v1y);
+        const mag2 = Math.sqrt(v2x * v2x + v2y * v2y);
+
+        if (mag1 > 0 && mag2 > 0) {
+          const cosAngle = dot / (mag1 * mag2);
+          // Penalize backward movement more aggressively
+          // cosAngle: 1 = same direction, 0 = perpendicular, -1 = opposite
+          // Using exponential penalty for sharper curves
+          const anglePenalty = Math.pow(1 - cosAngle, 2); // 0 to 4
+          angleScore = anglePenalty * 5 * smoothness; // Up to 2000 with smoothness=100
+        }
+      }
+
+      // Also consider looking ahead further to avoid creating tight loops
+      let lookaheadPenalty = 0;
+      if (sorted.length >= 3 && smoothness > 50) {
+        // Check if candidate would create a path that curves back
+        const lookback = sorted[sorted.length - 3];
+        const distToLookback = Math.sqrt(
+          Math.pow(candidate.x - lookback.x, 2) +
+            Math.pow(candidate.y - lookback.y, 2)
+        );
+
+        // Penalize if getting closer to older points (creating loops)
+        const distFromCurrent = Math.sqrt(
+          Math.pow(current.x - lookback.x, 2) +
+            Math.pow(current.y - lookback.y, 2)
+        );
+
+        if (distToLookback < distFromCurrent) {
+          lookaheadPenalty =
+            (distFromCurrent - distToLookback) * 2 * smoothness;
+        }
+      }
+
+      const score = dist + angleScore + lookaheadPenalty;
+
+      if (score < bestScore) {
+        bestScore = score;
+        bestNext = candidate;
+      }
+    }
+
+    sorted.push(bestNext);
+    remaining.splice(remaining.indexOf(bestNext), 1);
+    current = bestNext;
+  }
+
+  return sorted;
+};
+
+/**
  * Generate random points within grid cells (one per cell)
  */
 export const generateGridPoints = (
   p: p5SVG,
-  config: GridConfig & { numPoints: number; centerPoints?: boolean }
+  config: GridConfig & {
+    numPoints: number;
+    centerPoints?: boolean;
+    pathSmoothness?: number; // 0-100, controls how aggressively to avoid U-turns
+  }
 ): { x: number; y: number }[] => {
   const gridSize = Math.ceil(Math.sqrt(config.numPoints));
   const cellWidth = (config.width - 2 * config.marginX) / gridSize;
@@ -139,7 +244,10 @@ export const generateGridPoints = (
     }
   }
 
-  return points;
+  // Sort points to avoid U-turns
+  const smoothness =
+    config.pathSmoothness !== undefined ? config.pathSmoothness : 80;
+  return sortPointsForSmoothPath(points, smoothness);
 };
 
 /**

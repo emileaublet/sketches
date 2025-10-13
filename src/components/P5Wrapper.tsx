@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import p5 from "p5";
 import { Button } from "./ui/button";
 import { cx } from "class-variance-authority";
+
 import {
   Sun,
   Moon,
@@ -15,9 +16,10 @@ import {
   DownloadIcon,
   ZoomIn,
   ZoomOut,
+  FileUpIcon,
 } from "lucide-react";
 import { useClipboard } from "@custom-react-hooks/use-clipboard";
-import { useControls } from "leva";
+import { Leva, useControls } from "leva";
 import { createControls } from "../utils/constants";
 
 interface P5WrapperProps {
@@ -37,16 +39,46 @@ const Controls = ({
 }: {
   controls: any;
   setControls: (c: any) => void;
+  cback?: () => void;
 }) => {
-  const controlValues = useControls({ ...controls }, [
-    JSON.stringify(controls),
-  ]);
+  const [controlValues, set]: any = useControls(
+    () => ({
+      ...controls,
+      /*  export: button((get) =>
+        exportConfig(
+          Object.fromEntries(
+            Object.entries(controls).map(([key, _]) => [key, get(key)])
+          )
+        )
+      ), */
+    }),
+    [JSON.stringify(controls)]
+  );
 
+  /*   function exportConfig(config: any) {
+    console.log(config);
+  } */
   useEffect(() => {
+    if (
+      controlValues &&
+      controlValues.paperSize &&
+      controlValues.paperSize !== "Custom" &&
+      controlValues.paperSizeRatio
+    ) {
+      const [w, h] = controlValues.paperSize.split(" -- ")[1].split("x");
+      const width = w * controlValues.paperSizeRatio;
+      const height = h * controlValues.paperSizeRatio;
+      if (width < 2000 && height < 2000) {
+        set({
+          width,
+          height,
+        });
+      }
+    }
     setControls(controlValues);
   }, [controlValues]);
 
-  return <></>;
+  return <Leva />;
 };
 
 const P5Wrapper: React.FC<P5WrapperProps> = ({
@@ -73,6 +105,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Zoom controls handlers (must be inside component)
   // Helper to zoom from center
@@ -304,9 +337,70 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     });
   }, []);
 
+  const handleUploadSVG = () => {
+    // Trigger the hidden file input
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Validate it's an SVG file
+      if (!file.type.includes("svg") && !file.name.endsWith(".svg")) {
+        alert("Please upload an SVG file");
+        return;
+      }
+
+      // Read the file
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const svgContent = e.target?.result as string;
+
+        // Replace the current SVG in the container
+        if (containerRef.current) {
+          containerRef.current.innerHTML = svgContent;
+
+          // Reset zoom/pan
+          handleZoomReset();
+
+          // Try to extract seed and config from the uploaded SVG if they exist
+          const svgElement = containerRef.current.querySelector("svg");
+          if (svgElement) {
+            const seedAttr = svgElement.getAttribute("seed");
+            const configAttr = svgElement.getAttribute("sketch-config");
+
+            if (seedAttr) {
+              const uploadedSeed = Number(seedAttr);
+              setSeed((s) => [uploadedSeed, ...s]);
+              setPos(0);
+            }
+
+            if (configAttr) {
+              try {
+                const config = JSON.parse(configAttr);
+                setControlValues(config);
+              } catch (error) {
+                console.error("Failed to parse sketch config:", error);
+              }
+            }
+          }
+        }
+      };
+
+      reader.readAsText(file);
+
+      // Reset the input so the same file can be uploaded again
+      event.target.value = "";
+    },
+    [handleZoomReset]
+  );
   const handleDownloadSVG = React.useCallback(() => {
     if (containerRef.current) {
       const svgElement = containerRef.current.querySelector("svg");
+      svgElement?.setAttribute("sketch-config", JSON.stringify(controlValues));
+      svgElement?.setAttribute("seed", String(seed[pos]));
       if (svgElement) {
         const serializer = new XMLSerializer();
         const svgString = serializer.serializeToString(svgElement);
@@ -323,7 +417,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
         console.error("No SVG element found to download.");
       }
     }
-  }, [slug, seed, pos]);
+  }, [slug, seed, pos, controlValues]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -375,6 +469,14 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
 
   return (
     <div className="w-full h-full grid grid-cols-1 grid-rows-[auto_1fr_auto]">
+      {/* Hidden file input for SVG upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".svg,image/svg+xml"
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+      />
       <div className="flex items-center justify-end p-2 w-full border-b-2">
         {process.env.NODE_ENV === "development" && (
           <div className="flex-grow flex items-center justify-start">
@@ -447,6 +549,18 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
             aria-label={"Download SVG"}
           >
             <DownloadIcon />
+          </Button>
+        )}
+        {process.env.NODE_ENV === "development" && (
+          <Button
+            disabled={isRedrawing}
+            size={"icon"}
+            variant={"ghost"}
+            className={cx("cursor-pointer", "text-white")}
+            onClick={handleUploadSVG}
+            aria-label={"Upload SVG"}
+          >
+            <FileUpIcon />
           </Button>
         )}
         <Button

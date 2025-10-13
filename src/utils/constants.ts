@@ -88,8 +88,22 @@ export function createControls<T extends Record<string, any>>(
 
   // reorder so debug at the end
   const { debug, ...rest } = constants;
-
   controls = {
+    paperSize: {
+      value: "Custom",
+      options: [
+        "9x12 -- 2286x3048",
+        "11x14 -- 2794x3556",
+        "11x17 -- 2794x4318",
+        "12x16 -- 3048x4064",
+        "14x17 -- 3556x4318",
+        "12x18 -- 3048x4572",
+        "18x24 -- 4570x6100",
+        "8.5x11 -- 2159x2794",
+        "A3 -- 2940x4200",
+      ],
+    },
+    paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.0001 },
     ...rest,
     ...(debug !== undefined ? { debug } : {}),
   } as Record<keyof T, LevaControlType>;
@@ -124,9 +138,11 @@ export function createControls<T extends Record<string, any>>(
         controls[configKey] = {
           value,
           min: 1,
-          max: Math.max(100, value * 3),
+          max: Math.max(300, value * 2),
           step: 1,
         };
+      } else if (key.includes("numPoints")) {
+        controls[configKey] = { value, min: 1, max: 500, step: 1 };
       } else if (key.includes("cols") || key.includes("rows")) {
         controls[configKey] = { value, min: 1, max: 50, step: 1 };
       } else if (key.includes("min") || key.includes("max")) {

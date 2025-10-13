@@ -3,12 +3,12 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
 import { setupCanvas } from "@/utils/canvasSetup";
-import { generateGridPoints, drawDebugGrid } from "@/utils/gridUtils";
+import { generateGridPoints } from "@/utils/gridUtils";
 import {
   createBezierRoundedPath,
   drawPath as drawSafePath,
 } from "@/utils/pathUtils";
-import { drawPerpendicularLines } from "@/utils/linePatterns";
+import { drawPerpendicularLines, resetDrawnLines } from "@/utils/linePatterns";
 import { drawDebugPoints } from "@/utils/debugUtils";
 import { BaseConstants } from "../utils/constants";
 
@@ -20,49 +20,68 @@ export const meta: Meta = {
 };
 
 type Constants = BaseConstants & {
+  // Path generation
   bezierSteps: number;
   numPoints: number;
-  gridSize: number;
   radius: number;
-  linesPerSegment: number;
+  pathSmoothness: number;
+
+  // Segment configuration
+  segmentLengthMin: number;
+  segmentLengthMax: number;
+  segmentGapMin: number;
+  segmentGapMax: number;
+
+  // Line density and appearance
+  lineDensityMin: number;
+  lineDensityMax: number;
   lineThickness: number;
   lineLengthMin: number;
   lineLengthMax: number;
-  drawPatternLengthMin: number;
-  drawPatternLengthMax: number;
-  skipPatternLengthMin: number;
-  skipPatternLengthMax: number;
-  maxGapInPattern: number;
-  insideRangeProbability: number;
-  outsideRangeProbability: number;
-  linesStartOnPath: boolean;
-};
 
+  // Color zoning
+  drawInZone: number;
+  drawOutsideZone: number;
+
+  // Options
+  linesStartOnPath: boolean;
+  avoidIntersections: boolean;
+};
 export const constants: Constants = {
   width: 500,
   height: 500,
   marginX: 50,
   marginY: 50,
+  rotate: 0,
+
+  // Path generation
   bezierSteps: 10,
   numPoints: 12,
-  gridSize: 10,
   radius: 25,
-  linesPerSegment: 4,
+  pathSmoothness: 80,
+
+  // Segment configuration
+  segmentLengthMin: 20,
+  segmentLengthMax: 60,
+  segmentGapMin: 5,
+  segmentGapMax: 15,
+
+  // Line density and appearance
+  lineDensityMin: 3,
+  lineDensityMax: 8,
   lineThickness: 0.5,
   lineLengthMin: 8,
   lineLengthMax: 14,
-  drawPatternLengthMin: 5,
-  drawPatternLengthMax: 15,
-  skipPatternLengthMin: 3,
-  skipPatternLengthMax: 10,
-  maxGapInPattern: 3,
-  insideRangeProbability: 0.1,
-  outsideRangeProbability: 0.9,
-  rotate: 0,
-  debug: false,
-  linesStartOnPath: false, // true = lines start on path, false = lines centered on path
-};
 
+  // Color zoning
+  drawInZone: 90,
+  drawOutsideZone: 10,
+
+  // Options
+  linesStartOnPath: false,
+  avoidIntersections: true,
+  debug: false,
+};
 const newSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     if (seed !== null) p.randomSeed(seed);
@@ -85,22 +104,8 @@ const newSketch =
     };
 
     const drawSketch = () => {
-      p.stroke(100, 150, 255); // Light blue color
-      p.strokeWeight(1);
-
-      if (vars.debug ?? constants.debug) {
-        // show grid (squares) of width / gridSize x height / gridSize
-        drawDebugGrid(
-          p,
-          {
-            width: vars.width ?? constants.width,
-            height: vars.height ?? constants.height,
-            marginX: vars.marginX ?? constants.marginX,
-            marginY: vars.marginY ?? constants.marginY,
-          },
-          vars.gridSize ?? constants.gridSize
-        );
-      }
+      // Reset the drawn lines tracker at the start of each sketch
+      resetDrawnLines();
 
       const points = generateGridPoints(p, {
         width: vars.width ?? constants.width,
@@ -109,13 +114,16 @@ const newSketch =
         marginY: vars.marginY ?? constants.marginY,
         numPoints: vars.numPoints ?? constants.numPoints,
         centerPoints: false,
+        pathSmoothness: vars.pathSmoothness ?? constants.pathSmoothness,
       });
+
       const pathPoints = createBezierRoundedPath(
         points,
         vars.radius ?? constants.radius,
         vars.bezierSteps ?? constants.bezierSteps
       );
 
+      // sort points on the grid from top-left to bottom-right
       if (vars.debug ?? constants.debug) {
         drawDebugPoints(p, points);
         p.noFill();
@@ -124,13 +132,15 @@ const newSketch =
       }
 
       const colors: DotPen[] = [
-        "lePenPastelPens.rose",
-        "lePenPastelPens.yellow",
-        "lePenPastelPens.baby_blue",
-        "lePenPastelPens.mauve",
-        "lePenPastelPens.orange",
-        "lePenPens.red",
-        "lePenPens.wine",
+        "staedtlerPensNew.teal",
+        "staedtlerPensNew.yellow",
+        "staedtlerPensNew.orange",
+        "staedtlerPensNew.red",
+        "staedtlerPensNew.blue",
+        "staedtlerPensNew.crimson",
+        "staedtlerPensNew.brightOrange",
+        "staedtlerPensNew.gold",
+        "staedtlerPensNew.lightPink",
       ];
 
       colors.forEach((color, index) => {
@@ -139,25 +149,23 @@ const newSketch =
           pathPoints,
           color,
           {
-            linesPerSegment: vars.linesPerSegment ?? constants.linesPerSegment,
+            segmentLengthMin:
+              vars.segmentLengthMin ?? constants.segmentLengthMin,
+            segmentLengthMax:
+              vars.segmentLengthMax ?? constants.segmentLengthMax,
+            segmentGapMin: vars.segmentGapMin ?? constants.segmentGapMin,
+            segmentGapMax: vars.segmentGapMax ?? constants.segmentGapMax,
+            lineDensityMin: vars.lineDensityMin ?? constants.lineDensityMin,
+            lineDensityMax: vars.lineDensityMax ?? constants.lineDensityMax,
             lineThickness: vars.lineThickness ?? constants.lineThickness,
             lineLengthMin: vars.lineLengthMin ?? constants.lineLengthMin,
             lineLengthMax: vars.lineLengthMax ?? constants.lineLengthMax,
-            drawPatternLengthMin:
-              vars.drawPatternLengthMin ?? constants.drawPatternLengthMin,
-            drawPatternLengthMax:
-              vars.drawPatternLengthMax ?? constants.drawPatternLengthMax,
-            skipPatternLengthMin:
-              vars.skipPatternLengthMin ?? constants.skipPatternLengthMin,
-            skipPatternLengthMax:
-              vars.skipPatternLengthMax ?? constants.skipPatternLengthMax,
-            maxGapInPattern: vars.maxGapInPattern ?? constants.maxGapInPattern,
-            insideRangeProbability:
-              vars.insideRangeProbability ?? constants.insideRangeProbability,
-            outsideRangeProbability:
-              vars.outsideRangeProbability ?? constants.outsideRangeProbability,
+            drawInZone: vars.drawInZone ?? constants.drawInZone,
+            drawOutsideZone: vars.drawOutsideZone ?? constants.drawOutsideZone,
             linesStartOnPath:
               vars.linesStartOnPath ?? constants.linesStartOnPath,
+            avoidIntersections:
+              vars.avoidIntersections ?? constants.avoidIntersections,
           },
           index,
           colors.length

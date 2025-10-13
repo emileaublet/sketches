@@ -4,113 +4,159 @@ import { setStroke } from "./setStroke";
 import { Point, calculatePathDistances, getPointAtDistance } from "./pathUtils";
 
 export interface LinePatternConfig {
-  linesPerSegment: number;
+  // Segment size
+  segmentLengthMin: number; // Minimum length of a draw segment (in pixels)
+  segmentLengthMax: number; // Maximum length of a draw segment (in pixels)
+
+  // Gap between segments
+  segmentGapMin: number; // Minimum gap between segments (in pixels)
+  segmentGapMax: number; // Maximum gap between segments (in pixels)
+
+  // Line density within segments
+  lineDensityMin: number; // Minimum number of lines per 100 pixels of segment
+  lineDensityMax: number; // Maximum number of lines per 100 pixels of segment
+
+  // Line appearance
   lineThickness: number;
   lineLengthMin: number;
   lineLengthMax: number;
-  drawPatternLengthMin: number;
-  drawPatternLengthMax: number;
-  skipPatternLengthMin: number;
-  skipPatternLengthMax: number;
-  maxGapInPattern: number;
-  insideRangeProbability: number;
-  outsideRangeProbability: number;
+
+  // Color zoning
+  drawInZone: number; // Probability (0-100) of drawing when inside this color's zone
+  drawOutsideZone: number; // Probability (0-100) of drawing when outside this color's zone
+
+  // Options
   linesStartOnPath?: boolean; // true = lines start on path, false = centered on path
+  avoidIntersections?: boolean; // If true, lines won't be drawn where they would intersect existing lines
+} // Global line tracking for intersection detection
+interface LineSegment {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
 }
 
-export interface PatternSegment {
-  type: "draw" | "skip";
-  length: number;
-  gap: number;
-}
+let drawnLines: LineSegment[] = [];
 
 /**
- * Generate pattern segments for drawing/skipping lines
+ * Reset the drawn lines tracker. Call this before drawing a new set of paths.
  */
-export const generatePatterns = (
-  p: p5SVG,
-  items: number,
-  offsetMin: number,
-  offsetMax: number,
-  config: Pick<
-    LinePatternConfig,
-    | "drawPatternLengthMin"
-    | "drawPatternLengthMax"
-    | "skipPatternLengthMin"
-    | "skipPatternLengthMax"
-    | "maxGapInPattern"
-    | "insideRangeProbability"
-    | "outsideRangeProbability"
-  >
-): number[] => {
-  const patterns: PatternSegment[] = [];
-  let itemsLeft = items;
-  let lastIsDraw = false;
-
-  const probabilityFactors = {
-    insideRange: config.insideRangeProbability,
-    outsideRange: config.outsideRangeProbability,
-  };
-
-  while (itemsLeft > 10) {
-    let drawing = false;
-    if (lastIsDraw) {
-      drawing = false;
-    } else {
-      const distToOffset =
-        Math.min(
-          Math.abs(patterns.reduce((a, b) => a + b.length, 0) - offsetMin),
-          Math.abs(patterns.reduce((a, b) => a + b.length, 0) - offsetMax)
-        ) + 1;
-      const probDraw = p.map(
-        distToOffset,
-        0,
-        items / 2,
-        probabilityFactors.insideRange,
-        probabilityFactors.outsideRange
-      );
-      drawing = p.random() < probDraw;
-    }
-
-    const length = Math.floor(
-      Math.min(
-        p.random(
-          drawing ? config.drawPatternLengthMin : config.skipPatternLengthMin,
-          drawing ? config.drawPatternLengthMax : config.skipPatternLengthMax
-        ),
-        itemsLeft
-      )
-    );
-
-    patterns.push({
-      type: drawing ? "draw" : "skip",
-      length,
-      gap: !drawing ? 0 : Math.floor(p.random(0, config.maxGapInPattern + 1)),
-    });
-
-    itemsLeft -= length;
-    lastIsDraw = drawing;
-  }
-
-  return patterns.flatMap((pattern) => {
-    if (pattern.type === "draw") {
-      if (pattern.gap === 0) {
-        return Array(pattern.length).fill(1);
-      } else {
-        const result = [];
-        for (let i = 0; i < pattern.length; i++) {
-          result.push(i % (pattern.gap + 1) === 0 ? 1 : 0);
-        }
-        return result;
-      }
-    } else {
-      return Array(pattern.length).fill(0);
-    }
-  });
+export const resetDrawnLines = () => {
+  drawnLines = [];
 };
 
 /**
- * Draw perpendicular lines along a path with patterns
+ * Calculate the intersection point of two line segments
+ * Returns the parameter t (0-1) along line1 where intersection occurs, or null if no intersection
+ */
+const getIntersectionParameter = (
+  line1: LineSegment,
+  line2: LineSegment,
+  tolerance: number = 0.5
+): number | null => {
+  const { x1: x1, y1: y1, x2: x2, y2: y2 } = line1;
+  const { x1: x3, y1: y3, x2: x4, y2: y4 } = line2;
+
+  // Calculate the denominator
+  const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+
+  // Lines are parallel if denominator is 0
+  if (Math.abs(denom) < 0.0001) {
+    return null;
+  }
+
+  // Calculate intersection parameters
+  const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+  const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+
+  // Check if intersection occurs within both line segments
+  if (
+    ua >= -tolerance &&
+    ua <= 1 + tolerance &&
+    ub >= -tolerance &&
+    ub <= 1 + tolerance
+  ) {
+    return ua; // Return the parameter along line1
+  }
+
+  return null;
+};
+
+/**
+ * Generate segments with draw/skip pattern along the path
+ * Returns array of segments: { start: position (0-1), length: distance, shouldDraw: boolean }
+ */
+interface PathSegment {
+  start: number; // Position along path (0-1)
+  length: number; // Length in pixels
+  shouldDraw: boolean; // true = draw lines, false = skip
+}
+
+const generateSegments = (
+  p: p5SVG,
+  totalPathLength: number,
+  config: LinePatternConfig,
+  colorIndex: number,
+  totalColors: number
+): PathSegment[] => {
+  const segments: PathSegment[] = [];
+  let currentDist = 0;
+
+  // Determine the range for this color
+  const rangeStart = (colorIndex / totalColors) * totalPathLength;
+  const rangeEnd = ((colorIndex + 1) / totalColors) * totalPathLength;
+
+  while (currentDist < totalPathLength) {
+    // Determine if we're inside this color's zone
+    const isInColorRange = currentDist >= rangeStart && currentDist < rangeEnd;
+
+    // Use probability to determine if we should draw (convert 0-100 to 0-1)
+    const drawProbability = isInColorRange
+      ? config.drawInZone / 100
+      : config.drawOutsideZone / 100;
+    const shouldDraw = p.random() < drawProbability;
+
+    if (shouldDraw) {
+      // Draw segment
+      const segmentLength = p.random(
+        config.segmentLengthMin,
+        config.segmentLengthMax
+      );
+      segments.push({
+        start: currentDist / totalPathLength,
+        length: segmentLength,
+        shouldDraw: true,
+      });
+      currentDist += segmentLength;
+
+      // Gap after draw segment
+      const gapLength = p.random(config.segmentGapMin, config.segmentGapMax);
+      segments.push({
+        start: currentDist / totalPathLength,
+        length: gapLength,
+        shouldDraw: false,
+      });
+      currentDist += gapLength;
+    } else {
+      // Skip segment (no draw)
+      const skipLength = p.random(
+        config.segmentLengthMin,
+        config.segmentLengthMax
+      );
+      segments.push({
+        start: currentDist / totalPathLength,
+        length: skipLength,
+        shouldDraw: false,
+      });
+      currentDist += skipLength;
+    }
+  }
+
+  return segments;
+};
+
+/**
+ * Draw perpendicular lines along a path with segments and gaps
  */
 export const drawPerpendicularLines = (
   p: p5SVG,
@@ -123,69 +169,104 @@ export const drawPerpendicularLines = (
   if (path.length === 0) return;
 
   const dists = calculatePathDistances(path);
-  const total = dists[dists.length - 1];
+  const totalPathLength = dists[dists.length - 1];
 
-  const lineLen = p.random(config.lineLengthMin, config.lineLengthMax);
-  const items = Math.floor(
-    dists.length *
-      p.random(config.linesPerSegment * 0.75, config.linesPerSegment * 1.25)
+  // Generate segments for this path
+  const segments = generateSegments(
+    p,
+    totalPathLength,
+    config,
+    index,
+    totalColors
   );
 
-  let offsetMin = 0;
-  let offsetMax = items;
+  // Process each segment
+  for (const segment of segments) {
+    if (!segment.shouldDraw) continue;
 
-  if (index > 0) {
-    offsetMin = Math.floor((index / totalColors) * items);
-    offsetMax = Math.floor(((index + 1) / totalColors) * items);
-  }
+    // Calculate how many lines to draw in this segment based on density
+    const density = p.random(config.lineDensityMin, config.lineDensityMax);
+    const numLines = Math.max(1, Math.floor((segment.length / 100) * density));
 
-  if (index === 0) {
-    offsetMin = 0;
-    offsetMax = Math.floor(((index + 1) / totalColors) * items);
-  }
+    // Generate positions within this segment
+    for (let i = 0; i < numLines; i++) {
+      // Position within the segment (evenly distributed with slight randomness)
+      const segmentProgress = i / Math.max(1, numLines - 1);
+      const randomOffset = p.random(-0.05, 0.05);
+      const positionInSegment = Math.max(
+        0,
+        Math.min(1, segmentProgress + randomOffset)
+      );
 
-  const patterns = generatePatterns(p, items, offsetMin, offsetMax, config);
+      // Convert to absolute position along the path
+      const absolutePos =
+        segment.start + (positionInSegment * segment.length) / totalPathLength;
+      if (absolutePos >= 1) continue;
 
-  for (let k = 0; k < items; k++) {
-    if (patterns[k] === 0) continue;
+      const target = absolutePos * totalPathLength;
 
-    const u = (k + 0.5) / items;
-    const target = u * total;
+      const { point, direction } = getPointAtDistance(p, path, dists, target);
 
-    const { point, direction } = getPointAtDistance(p, path, dists, target);
+      // Each line gets its own random length
+      const lineLen = p.random(config.lineLengthMin, config.lineLengthMax);
 
-    // Calculate simple perpendicular vector (rotate 90° clockwise)
-    let perpX = direction.y;
-    let perpY = -direction.x;
+      // Calculate simple perpendicular vector (rotate 90° clockwise)
+      let perpX = direction.y;
+      let perpY = -direction.x;
 
-    // Normalize the perpendicular vector
-    const perpLen = Math.sqrt(perpX * perpX + perpY * perpY);
-    if (perpLen > 0) {
-      perpX /= perpLen;
-      perpY /= perpLen;
+      // Normalize the perpendicular vector
+      const perpLen = Math.sqrt(perpX * perpX + perpY * perpY);
+      if (perpLen > 0) {
+        perpX /= perpLen;
+        perpY /= perpLen;
+      }
+
+      // Compute endpoints of the line segment using perpendicular vector
+      let x1: number, y1: number, x2: number, y2: number;
+
+      if (config.linesStartOnPath) {
+        // Lines start on the path and extend outward
+        x1 = point.x;
+        y1 = point.y;
+        x2 = point.x + perpX * lineLen;
+        y2 = point.y + perpY * lineLen;
+      } else {
+        // Lines are centered on the path (default behavior)
+        x1 = point.x - (perpX * lineLen) / 2;
+        y1 = point.y - (perpY * lineLen) / 2;
+        x2 = point.x + (perpX * lineLen) / 2;
+        y2 = point.y + (perpY * lineLen) / 2;
+      }
+
+      const newLine: LineSegment = { x1, y1, x2, y2 };
+
+      // Check for intersections if the feature is enabled
+      if (config.avoidIntersections) {
+        // Check if this line would intersect any existing lines
+        let hasIntersection = false;
+        for (const existingLine of drawnLines) {
+          if (getIntersectionParameter(newLine, existingLine, 0.1) !== null) {
+            hasIntersection = true;
+            break;
+          }
+        }
+
+        if (hasIntersection) {
+          // Skip drawing this line entirely
+          continue;
+        }
+      }
+
+      // Draw the line
+      setStroke(color, p);
+      p.strokeWeight(config.lineThickness);
+      p.line(x1, y1, x2, y2);
+
+      // Track this line for future intersection checks
+      if (config.avoidIntersections) {
+        drawnLines.push(newLine);
+      }
     }
-
-    setStroke(color, p);
-    p.strokeWeight(config.lineThickness);
-
-    // Compute endpoints of the line segment using perpendicular vector
-    let x1: number, y1: number, x2: number, y2: number;
-
-    if (config.linesStartOnPath) {
-      // Lines start on the path and extend outward
-      x1 = point.x;
-      y1 = point.y;
-      x2 = point.x + perpX * lineLen;
-      y2 = point.y + perpY * lineLen;
-    } else {
-      // Lines are centered on the path (default behavior)
-      x1 = point.x - (perpX * lineLen) / 2;
-      y1 = point.y - (perpY * lineLen) / 2;
-      x2 = point.x + (perpX * lineLen) / 2;
-      y2 = point.y + (perpY * lineLen) / 2;
-    }
-
-    p.line(x1, y1, x2, y2);
   }
 };
 
