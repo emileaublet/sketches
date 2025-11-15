@@ -73,6 +73,8 @@ const nodesSketch =
         debug: vars.debug ?? constants.debug,
         marginX,
         marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       const grid = createGrid({

@@ -36,6 +36,8 @@ const distortionSketch =
         debug: vars.debug ?? constants.debug,
         marginX: vars.marginX ?? constants.marginX,
         marginY: vars.marginY ?? constants.marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
       p.noStroke();
     };

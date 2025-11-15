@@ -1,12 +1,7 @@
 import React from "react";
 import { Link } from "react-router";
 import type { Meta } from "../types";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface HomePageProps {
   sketches: Meta[];
@@ -29,9 +24,6 @@ const HomePage: React.FC<HomePageProps> = ({ sketches }) => {
             </div>
             <CardHeader className="absolute bottom-0 w-full p-4 rounded-b-lg bg-background/80 backdrop-blur-xl">
               <CardTitle className="text-xl">{sketch.title}</CardTitle>
-              <CardDescription className="text-lg">
-                {sketch.description}
-              </CardDescription>
             </CardHeader>
           </Card>
         </Link>

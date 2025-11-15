@@ -19,10 +19,10 @@ type Constants = BaseConstants & {
 };
 
 export const constants: Constants = {
-  width: 600,
-  height: 600,
-  marginX: 120,
-  marginY: 120,
+  width: 500,
+  height: 640,
+  marginX: 60,
+  marginY: 90,
   lines: 280,
   debug: false,
 };
@@ -43,6 +43,8 @@ const distortionSketch =
         debug: vars.debug ?? constants.debug,
         marginX,
         marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);

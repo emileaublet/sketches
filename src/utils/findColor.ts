@@ -6,7 +6,7 @@ export const findColor = (
 ): { color: Color; lineWidth: number; opaque: boolean } => {
   // find the pen in allPens. e.g. color will be staedtlerPens.blue_200, and you will search for staedtlerPens.pens.blue_200
   const [familyName, penName] = color.split(".");
-  const family = allPens[familyName as keyof typeof allPens] as
+  const family = allPens[familyName as keyof typeof allPens] as unknown as
     | PenFamily
     | undefined;
   if (!family) {

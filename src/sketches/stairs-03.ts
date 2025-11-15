@@ -34,6 +34,12 @@ export const constants: Constants = {
   spiralRoundness: 1, // 0 = square, 1 = full circle
 };
 
+export const constantsProps = {
+  spiralRoundness: { min: 0, max: 1.3, step: 0.05 },
+  loops: { min: 5, max: 30, step: 1 },
+  rotate: { min: 0, max: 360, step: 1 },
+};
+
 const stairsSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     let path: any[] = [];
@@ -49,6 +55,8 @@ const stairsSketch =
         debug: vars.debug ?? constants.debug,
         marginX: vars.marginX ?? constants.marginX,
         marginY: vars.marginY ?? constants.marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       generateSwirlPath();

@@ -36,6 +36,8 @@ const concentricSketch =
         noLoop: true,
         marginX: vars.marginX ?? constants.marginX,
         marginY: vars.marginY ?? constants.marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
         debug: vars.debug ?? constants.debug,
       });
 

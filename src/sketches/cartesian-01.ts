@@ -6,6 +6,11 @@ import { setStroke } from "@/utils/setStroke";
 import { setupCanvas } from "@/utils/canvasSetup";
 import { BaseConstants } from "../utils/constants";
 import { calculateDrawArea } from "@/utils/drawingArea";
+import {
+  drawHorizontalWavyLine,
+  drawVerticalWavyLine,
+  splitSpace,
+} from "@/utils/cartesianUtils";
 
 type Constants = BaseConstants;
 
@@ -41,6 +46,8 @@ const cartesianSketch =
         debug: vars.debug ?? constants.debug,
         marginX,
         marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);
@@ -49,6 +56,7 @@ const cartesianSketch =
       // Split the canvas into random rectangles
       const rectCount = p.floor(p.random(4, 8));
       const rectsH = splitSpace(
+        p,
         marginX,
         marginY,
         drawW,
@@ -58,6 +66,7 @@ const cartesianSketch =
       );
 
       const rectsV = splitSpace(
+        p,
         marginX,
         marginY,
         drawW,
@@ -87,7 +96,14 @@ const cartesianSketch =
           // segment length spans full draw width
           const segmentLen = rect.w / segmentCount;
 
-          drawHorizontal(bx, by, segmentLen, segmentCount, maxYOffset);
+          drawHorizontalWavyLine(
+            p,
+            bx,
+            by,
+            segmentLen,
+            segmentCount,
+            maxYOffset
+          );
         }
       }
 
@@ -112,102 +128,10 @@ const cartesianSketch =
           // segment length spans full draw height
           const segmentLen = rect.h / segmentCount;
 
-          drawVertical(bx, by, segmentLen, segmentCount, maxXOffset);
+          drawVerticalWavyLine(p, bx, by, segmentLen, segmentCount, maxXOffset);
         }
       }
     };
-
-    function drawHorizontal(
-      startX: number,
-      startY: number,
-      segmentLen: number,
-      segments: number,
-      maxYOffset: number
-    ) {
-      p.push();
-      p.translate(startX, startY);
-      p.beginShape();
-      for (let i = 0; i <= segments; i++) {
-        const x = i * segmentLen;
-        const y = p.random(-maxYOffset, maxYOffset);
-        p.vertex(x, y);
-      }
-      p.endShape();
-      p.pop();
-    }
-
-    function drawVertical(
-      startX: number,
-      startY: number,
-      segmentLen: number,
-      segments: number,
-      maxXOffset: number
-    ) {
-      p.push();
-      p.translate(startX, startY);
-      p.beginShape();
-      for (let i = 0; i <= segments; i++) {
-        const x = p.random(-maxXOffset, maxXOffset);
-        const y = i * segmentLen;
-        p.vertex(x, y);
-      }
-      p.endShape();
-      p.pop();
-    }
-
-    function splitSpace(
-      x: number,
-      y: number,
-      w: number,
-      h: number,
-      count: number,
-      cellSize: number
-    ): { x: number; y: number; w: number; h: number }[] {
-      // Enforce snapping to cellSize
-      x = snapToGrid(x, cellSize);
-      y = snapToGrid(y, cellSize);
-      w = snapToGrid(w, cellSize);
-      h = snapToGrid(h, cellSize);
-
-      if (count <= 1) {
-        return [{ x, y, w, h }];
-      }
-
-      let splitVertically = p.random() < 0.5;
-
-      // Force split direction to avoid skinny slices
-      if (w > h * 1.5) splitVertically = true;
-      if (h > w * 1.5) splitVertically = false;
-
-      if (splitVertically && w >= 2 * cellSize) {
-        const split = snapToGrid(randomBetween(w * 0.3, w * 0.7), cellSize);
-        const countA = Math.floor(randomBetween(1, count));
-        const countB = count - countA;
-
-        return [
-          ...splitSpace(x, y, split, h, countA, cellSize),
-          ...splitSpace(x + split, y, w - split, h, countB, cellSize),
-        ];
-      } else if (!splitVertically && h >= 2 * cellSize) {
-        const split = snapToGrid(randomBetween(h * 0.3, h * 0.7), cellSize);
-        const countA = Math.floor(randomBetween(1, count));
-        const countB = count - countA;
-
-        return [
-          ...splitSpace(x, y, w, split, countA, cellSize),
-          ...splitSpace(x, y + split, w, h - split, countB, cellSize),
-        ];
-      }
-
-      // If unable to split further (e.g., too small), return as is
-      return [{ x, y, w, h }];
-    }
-    function randomBetween(min: number, max: number): number {
-      return p.random() * (max - min) + min;
-    }
-    function snapToGrid(value: number, cellSize: number): number {
-      return p.round(value / cellSize) * cellSize;
-    }
   };
 
 export default cartesianSketch;

@@ -48,6 +48,8 @@ const plusPlusSketch =
         debug: vars.debug ?? constants.debug,
         marginX,
         marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
       //p.background(255);
 

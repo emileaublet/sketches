@@ -1,4 +1,5 @@
 import { p5SVG } from "p5.js-svg";
+import roundPolygon, { getSegments } from "round-polygon";
 
 import { Meta } from "../types";
 import { DotPen } from "@/pens";
@@ -6,7 +7,6 @@ import { setStroke } from "@/utils/setStroke";
 import { setupCanvas } from "@/utils/canvasSetup";
 import {
   BaseConstants,
-  LineConstants,
   PathConstants,
   PatternConstants,
 } from "../utils/constants";
@@ -24,13 +24,17 @@ export const meta: Meta = {
 };
 
 type Constants = BaseConstants &
-  LineConstants &
   PathConstants &
   PatternConstants & {
     targetGridSize: number;
     gridCoverage: number;
     allowTwoStepJumps: boolean;
     maxDeadEnds: number;
+    useTubeRings: boolean;
+    lineThickness: number;
+    lineLength: number;
+    linesPerSegment: number;
+    tubeSmoothing: number;
   };
 
 export const constants: Constants = {
@@ -46,19 +50,22 @@ export const constants: Constants = {
 
   // Line properties
   lineThickness: 0.5,
-  lineLengthMin: 8,
-  lineLengthMax: 14,
+  lineLength: 25,
   linesPerSegment: 1,
+
+  // Tube smoothing
+  tubeSmoothing: 10,
 
   // Grid settings
   targetGridSize: 12,
   gridCoverage: 0.8,
   allowTwoStepJumps: true,
   maxDeadEnds: 5,
+  useTubeRings: false,
 
   // Path properties
-  cornerRadius: 0.3,
-  bezierSteps: 10,
+  cornerRadius: 80,
+  bezierSteps: 30,
 
   // Pattern generation
   insideRangeProbability: 0.7,
@@ -75,10 +82,6 @@ const stairsSketch =
     let path: any[] = [];
 
     let lineThickness = vars.lineThickness ?? constants.lineThickness;
-    let lineLen = p.random(
-      vars.lineLengthMin ?? constants.lineLengthMin,
-      vars.lineLengthMax ?? constants.lineLengthMax
-    );
     p.setup = () => {
       setupCanvas(p, {
         width: vars.width ?? constants.width,
@@ -88,6 +91,8 @@ const stairsSketch =
         debug: vars.debug ?? constants.debug,
         marginX: vars.marginX ?? constants.marginX,
         marginY: vars.marginY ?? constants.marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       generateRandomPath();
@@ -132,13 +137,13 @@ const stairsSketch =
         p.endShape();
       }
       const colors: DotPen[] = [
-        "lePenPastelPens.rose",
-        "lePenPastelPens.yellow",
-        "lePenPastelPens.baby_blue",
-        "lePenPastelPens.mauve",
-        "lePenPastelPens.orange",
-        "lePenPens.red",
-        "lePenPens.wine",
+        "staedtlerPensNew.limeGreen",
+        "staedtlerPensNew.mauve",
+        "staedtlerPensNew.crimson",
+        "staedtlerPensNew.brightOrange",
+        "staedtlerPensNew.yellow",
+        "staedtlerPensNew.darkBlue",
+        "staedtlerPensNew.lightBlue",
       ];
       let index = 0;
       for (let color of colors) {
@@ -475,8 +480,10 @@ const stairsSketch =
       }
 
       // Create rounded path using Dave's Bezier method
-      const cornerRadius =
-        (vars.cornerRadius ?? constants.cornerRadius) * stepLen;
+      // cornerRadius is 0-100 from Leva, convert to 0-1 fraction
+      const cornerRadiusFraction =
+        (vars.cornerRadius ?? constants.cornerRadius) / 100;
+      const cornerRadius = cornerRadiusFraction * stepLen;
       path = createBezierRoundedPath(gridPoints, cornerRadius);
     }
 
@@ -486,102 +493,16 @@ const stairsSketch =
     ) {
       if (points.length < 3) return points;
 
-      let roundedPath: { x: number; y: number }[] = [];
+      // Use round-polygon library for proper corner rounding
+      // It automatically handles overlap prevention and edge cases
+      const roundedPolygon = roundPolygon(points, radius);
 
-      // Add the first point as-is (no rounding at start)
-      roundedPath.push(points[0]);
+      // Convert the rounded polygon to segments
+      // Use bezierSteps to control segment density
+      const segmentLength = vars.bezierSteps ?? constants.bezierSteps;
+      const segments = getSegments(roundedPolygon, "AMOUNT", segmentLength);
 
-      // Process middle points (with rounding)
-      for (let i = 1; i < points.length - 1; i++) {
-        const a = points[i - 1];
-        const b = points[i];
-        const c = points[i + 1];
-
-        // Create vectors (ba and bc)
-        const baX = a.x - b.x;
-        const baY = a.y - b.y;
-        const bcX = c.x - b.x;
-        const bcY = c.y - b.y;
-
-        // Normalize vectors
-        const baLen = Math.sqrt(baX * baX + baY * baY);
-        const bcLen = Math.sqrt(bcX * bcX + bcY * bcY);
-
-        if (baLen < 0.1 || bcLen < 0.1) {
-          roundedPath.push(b);
-          continue;
-        }
-
-        const baNormX = baX / baLen;
-        const baNormY = baY / baLen;
-        const bcNormX = bcX / bcLen;
-        const bcNormY = bcY / bcLen;
-
-        // Calculate angle between vectors
-        const dot = baNormX * bcNormX + baNormY * bcNormY;
-        const theta = Math.acos(Math.max(-1, Math.min(1, dot)));
-
-        // Skip if it's nearly a straight line
-        if (theta < 0.1) {
-          roundedPath.push(b);
-          continue;
-        }
-
-        // Calculate maximum radius and clamp
-        const distAB = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-        const distBC = Math.sqrt((c.x - b.x) ** 2 + (c.y - b.y) ** 2);
-        const maxR =
-          (Math.min(distAB, distBC) / 2) * Math.abs(Math.sin(theta / 2));
-        const cornerR = Math.min(radius, maxR);
-
-        // Calculate distance from corner
-        const distance = Math.abs(cornerR / Math.sin(theta / 2));
-
-        // Calculate control points for bezier
-        const c1X = b.x + baNormX * distance;
-        const c1Y = b.y + baNormY * distance;
-        const c2X = b.x + bcNormX * distance;
-        const c2Y = b.y + bcNormY * distance;
-
-        // Bezier control point distance (magic number for circular approximation)
-        const bezierDist = 0.5523;
-        const p1X = c1X - baNormX * 2 * cornerR * bezierDist;
-        const p1Y = c1Y - baNormY * 2 * cornerR * bezierDist;
-        const p2X = c2X - bcNormX * 2 * cornerR * bezierDist;
-        const p2Y = c2Y - bcNormY * 2 * cornerR * bezierDist;
-
-        // Add start point
-        roundedPath.push({ x: c1X, y: c1Y });
-
-        // Generate bezier curve points
-        const steps = vars.bezierSteps ?? constants.bezierSteps;
-        for (let t = 1; t <= steps; t++) {
-          const u = t / steps;
-          const u2 = u * u;
-          const u3 = u2 * u;
-          const oneMinusU = 1 - u;
-          const oneMinusU2 = oneMinusU * oneMinusU;
-          const oneMinusU3 = oneMinusU2 * oneMinusU;
-
-          const x =
-            oneMinusU3 * c1X +
-            3 * oneMinusU2 * u * p1X +
-            3 * oneMinusU * u2 * p2X +
-            u3 * c2X;
-          const y =
-            oneMinusU3 * c1Y +
-            3 * oneMinusU2 * u * p1Y +
-            3 * oneMinusU * u2 * p2Y +
-            u3 * c2Y;
-
-          roundedPath.push({ x, y });
-        }
-      }
-
-      // Add the last point as-is (no rounding at end)
-      roundedPath.push(points[points.length - 1]);
-
-      return roundedPath;
+      return segments;
     }
 
     function drawPath(color: DotPen, index = 0, totalColors = 1) {
@@ -608,16 +529,164 @@ const stairsSketch =
       }
 
       const patterns = generatePatterns(items, offsetMin, offsetMax);
+      const useTubeRings = vars.useTubeRings ?? constants.useTubeRings;
+
+      // For tube rings mode: pre-calculate offset paths
+      let leftPath: { x: number; y: number }[] = [];
+      let rightPath: { x: number; y: number }[] = [];
+      let avgDists: number[] = [];
+
+      if (useTubeRings) {
+        const tubeWidth = (vars.lineLength ?? constants.lineLength) / 2;
+        let prevNormalX = 0;
+        let prevNormalY = 0;
+        let isFirstNormal = true;
+
+        // First pass: calculate raw normals
+        const rawNormals: { x: number; y: number }[] = [];
+        for (let i = 0; i < path.length; i++) {
+          // Calculate tangent direction using larger span for smoother normals
+          const span = Math.min(50, Math.floor(path.length / 8));
+          const backIdx = Math.max(0, i - span);
+          const forwardIdx = Math.min(path.length - 1, i + span);
+
+          let dx = path[forwardIdx].x - path[backIdx].x;
+          let dy = path[forwardIdx].y - path[backIdx].y;
+
+          // Calculate perpendicular (rotate 90°)
+          let perpX = dy;
+          let perpY = -dx;
+
+          // Normalize
+          const len = Math.sqrt(perpX * perpX + perpY * perpY);
+          if (len > 0) {
+            perpX /= len;
+            perpY /= len;
+          }
+
+          rawNormals.push({ x: perpX, y: perpY });
+        }
+
+        // Second pass: ensure consistency
+        for (let i = 0; i < rawNormals.length; i++) {
+          let perpX = rawNormals[i].x;
+          let perpY = rawNormals[i].y;
+
+          if (!isFirstNormal) {
+            const dot = perpX * prevNormalX + perpY * prevNormalY;
+            if (dot < 0) {
+              perpX *= -1;
+              perpY *= -1;
+            }
+          } else {
+            isFirstNormal = false;
+          }
+
+          prevNormalX = perpX;
+          prevNormalY = perpY;
+
+          // Create offset points
+          const curr = path[i];
+          leftPath.push({
+            x: curr.x + perpX * tubeWidth,
+            y: curr.y + perpY * tubeWidth,
+          });
+          rightPath.push({
+            x: curr.x - perpX * tubeWidth,
+            y: curr.y - perpY * tubeWidth,
+          });
+        }
+
+        // Third pass: smooth the offset paths to remove sharp corners
+        const smoothPaths = (points: { x: number; y: number }[]) => {
+          if (points.length === 0) return points;
+          if (points.length < 3) return points; // Not enough points to smooth
+
+          const smoothed: { x: number; y: number }[] = [];
+          const rawWindowSize = Math.round(
+            vars.tubeSmoothing ?? constants.tubeSmoothing
+          );
+          // Clamp window size to prevent crashes with very high values
+          const windowSize = Math.min(
+            rawWindowSize,
+            Math.floor(points.length / 2)
+          );
+
+          for (let i = 0; i < points.length; i++) {
+            let sumX = 0;
+            let sumY = 0;
+            let count = 0;
+
+            const start = Math.max(0, i - windowSize);
+            const end = Math.min(points.length - 1, i + windowSize);
+
+            for (let j = start; j <= end; j++) {
+              // Safety check to prevent accessing undefined elements
+              if (!points[j]) continue;
+
+              // Weighted average - center point has more weight
+              const weight = 1 - Math.abs(j - i) / (windowSize + 1);
+              sumX += points[j].x * weight;
+              sumY += points[j].y * weight;
+              count += weight;
+            }
+
+            smoothed.push({
+              x: sumX / count,
+              y: sumY / count,
+            });
+          }
+
+          return smoothed;
+        };
+
+        leftPath = smoothPaths(leftPath);
+        rightPath = smoothPaths(rightPath);
+
+        // Fourth pass: normalize distances to maintain constant tube width
+        // Like a worm - constant width, no variable scaling
+        for (let i = 0; i < path.length; i++) {
+          const center = path[i];
+
+          // Left side
+          const leftDx = leftPath[i].x - center.x;
+          const leftDy = leftPath[i].y - center.y;
+          const leftDist = Math.sqrt(leftDx * leftDx + leftDy * leftDy);
+          if (leftDist > 0) {
+            leftPath[i].x = center.x + (leftDx / leftDist) * tubeWidth;
+            leftPath[i].y = center.y + (leftDy / leftDist) * tubeWidth;
+          }
+
+          // Right side
+          const rightDx = rightPath[i].x - center.x;
+          const rightDy = rightPath[i].y - center.y;
+          const rightDist = Math.sqrt(rightDx * rightDx + rightDy * rightDy);
+          if (rightDist > 0) {
+            rightPath[i].x = center.x + (rightDx / rightDist) * tubeWidth;
+            rightPath[i].y = center.y + (rightDy / rightDist) * tubeWidth;
+          }
+        }
+
+        // Calculate average arc length between left and right boundaries
+        // This gives us the "neutral" spacing for an accordion-like effect
+        const leftDists = calculatePathDistances(leftPath);
+        const rightDists = calculatePathDistances(rightPath);
+        avgDists = leftDists.map((ld, i) => (ld + rightDists[i]) / 2);
+      }
+
+      // Use average distances for tube rings, regular distances otherwise
+      const spacingDists = useTubeRings ? avgDists : dists;
+      const spacingTotal = spacingDists[spacingDists.length - 1];
 
       for (let k = 0; k < items; k++) {
         let u = (k + 0.5) / items;
-        let target = u * total;
+        let target = u * spacingTotal;
 
-        let idx = binarySearchIndex(dists, target);
+        let idx = binarySearchIndex(spacingDists, target);
         let p0 = path[idx];
         let p1 = path[p.min(idx + 1, path.length - 1)];
-        let segLen = dists[idx + 1] - dists[idx] || 1;
-        let localT = (target - dists[idx]) / segLen;
+        let segLen = spacingDists[idx + 1] - spacingDists[idx] || 1;
+        let localT = (target - spacingDists[idx]) / segLen;
         let px = p.lerp(p0.x, p1.x, localT);
         let py = p.lerp(p0.y, p1.y, localT);
 
@@ -656,10 +725,38 @@ const stairsSketch =
         p.strokeWeight(lineThickness);
 
         // compute endpoints of the line segment using perpendicular vector
-        let x1 = px - (perpX * lineLen) / 2;
-        let y1 = py - (perpY * lineLen) / 2;
-        let x2 = px + (perpX * lineLen) / 2;
-        let y2 = py + (perpY * lineLen) / 2;
+        const lineLen = vars.lineLength ?? constants.lineLength;
+        let x1: number;
+        let y1: number;
+        let x2: number;
+        let y2: number;
+
+        if (useTubeRings) {
+          // Simple approach: use the same path index for both boundaries
+          // This creates proper "rings" around the tube
+          const pathIdx = Math.min(idx, leftPath.length - 1);
+
+          // Just connect the left and right points at this index
+          x1 = leftPath[pathIdx].x;
+          y1 = leftPath[pathIdx].y;
+          x2 = rightPath[pathIdx].x;
+          y2 = rightPath[pathIdx].y;
+        } else {
+          // Accordion bus model: the path IS one edge of the tube
+          // Lines are always perpendicular, going from path to path+offset
+
+          // The "tube" has width = lineLen, and the yellow path is the centerline
+          // We offset the path position to one edge, then draw perpendicular to the other edge
+          const halfWidth = lineLen / 2;
+
+          // Start point: offset from center to one side
+          x1 = px - perpX * halfWidth;
+          y1 = py - perpY * halfWidth;
+
+          // End point: offset from center to the other side
+          x2 = px + perpX * halfWidth;
+          y2 = py + perpY * halfWidth;
+        }
         if (patterns[k] === 0) continue;
         p.line(x1, y1, x2, y2);
       }

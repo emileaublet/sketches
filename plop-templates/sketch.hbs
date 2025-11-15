@@ -1,0 +1,69 @@
+import { p5SVG } from "p5.js-svg";
+import { Meta } from "../types";
+import { all } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+
+type Constants = BaseConstants & {
+  // Add your custom constants here
+};
+
+export const meta: Meta = {
+  id: "{{name}}",
+  title: "{{title}}",
+  description: "{{description}}",
+  thumbnail: "/{{name}}.png",
+};
+
+export const constants: Constants = {
+  width: 572,
+  height: 762,
+  marginX: 80,
+  marginY: 80,
+  debug: false,
+  // Add your custom constant values here
+};
+
+export const constantsProps = {
+  // Define Leva control properties for your constants here
+  // Example:
+  // debug: { type: "boolean" },
+};
+
+const {{camelCase name}}Sketch =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    p.setup = () => {
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        colorMode: "RGB",
+        angleMode: "DEGREES",
+        noFill: true,
+        noLoop: true,
+        debug: vars.debug ?? constants.debug,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+        useSVG: vars.useSVG ?? true,
+        zoomLevel: (vars as any).zoomLevel,
+      });
+
+      const marginX = vars.marginX ?? constants.marginX;
+      const marginY = vars.marginY ?? constants.marginY;
+      const drawW = p.width - 2 * marginX;
+      const drawH = p.height - 2 * marginY;
+      const centerX = p.width / 2;
+      const centerY = p.height / 2;
+
+      // Get colors
+      const colors = all("gellyRollPens");
+      const color = p.random(colors);
+      setStroke(color, p);
+
+      // Your drawing code here
+      p.circle(centerX, centerY, Math.min(drawW, drawH));
+    };
+  };
+
+export default {{camelCase name}}Sketch;

@@ -19,6 +19,7 @@ export interface BaseConstants {
 
   // Common controls
   debug?: boolean;
+  useSVG?: boolean;
   rotate?: number; // degrees
 }
 
@@ -86,7 +87,7 @@ export function createControls<T extends Record<string, any>>(
 ): Record<keyof T, LevaControlType> {
   let controls = {} as Record<keyof T, LevaControlType>;
 
-  // reorder so debug at the end
+  // reorder so debug and useSVG at the end
   const { debug, ...rest } = constants;
   controls = {
     paperSize: {
@@ -105,6 +106,7 @@ export function createControls<T extends Record<string, any>>(
     },
     paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.0001 },
     ...rest,
+    useSVG: false, // Always add useSVG control
     ...(debug !== undefined ? { debug } : {}),
   } as Record<keyof T, LevaControlType>;
 
@@ -113,7 +115,20 @@ export function createControls<T extends Record<string, any>>(
 
     // Use provided config if available
     if (controlConfig?.[configKey]) {
-      controls[configKey] = controlConfig[configKey]!;
+      const config = controlConfig[configKey]!;
+      // If config doesn't have a value, use the one from constants
+      if (
+        typeof config === "object" &&
+        config !== null &&
+        !("value" in config)
+      ) {
+        controls[configKey] = {
+          ...(config as object),
+          value,
+        } as LevaControlType;
+      } else {
+        controls[configKey] = config;
+      }
       continue;
     }
 
@@ -143,8 +158,20 @@ export function createControls<T extends Record<string, any>>(
         };
       } else if (key.includes("numPoints")) {
         controls[configKey] = { value, min: 1, max: 500, step: 1 };
+      } else if (key.includes("patternSize")) {
+        controls[configKey] = { value, min: 0, max: 10, step: 1 };
+      } else if (key.includes("pointSize")) {
+        controls[configKey] = { value, min: 1, max: 8, step: 1 };
+      } else if (key.includes("ringSpacing")) {
+        controls[configKey] = { value, min: 1, max: 50, step: 1 };
+      } else if (key.includes("colorMode")) {
+        controls[configKey] = { value, min: 0, max: 1, step: 1 };
       } else if (key.includes("cols") || key.includes("rows")) {
         controls[configKey] = { value, min: 1, max: 50, step: 1 };
+      } else if (key.includes("densityMultiplier")) {
+        controls[configKey] = { value, min: 0, max: 5, step: 0.1 };
+      } else if (key.includes("jitter")) {
+        controls[configKey] = { value, min: 0, max: 5, step: 0.1 };
       } else if (key.includes("min") || key.includes("max")) {
         controls[configKey] = {
           value,

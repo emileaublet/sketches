@@ -47,6 +47,8 @@ const distortionSketch =
         debug: vars.debug ?? constants.debug,
         marginX,
         marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);

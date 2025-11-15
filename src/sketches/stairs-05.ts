@@ -49,15 +49,15 @@ type Constants = BaseConstants & {
 };
 export const constants: Constants = {
   width: 500,
-  height: 500,
+  height: 600,
   marginX: 50,
   marginY: 50,
   rotate: 0,
 
   // Path generation
   bezierSteps: 10,
-  numPoints: 12,
-  radius: 25,
+  numPoints: 120,
+  radius: 100,
   pathSmoothness: 80,
 
   // Segment configuration
@@ -67,10 +67,10 @@ export const constants: Constants = {
   segmentGapMax: 15,
 
   // Line density and appearance
-  lineDensityMin: 3,
-  lineDensityMax: 8,
+  lineDensityMin: 40,
+  lineDensityMax: 50,
   lineThickness: 0.5,
-  lineLengthMin: 8,
+  lineLengthMin: 12,
   lineLengthMax: 14,
 
   // Color zoning
@@ -97,6 +97,8 @@ const newSketch =
         debug: vars.debug ?? constants.debug,
         marginX: vars.marginX ?? constants.marginX,
         marginY: vars.marginY ?? constants.marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       // Your sketch code goes here
@@ -133,14 +135,14 @@ const newSketch =
 
       const colors: DotPen[] = [
         "staedtlerPensNew.teal",
+        "staedtlerPensNew.limeGreen",
         "staedtlerPensNew.yellow",
         "staedtlerPensNew.orange",
         "staedtlerPensNew.red",
-        "staedtlerPensNew.blue",
         "staedtlerPensNew.crimson",
-        "staedtlerPensNew.brightOrange",
-        "staedtlerPensNew.gold",
-        "staedtlerPensNew.lightPink",
+        "staedtlerPensNew.darkPurple",
+        "staedtlerPensNew.blue",
+        "staedtlerPensNew.slate",
       ];
 
       colors.forEach((color, index) => {

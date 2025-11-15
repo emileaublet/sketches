@@ -1,4 +1,5 @@
 import { p5SVG } from "p5.js-svg";
+import roundPolygon, { getSegments } from "round-polygon";
 
 export interface Point {
   x: number;
@@ -6,7 +7,12 @@ export interface Point {
 }
 
 /**
- * Create a bezier rounded path from a series of points
+ * Create a rounded path from a series of points using the round-polygon library
+ * This library provides mathematically correct rounding with automatic overlap prevention
+ * @param points - Array of points to round
+ * @param radius - Corner radius
+ * @param bezierSteps - Number of segments per arc (controls smoothness)
+ * @returns Array of points representing the smoothly rounded path
  */
 export const createBezierRoundedPath = (
   points: Point[],
@@ -15,105 +21,15 @@ export const createBezierRoundedPath = (
 ): Point[] => {
   if (points.length < 3) return points;
 
-  let roundedPath: Point[] = [];
+  // Use round-polygon library for proper corner rounding
+  // It automatically handles overlap prevention and edge cases
+  const roundedPolygon = roundPolygon(points, radius);
 
-  // Add the first point as-is (no rounding at start)
-  roundedPath.push(points[0]);
+  // Convert the rounded polygon to segments
+  // Use bezierSteps to control segment density
+  const segments = getSegments(roundedPolygon, "AMOUNT", bezierSteps);
 
-  // Process middle points (with rounding)
-  for (let i = 1; i < points.length - 1; i++) {
-    const a = points[i - 1];
-    const b = points[i];
-    const c = points[i + 1];
-
-    // Create vectors (ba and bc)
-    const baX = a.x - b.x;
-    const baY = a.y - b.y;
-    const bcX = c.x - b.x;
-    const bcY = c.y - b.y;
-
-    // Normalize vectors
-    const baLen = Math.sqrt(baX * baX + baY * baY);
-    const bcLen = Math.sqrt(bcX * bcX + bcY * bcY);
-
-    if (baLen < 0.1 || bcLen < 0.1) {
-      roundedPath.push(b);
-      continue;
-    }
-
-    const baNormX = baX / baLen;
-    const baNormY = baY / baLen;
-    const bcNormX = bcX / bcLen;
-    const bcNormY = bcY / bcLen;
-
-    // Calculate angle between vectors
-    const dot = baNormX * bcNormX + baNormY * bcNormY;
-    const theta = Math.acos(Math.max(-1, Math.min(1, dot)));
-
-    // Skip if it's nearly a straight line or if angle is too small
-    if (theta < 0.1 || Math.abs(Math.sin(theta / 2)) < 0.001) {
-      roundedPath.push(b);
-      continue;
-    }
-
-    // Calculate maximum radius and clamp
-    const distAB = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-    const distBC = Math.sqrt((c.x - b.x) ** 2 + (c.y - b.y) ** 2);
-    const maxR = (Math.min(distAB, distBC) / 2) * Math.abs(Math.sin(theta / 2));
-    const cornerR = Math.min(radius, maxR);
-
-    // Calculate distance from corner - add safety check
-    const sinHalfTheta = Math.sin(theta / 2);
-    if (Math.abs(sinHalfTheta) < 0.001) {
-      roundedPath.push(b);
-      continue;
-    }
-    const distance = Math.abs(cornerR / sinHalfTheta);
-
-    // Calculate control points for bezier
-    const c1X = b.x + baNormX * distance;
-    const c1Y = b.y + baNormY * distance;
-    const c2X = b.x + bcNormX * distance;
-    const c2Y = b.y + bcNormY * distance;
-
-    // Bezier control point distance (magic number for circular approximation)
-    const bezierDist = 0.5523;
-    const p1X = c1X - baNormX * 2 * cornerR * bezierDist;
-    const p1Y = c1Y - baNormY * 2 * cornerR * bezierDist;
-    const p2X = c2X - bcNormX * 2 * cornerR * bezierDist;
-    const p2Y = c2Y - bcNormY * 2 * cornerR * bezierDist;
-
-    // Add start point
-    roundedPath.push({ x: c1X, y: c1Y });
-
-    // Generate bezier curve points
-    for (let t = 1; t <= bezierSteps; t++) {
-      const u = t / bezierSteps;
-      const u2 = u * u;
-      const u3 = u2 * u;
-      const oneMinusU = 1 - u;
-      const oneMinusU2 = oneMinusU * oneMinusU;
-      const oneMinusU3 = oneMinusU2 * oneMinusU;
-
-      const x =
-        oneMinusU3 * c1X +
-        3 * oneMinusU2 * u * p1X +
-        3 * oneMinusU * u2 * p2X +
-        u3 * c2X;
-      const y =
-        oneMinusU3 * c1Y +
-        3 * oneMinusU2 * u * p1Y +
-        3 * oneMinusU * u2 * p2Y +
-        u3 * c2Y;
-
-      roundedPath.push({ x, y });
-    }
-  }
-
-  // Add the last point as-is (no rounding at end)
-  roundedPath.push(points[points.length - 1]);
-
-  return roundedPath;
+  return segments;
 };
 
 /**

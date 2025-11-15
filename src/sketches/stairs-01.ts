@@ -54,6 +54,8 @@ const stairsSketch =
         debug: vars.debug ?? constants.debug,
         marginX: vars.marginX ?? constants.marginX,
         marginY: vars.marginY ?? constants.marginY,
+        useSVG: vars.useSVG ?? false,
+        zoomLevel: (vars as any).zoomLevel,
       });
 
       const marginX = vars.marginX ?? constants.marginX;

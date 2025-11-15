@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import p5 from "p5";
 import { Button } from "./ui/button";
 import { cx } from "class-variance-authority";
@@ -17,6 +17,8 @@ import {
   ZoomIn,
   ZoomOut,
   FileUpIcon,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { useClipboard } from "@custom-react-hooks/use-clipboard";
 import { Leva, useControls } from "leva";
@@ -36,9 +38,11 @@ interface P5WrapperProps {
 const Controls = ({
   controls,
   setControls,
+  externalUpdate,
 }: {
   controls: any;
   setControls: (c: any) => void;
+  externalUpdate?: any;
   cback?: () => void;
 }) => {
   const [controlValues, set]: any = useControls(
@@ -58,6 +62,14 @@ const Controls = ({
   /*   function exportConfig(config: any) {
     console.log(config);
   } */
+
+  // Apply external updates to Leva when they change
+  useEffect(() => {
+    if (externalUpdate && Object.keys(externalUpdate).length > 0) {
+      set(externalUpdate);
+    }
+  }, [externalUpdate, set]);
+
   useEffect(() => {
     if (
       controlValues &&
@@ -91,16 +103,19 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
 }) => {
   const [controls, setControls] = useState({});
   const [controlValues, setControlValues] = useState({});
+  const [externalControlUpdate, setExternalControlUpdate] = useState({});
   const [pos, setPos] = useState(0);
   const [seed, setSeed] = useState<number[]>([0]);
   const [sketch, setSketch] = useState();
+  const [isLoading, setIsLoading] = useState(true);
   const { copyToClipboard } = useClipboard();
   const [copying, setCopying] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isRedrawing, setIsRedrawing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
-  // Zoom/pan state for SVG
+  // Zoom/pan state
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const isDragging = useRef(false);
@@ -108,39 +123,10 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Zoom controls handlers (must be inside component)
-  // Helper to zoom from center
+  // Helper to zoom from center of viewport (with transform-origin: center)
   const zoomFromCenter = (scaleAmount: number) => {
-    const container = containerRef.current;
-    if (!container) return;
-    const svg = container.querySelector("svg");
-    if (!svg) return;
-    // Prefer SVG viewBox center if available
-    let centerX: number, centerY: number;
-    const viewBox = svg.getAttribute("viewBox");
-    if (viewBox) {
-      const [, , vbWidth, vbHeight] = viewBox.split(" ").map(Number);
-      centerX = vbWidth / 2;
-      centerY = vbHeight / 2;
-    } else if (svg.width && svg.height) {
-      // Use SVG width/height attributes if present
-      centerX = Number(svg.getAttribute("width")) / 2;
-      centerY = Number(svg.getAttribute("height")) / 2;
-    } else {
-      // Fallback to bounding rect (may be inaccurate in fullscreen)
-      const rect = svg.getBoundingClientRect();
-      centerX = rect.width / 2;
-      centerY = rect.height / 2;
-    }
-    setZoom((z: number) => {
-      const newZoom = Math.max(0.1, Math.min(z * scaleAmount, 10));
-      setPan((prev) => {
-        const dx = centerX - prev.x;
-        const dy = centerY - prev.y;
-        return {
-          x: centerX - (dx * newZoom) / z,
-          y: centerY - (dy * newZoom) / z,
-        };
-      });
+    setZoom((prevZoom) => {
+      const newZoom = Math.max(0.1, Math.min(prevZoom * scaleAmount, 10));
       return newZoom;
     });
   };
@@ -165,34 +151,52 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     setSeed((s) => [getRandomSeed(), ...s]);
   }, [slug]);
 
+  // Calculate pixelDensity threshold tier for zoom level
+  // This ensures we only re-render when crossing meaningful thresholds
+  // Must match the thresholds in canvasSetup.ts calculatePixelDensity()
+
+  const zoomTier = useMemo(() => {
+    if ((controlValues as any).useSVG === false) {
+      return Math.round(zoom);
+    }
+  }, [zoom]);
+
   useEffect(() => {
     // Dynamically import the sketch module
     const loadSketch = async () => {
+      setIsLoading(true);
       try {
-        const { default: sketchModule, constants } = await import(
-          `../sketches/${slug}.ts`
-        );
+        const {
+          default: sketchModule,
+          constants,
+          constantsProps = {},
+        } = await import(`../sketches/${slug}.ts`);
 
         // Convert constants to Leva controls using the standardized utility
-        const levaControls = createControls(constants || {});
+        const levaControls = createControls(constants || {}, constantsProps);
         setControls(levaControls);
-        setSketch(() => sketchModule(seed[pos], controlValues));
+        // Pass zoom level to sketch via controlValues
+        setSketch(() =>
+          sketchModule(seed[pos], { ...controlValues, zoomLevel: zoomTier })
+        );
       } catch (error) {
         console.error("Failed to load sketch:", error);
       }
     };
     loadSketch();
-  }, [slug, seed, pos, controlValues]);
+  }, [slug, seed, pos, controlValues, zoomTier]);
 
   useEffect(() => {
     if (!containerRef.current || !sketch) {
       return;
     }
 
-    // Create p5 instance
-    if (containerRef.current) {
-      containerRef.current.innerHTML = ""; // Clear previous sketch
-      p5InstanceRef.current = new p5(sketch, containerRef.current);
+    // Create p5 instance in the content wrapper
+    if (contentRef.current) {
+      contentRef.current.innerHTML = ""; // Clear previous sketch
+      p5InstanceRef.current = new p5(sketch, contentRef.current);
+      // Mark loading as complete after a short delay to ensure sketch is rendered
+      setTimeout(() => setIsLoading(false), 100);
     }
 
     // Cleanup
@@ -204,31 +208,12 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     };
   }, [sketch]);
 
-  // SVG zoom/pan logic
+  // Zoom/pan logic using CSS transforms on the content wrapper
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const svg = container.querySelector("svg");
-    if (!svg) return;
 
-    // Wrap all SVG children in a <g id="zoom-group"> if not already
-    let zoomGroup = svg.querySelector("#zoom-group");
-    if (!zoomGroup) {
-      zoomGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      zoomGroup.setAttribute("id", "zoom-group");
-      while (svg.firstChild) {
-        zoomGroup.appendChild(svg.firstChild);
-      }
-      svg.appendChild(zoomGroup);
-    }
-
-    // Apply transform
-    zoomGroup.setAttribute(
-      "transform",
-      `translate(${pan.x},${pan.y}) scale(${zoom})`
-    );
-
-    // Wheel to zoom (centered on SVG center)
+    // Wheel to zoom
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       const scaleAmount = e.deltaY < 0 ? 1.1 : 0.9;
@@ -253,18 +238,36 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
       isDragging.current = false;
     };
 
-    svg.addEventListener("wheel", handleWheel, { passive: false });
-    svg.addEventListener("mousedown", handleMouseDown);
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    container.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      svg.removeEventListener("wheel", handleWheel);
-      svg.removeEventListener("mousedown", handleMouseDown);
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [zoom, pan, sketch]);
+  }, [zoom, pan]);
+
+  // Clean up SVG inline styles when zoom is reset to 1
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+
+    const svg = content.querySelector("svg");
+    if (!svg) return;
+
+    if (zoom === 1 && pan.x === 0 && pan.y === 0) {
+      // Remove transform-related inline styles when at default zoom
+      svg.style.removeProperty("transform");
+      svg.style.removeProperty("will-change");
+      svg.style.removeProperty("backface-visibility");
+      svg.style.removeProperty("-webkit-font-smoothing");
+      svg.style.removeProperty("-moz-osx-font-smoothing");
+    }
+  }, [zoom, pan]);
 
   const handleRedraw = React.useCallback(() => {
     // Change seed for new randomization, which will trigger sketch reload
@@ -294,8 +297,8 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
 
   const handleViewCode = React.useCallback(() => {
     // Find the SVG element created by p5.js
-    if (containerRef.current) {
-      const svgElement = containerRef.current.querySelector("svg");
+    if (contentRef.current) {
+      const svgElement = contentRef.current.querySelector("svg");
 
       if (svgElement) {
         handleCopy(svgElement.outerHTML);
@@ -303,7 +306,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
         console.log("No SVG found");
       }
     }
-  }, [containerRef, handleCopy]);
+  }, [contentRef, handleCopy]);
 
   useEffect(() => {
     // Reset copied state after 2 seconds
@@ -358,15 +361,15 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
       reader.onload = (e) => {
         const svgContent = e.target?.result as string;
 
-        // Replace the current SVG in the container
-        if (containerRef.current) {
-          containerRef.current.innerHTML = svgContent;
+        // Replace the current SVG in the content wrapper
+        if (contentRef.current) {
+          contentRef.current.innerHTML = svgContent;
 
           // Reset zoom/pan
           handleZoomReset();
 
           // Try to extract seed and config from the uploaded SVG if they exist
-          const svgElement = containerRef.current.querySelector("svg");
+          const svgElement = contentRef.current.querySelector("svg");
           if (svgElement) {
             const seedAttr = svgElement.getAttribute("seed");
             const configAttr = svgElement.getAttribute("sketch-config");
@@ -380,7 +383,10 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
             if (configAttr) {
               try {
                 const config = JSON.parse(configAttr);
+                // Update control values
                 setControlValues(config);
+                // Trigger external update to Leva
+                setExternalControlUpdate(config);
               } catch (error) {
                 console.error("Failed to parse sketch config:", error);
               }
@@ -397,25 +403,57 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     [handleZoomReset]
   );
   const handleDownloadSVG = React.useCallback(() => {
-    if (containerRef.current) {
-      const svgElement = containerRef.current.querySelector("svg");
-      svgElement?.setAttribute("sketch-config", JSON.stringify(controlValues));
-      svgElement?.setAttribute("seed", String(seed[pos]));
-      if (svgElement) {
-        const serializer = new XMLSerializer();
-        const svgString = serializer.serializeToString(svgElement);
-        const blob = new Blob([svgString], { type: "image/svg+xml" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${slug}-${seed[pos]}.svg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } else {
-        console.error("No SVG element found to download.");
+    const performDownload = () => {
+      if (contentRef.current) {
+        const svgElement = contentRef.current.querySelector("svg");
+        svgElement?.setAttribute(
+          "sketch-config",
+          JSON.stringify(controlValues)
+        );
+        svgElement?.setAttribute("seed", String(seed[pos]));
+        if (svgElement) {
+          const serializer = new XMLSerializer();
+          const svgString = serializer.serializeToString(svgElement);
+          const blob = new Blob([svgString], { type: "image/svg+xml" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${slug}-${seed[pos]}.svg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        } else {
+          console.error("No SVG element found to download.");
+        }
       }
+    };
+
+    // Check if useSVG is currently enabled
+    const currentUseSVG = (controlValues as any).useSVG;
+
+    if (currentUseSVG === false) {
+      // SVG is disabled, need to temporarily enable it
+      console.log("Temporarily enabling SVG for download...");
+
+      // Store original value
+      const originalUseSVG = currentUseSVG;
+
+      // Enable SVG
+      setControlValues((prev) => ({ ...prev, useSVG: true }));
+
+      // Wait for sketch to re-render with SVG, then download and restore
+      setTimeout(() => {
+        performDownload();
+
+        // Restore original useSVG value
+        setTimeout(() => {
+          setControlValues((prev) => ({ ...prev, useSVG: originalUseSVG }));
+        }, 100);
+      }, 500); // Give enough time for sketch to re-render
+    } else {
+      // Already in SVG mode, download immediately
+      performDownload();
     }
   }, [slug, seed, pos, controlValues]);
 
@@ -480,7 +518,11 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
       <div className="flex items-center justify-end p-2 w-full border-b-2">
         {process.env.NODE_ENV === "development" && (
           <div className="flex-grow flex items-center justify-start">
-            <Controls controls={controls} setControls={setControlValues} />
+            <Controls
+              controls={controls}
+              setControls={setControlValues}
+              externalUpdate={externalControlUpdate}
+            />
             <Button
               disabled={isRedrawing || !canBack}
               size={"icon"}
@@ -576,22 +618,54 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
       </div>
       <div
         id="sketch-canvas"
-        ref={containerRef}
-        className={cx(className, "aspect-[8/7]")}
-        style={{ cursor: zoom !== 1 ? "grab" : undefined }}
-      />
-      <div className="flex items-center justify-between p-2 w-full border-t-2">
-        {process.env.NODE_ENV === "development" ? (
-          <input
-            onChange={(e) => setSeed((s) => [Number(e.target.value), ...s])}
-            value={seed[pos] ?? 0}
-            className="text-sm text-muted-foreground ml-2 pt-0.5"
-          />
-        ) : (
-          <span className="text-sm text-muted-foreground ml-2">
-            {seed[pos]}
-          </span>
+        className={cx(
+          className,
+          "aspect-[8/7] overflow-hidden relative flex items-center justify-center"
         )}
+        ref={containerRef}
+        style={{
+          cursor: isDragging.current
+            ? "grabbing"
+            : zoom !== 1
+            ? "grab"
+            : "default",
+        }}
+      >
+        <div
+          ref={contentRef}
+          className="flex items-center justify-center"
+          style={{
+            ...(zoom !== 1 || pan.x !== 0 || pan.y !== 0
+              ? {
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                  transformOrigin: "center center",
+                  transition: isDragging.current
+                    ? "none"
+                    : "transform 0.1s ease-out",
+                  imageRendering: zoom > 1 ? "crisp-edges" : "auto",
+                  willChange: "transform",
+                }
+              : {}),
+          }}
+        />
+      </div>
+      <div className="flex items-center justify-between p-2 w-full border-t-2">
+        <div className="flex items-center gap-2 ml-2">
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+          )}
+          {process.env.NODE_ENV === "development" ? (
+            <input
+              onChange={(e) => setSeed((s) => [Number(e.target.value), ...s])}
+              value={seed[pos] ?? 0}
+              className="text-sm text-muted-foreground pt-0.5"
+            />
+          ) : (
+            <span className="text-sm text-muted-foreground">{seed[pos]}</span>
+          )}
+        </div>
 
         <div className="flex flex-row justify-center items-center">
           <Button
