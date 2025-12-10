@@ -76,21 +76,7 @@ export const constantsProps = {
 
 const waves_01Sketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
-    /* const colors: DotPen[] = [
-      "staedtlerPens.yellow",
-      "staedtlerPens.orange",
-      "staedtlerPens.red",
-      "staedtlerPens.blue",
-      "staedtlerPens.teal",
-      "staedtlerPens.green",
-    ]; */
-
-    const colors: DotPen[] = [
-      "micronPens.purple_024",
-      "micronPens.red_019",
-      "micronPens.blue_036",
-      "micronPens.green_029",
-    ];
+    const colors: DotPen[] = ["lePenPens.blue", "lePenPens.blood_orange"];
 
     p.setup = () => {
       setupCanvas(p, {

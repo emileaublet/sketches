@@ -274,7 +274,6 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
     setSeed((s) => [getRandomSeed(), ...s]);
     setPos(0); // Reset to the newest sketch
     setIsRedrawing(true);
-    handleZoomReset();
     setTimeout(() => {
       setIsRedrawing(false);
     }, 100);

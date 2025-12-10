@@ -92,13 +92,11 @@ const stairsSketch =
         p.endShape();
       }
       const colors: DotPen[] = [
-        "lePenPastelPens.yellow",
-        "lePenPastelPens.rose",
-        "lePenPastelPens.mauve",
-        "lePenPastelPens.orange",
-        "lePenPens.red",
-        "lePenPens.wine",
-        "lePenPens.blue",
+        "staedtlerPensNew.darkRed",
+        "staedtlerPensNew.darkGreen",
+        "staedtlerPensNew.darkBlue",
+        "staedtlerPensNew.brightOrange",
+        "staedtlerPensNew.limeGreen",
       ];
       let index = 0;
       for (let color of colors) {

@@ -140,7 +140,7 @@ export function createControls<T extends Record<string, any>>(
       if (key.includes("width") || key.includes("height")) {
         controls[configKey] = { value, min: 100, max: 2000, step: 50 };
       } else if (key.includes("margin") || key.includes("padding")) {
-        controls[configKey] = { value, min: 0, max: 200, step: 5 };
+        controls[configKey] = { value, min: 0, max: 400, step: 5 };
       } else if (key.includes("thickness") || key.includes("weight")) {
         controls[configKey] = { value, min: 0.1, max: 5, step: 0.1 };
       } else if (key.includes("rotate") || key.includes("angle")) {
@@ -157,7 +157,7 @@ export function createControls<T extends Record<string, any>>(
           step: 1,
         };
       } else if (key.includes("numPoints")) {
-        controls[configKey] = { value, min: 1, max: 500, step: 1 };
+        controls[configKey] = { value, min: 1, max: 8000, step: 1 };
       } else if (key.includes("patternSize")) {
         controls[configKey] = { value, min: 0, max: 10, step: 1 };
       } else if (key.includes("pointSize")) {
