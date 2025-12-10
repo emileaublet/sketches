@@ -19,6 +19,7 @@ import {
   FileUpIcon,
   Loader2,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import { useClipboard } from "@custom-react-hooks/use-clipboard";
 import { Leva, useControls } from "leva";
@@ -118,6 +119,7 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   // Zoom/pan state
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState(0); // Rotation in degrees (0, 90, 180, 270)
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,6 +141,11 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
   const handleZoomReset = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
+  };
+
+  // Rotate counterclockwise by 90 degrees
+  const handleRotate = () => {
+    setRotation((prev) => (prev - 90 + 360) % 360);
   };
 
   const getRandomSeed = () => {
@@ -410,6 +417,41 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
           JSON.stringify(controlValues)
         );
         svgElement?.setAttribute("seed", String(seed[pos]));
+
+        // Apply rotation transform to SVG if rotated
+        if (svgElement && rotation !== 0) {
+          // Get current viewBox or dimensions
+          const width =
+            svgElement.getAttribute("width") ||
+            svgElement.viewBox?.baseVal?.width ||
+            100;
+          const height =
+            svgElement.getAttribute("height") ||
+            svgElement.viewBox?.baseVal?.height ||
+            100;
+          const centerX = Number(width) / 2;
+          const centerY = Number(height) / 2;
+
+          // Create a wrapper group with rotation transform
+          const existingContent = svgElement.innerHTML;
+          svgElement.innerHTML = `<g transform="rotate(${rotation}, ${centerX}, ${centerY})">${existingContent}</g>`;
+
+          // For 90 or 270 degree rotations, swap width and height
+          if (rotation === 90 || rotation === 270) {
+            svgElement.setAttribute("width", String(height));
+            svgElement.setAttribute("height", String(width));
+            if (svgElement.hasAttribute("viewBox")) {
+              svgElement.setAttribute("viewBox", `0 0 ${height} ${width}`);
+            }
+            // Translate to center the rotated content
+            svgElement.innerHTML = `<g transform="translate(${
+              Number(height) / 2
+            }, ${
+              Number(width) / 2
+            }) rotate(${rotation}) translate(${-centerX}, ${-centerY})">${existingContent}</g>`;
+          }
+        }
+
         if (svgElement) {
           const serializer = new XMLSerializer();
           const svgString = serializer.serializeToString(svgElement);
@@ -634,9 +676,9 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
           ref={contentRef}
           className="flex items-center justify-center"
           style={{
-            ...(zoom !== 1 || pan.x !== 0 || pan.y !== 0
+            ...(zoom !== 1 || pan.x !== 0 || pan.y !== 0 || rotation !== 0
               ? {
-                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg)`,
                   transformOrigin: "center center",
                   transition: isDragging.current
                     ? "none"
@@ -667,6 +709,17 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
         </div>
 
         <div className="flex flex-row justify-center items-center">
+          <Button
+            size="icon"
+            variant="ghost"
+            className={cx("text-white")}
+            onClick={handleRotate}
+            aria-label="Rotate counterclockwise"
+            title="Rotate counterclockwise (90°)"
+          >
+            <RotateCcw />
+          </Button>
+
           <Button
             size="icon"
             variant="ghost"
