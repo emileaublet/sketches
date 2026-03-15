@@ -123,8 +123,8 @@ export function createControls<T extends Record<string, any>>(
     },
     paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.01 },
     ...rest,
-    useSVG: false, // Always add useSVG control
-    ...(debug !== undefined ? { debug } : {}),
+    useSVG: { value: false }, // Always add useSVG control
+    ...(debug !== undefined ? { debug: { value: debug } } : {}),
   } as Record<keyof T, LevaControlType>;
 
   for (const [key, value] of Object.entries(constants)) {

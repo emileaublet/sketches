@@ -36,7 +36,7 @@ export const constants: Constants = {
   columns: [12, 22],
   lineWidth: 0.5,
   lineJitter: 0, // 0 = off, >0 = wavy lines
-  jitterSegmentLength: 5, // pixels per jitter segment
+  jitterSegmentLength: 0.05, // fraction of line length per segment (lower = spikier)
   lineSpacing: [1, 8], // Range for line spacing
   orientation: "horizontal",
   pointsPerSide: 4, // Number of points per side (higher = smoother edges)
@@ -46,7 +46,7 @@ export const constants: Constants = {
 export const constantsProps = {
   lineWidth: { min: 0.1, max: 2, step: 0.1 },
   lineJitter: { min: 0, max: 2, step: 0.05 },
-  jitterSegmentLength: { min: 1, max: 30, step: 1 },
+  jitterSegmentLength: { min: 0.01, max: 0.5, step: 0.01 },
   orientation: { options: ["horizontal", "vertical"] },
   pointsPerSide: { min: 2, max: 10, step: 1 },
   cornerRadiusPercent: { min: 0, max: 20, step: 1 },
@@ -340,7 +340,7 @@ const stairsSketch =
 
           if (lineJitter > 0) {
             // Draw wavy line by creating multiple small segments
-            const numSegments = Math.ceil((endX - lineStartX) / jitterSegmentLength);
+            const numSegments = Math.max(2, Math.ceil(1 / jitterSegmentLength));
 
             p.beginShape();
             for (let i = 0; i <= numSegments; i++) {

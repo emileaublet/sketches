@@ -38,7 +38,7 @@ export const constants: Constants = {
   marginY: 40,
   debug: false,
   jitter: 1,
-  jitterSegmentLength: 10,
+  jitterSegmentLength: 0.1,
   lineSpacing: 2,
   columnWidthMin: 15,
   columnWidthMax: 60,
@@ -56,7 +56,7 @@ export const constants: Constants = {
 
 export const constantsProps = {
   jitter: { min: 0, max: 10, step: 0.5 },
-  jitterSegmentLength: { min: 1, max: 50, step: 1 },
+  jitterSegmentLength: { min: 0.01, max: 0.5, step: 0.01 },
   lineSpacing: { min: 0.5, max: 10, step: 0.25 },
   columnWidthMin: { min: 5, max: 600, step: 5 },
   columnWidthMax: { min: 10, max: 600, step: 5 },
@@ -131,13 +131,12 @@ const tartan01Sketch =
       ) {
         const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 
-        // Scale jitter relative to line length (normalized to ~100px reference)
-        const scaledJitter = jitterAmount * (len / 100);
+        const scaledJitter = jitterAmount;
 
         // Build irregular segment positions (not evenly spaced)
         const tValues: number[] = [0];
         let currentT = 0;
-        const avgSegmentSize = jitterSegmentLength / Math.max(len, 1);
+        const avgSegmentSize = jitterSegmentLength;
 
         while (currentT < 1) {
           // Vary segment size between 50% and 150% of average
