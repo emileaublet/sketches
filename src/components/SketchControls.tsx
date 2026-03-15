@@ -59,8 +59,8 @@ export function SketchControls({
       if (parts[1]) {
         const [w, h] = parts[1].split("x").map(Number);
         if (!Number.isNaN(w) && !Number.isNaN(h)) {
-          const width = w * paperSizeRatio;
-          const height = h * paperSizeRatio;
+          const width = Math.round(w * paperSizeRatio);
+          const height = Math.round(h * paperSizeRatio);
           if (width < 2000 && height < 2000) {
             const currentW = values.width as number | undefined;
             const currentH = values.height as number | undefined;

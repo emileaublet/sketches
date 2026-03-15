@@ -121,7 +121,7 @@ export function createControls<T extends Record<string, any>>(
         "A3 Landscape -- 4200x2940",
       ],
     },
-    paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.0001 },
+    paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.01 },
     ...rest,
     useSVG: false, // Always add useSVG control
     ...(debug !== undefined ? { debug } : {}),
