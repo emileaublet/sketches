@@ -25,7 +25,6 @@ export interface CanvasConfig {
  * @returns pixelDensity value
  */
 const calculatePixelDensity = (zoomLevel: number | undefined): number => {
-  console.log("Calculating pixel density for zoom level:", zoomLevel);
   if (!zoomLevel) return 2; // Default when no zoom info available
 
   // Zoom thresholds for pixelDensity adjustment

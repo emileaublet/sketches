@@ -4,7 +4,7 @@ import { DotPen, all } from "@/pens";
 import { setStroke } from "@/utils/setStroke";
 import { setupCanvas } from "@/utils/canvasSetup";
 import { BaseConstants } from "../utils/constants";
-import { penColorMultiselect } from "@/components/leva/PenColorMultiselect";
+import { penColorMultiselect } from "@/components/PenColorMultiselect";
 
 type Constants = BaseConstants & {
   jitter: number;
@@ -59,12 +59,12 @@ export const constantsProps = {
   columnWidthMax: { min: 10, max: 600, step: 5 },
   rowHeightMin: { min: 5, max: 600, step: 5 },
   rowHeightMax: { min: 10, max: 600, step: 5 },
-  gapMin: { min: 0, max: 500, step: 2 },
-  gapMax: { min: 5, max: 800, step: 2 },
+  gapMin: { min: 0, max: 300, step: 2 },
+  gapMax: { min: 5, max: 300, step: 2 },
   lineThickness: { min: 0.1, max: 1, step: 0.05 },
   subdivideThreshold: { min: 20, max: 500, step: 5 },
-  subGapMin: { min: 1, max: 100, step: 1 },
-  subGapMax: { min: 2, max: 200, step: 1 },
+  subGapMin: { min: 10, max: 100, step: 1 },
+  subGapMax: { min: 80, max: 200, step: 1 },
   crossingGap: { min: -10, max: 10, step: 0.5 },
   sarasaColors: (value: DotPen[]) =>
     penColorMultiselect({

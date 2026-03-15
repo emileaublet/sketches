@@ -1,16 +1,21 @@
-import React, { useEffect, useRef, type RefObject } from "react";
+import {
+  useEffect,
+  useRef,
+  type MutableRefObject,
+  type RefObject,
+} from "react";
 import p5 from "p5";
 import { cx } from "class-variance-authority";
 
 interface SketchCanvasProps {
   sketchFn: ((p: p5) => void) | null;
-  containerRef: RefObject<HTMLDivElement | null>;
-  contentRef: RefObject<HTMLDivElement | null>;
+  containerRef: RefObject<HTMLDivElement>;
+  contentRef: RefObject<HTMLDivElement>;
   zoom: number;
   pan: { x: number; y: number };
   rotation: number;
   isDragging: boolean;
-  p5InstanceRef: RefObject<p5 | null>;
+  p5InstanceRef: MutableRefObject<p5 | null>;
   setIsLoading: (v: boolean) => void;
   setZoom: (v: number | ((prev: number) => number)) => void;
   setPan: (
@@ -109,7 +114,8 @@ export function SketchCanvas({
     }
   }, [zoom, pan]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hasTransform = zoom !== 1 || pan.x !== 0 || pan.y !== 0 || rotation !== 0;
+  const hasTransform =
+    zoom !== 1 || pan.x !== 0 || pan.y !== 0 || rotation !== 0;
 
   return (
     <div
@@ -119,7 +125,9 @@ export function SketchCanvas({
         "overflow-hidden relative flex items-center justify-center",
         className,
       )}
-      style={{ cursor: isDragging ? "grabbing" : zoom !== 1 ? "grab" : "default" }}
+      style={{
+        cursor: isDragging ? "grabbing" : zoom !== 1 ? "grab" : "default",
+      }}
     >
       <div
         ref={contentRef}

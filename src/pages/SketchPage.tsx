@@ -214,7 +214,7 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
           )}
 
           {Object.keys(s.controlSchema).length > 0 && (
-            <div className="absolute top-4 right-4 z-20">
+            <div className="absolute top-4 right-4 z-20 h-[calc(100%_-_2rem)]">
               <SketchControls
                 schema={s.controlSchema}
                 values={s.controlValues}

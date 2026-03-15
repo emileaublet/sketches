@@ -80,10 +80,18 @@ export type LevaControlType =
   | { value: string; options?: string[] }
   | { value: [number, number]; min?: number; max?: number; step?: number };
 
+export type LevaControlConfig<T> =
+  | LevaControlType
+  | ((value: T) => LevaControlType);
+
+type LevaControlConfigMap<T> = {
+  [K in keyof T]?: LevaControlConfig<T[K]>;
+};
+
 // Utility function to convert constants to Leva controls
 export function createControls<T extends Record<string, any>>(
   constants: T,
-  controlConfig?: Partial<Record<keyof T, LevaControlType>>,
+  controlConfig?: LevaControlConfigMap<T>,
 ): Record<keyof T, LevaControlType> {
   let controls = {} as Record<keyof T, LevaControlType>;
 
@@ -141,7 +149,7 @@ export function createControls<T extends Record<string, any>>(
           value,
         } as LevaControlType;
       } else {
-        controls[configKey] = config;
+        controls[configKey] = config as LevaControlType;
       }
       continue;
     }

@@ -2,9 +2,6 @@ import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
 import { setupCanvas } from "@/utils/canvasSetup";
 import { BaseConstants } from "../utils/constants";
-import { calculateDrawArea } from "@/utils/drawingArea";
-import { setStroke } from "@/utils/setStroke";
-import { DotPen } from "@/pens";
 import polygonClipping from "polygon-clipping";
 import { createBezierRoundedPath, Point } from "@/utils/pathUtils";
 
@@ -100,7 +97,8 @@ const sketchFactory =
       const noiseScale = vars.noiseScale ?? constants.noiseScale;
       const noiseOctaves = vars.noiseOctaves ?? constants.noiseOctaves;
       const noiseFalloff = vars.noiseFalloff ?? constants.noiseFalloff;
-      const distortionAmount = vars.distortionAmount ?? constants.distortionAmount;
+      const distortionAmount =
+        vars.distortionAmount ?? constants.distortionAmount;
       const distortionScale = vars.distortionScale ?? constants.distortionScale;
       const levels = vars.levels ?? constants.levels;
       const minElevation = vars.minElevation ?? constants.minElevation;
@@ -113,7 +111,8 @@ const sketchFactory =
       const showShadows = vars.showShadows ?? constants.showShadows;
       const showFill = vars.showFill ?? constants.showFill;
       const showStroke = vars.showStroke ?? constants.showStroke;
-      const shadowNoiseScale = vars.shadowNoiseScale ?? constants.shadowNoiseScale;
+      const shadowNoiseScale =
+        vars.shadowNoiseScale ?? constants.shadowNoiseScale;
       const shadowDensity = vars.shadowDensity ?? constants.shadowDensity;
 
       setupCanvas(p, {
@@ -133,7 +132,7 @@ const sketchFactory =
       // Random Monochrome Tint
       const hue = p.random(0, 360);
       const sat = p.random(30, 80); // Nice vibrant saturation
-      
+
       const offsetX = p.random(10000);
       const offsetY = p.random(10000);
 
@@ -141,7 +140,7 @@ const sketchFactory =
       const drawH = p.height;
       const startX = 0;
       const startY = 0;
-      
+
       const marginX = vars.marginX ?? constants.marginX;
       const marginY = vars.marginY ?? constants.marginY;
 
@@ -162,8 +161,6 @@ const sketchFactory =
       const rows = Math.ceil(drawH / gridCellSize);
 
       const values: number[][] = [];
-      const cachedPoints: Record<string, { x: number; y: number }> = {};
-      
       const tStart = performance.now();
       let tMarching = 0;
       let tUnion = 0;
@@ -177,12 +174,15 @@ const sketchFactory =
           const y = startY + j * gridCellSize;
 
           // Domain Warping
-          const nx = (x + offsetX);
-          const ny = (y + offsetY);
-          
+          const nx = x + offsetX;
+          const ny = y + offsetY;
+
           // Get warp offsets from independent noise space
           const qx = p.noise(nx * distortionScale, ny * distortionScale);
-          const qy = p.noise(nx * distortionScale + 5.2, ny * distortionScale + 1.3);
+          const qy = p.noise(
+            nx * distortionScale + 5.2,
+            ny * distortionScale + 1.3,
+          );
 
           const warpX = (qx - 0.5) * distortionAmount;
           const warpY = (qy - 0.5) * distortionAmount;
@@ -212,9 +212,11 @@ const sketchFactory =
         // y moves left/down
         // z moves up
         const angleRad = p.radians(viewAngle);
-        const isoX = (x - centerX) * p.cos(angleRad) - (y - centerY) * p.sin(angleRad);
-        const isoY = (x - centerX) * p.sin(angleRad) + (y - centerY) * p.cos(angleRad);
-        
+        const isoX =
+          (x - centerX) * p.cos(angleRad) - (y - centerY) * p.sin(angleRad);
+        const isoY =
+          (x - centerX) * p.sin(angleRad) + (y - centerY) * p.cos(angleRad);
+
         // Tilt
         const tilt = 0.6;
         const px = centerX + isoX;
@@ -223,26 +225,30 @@ const sketchFactory =
       };
 
       const pointInPoly = (pt: Point, ring: Point[]) => {
-            let inside = false;
-            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-                const xi = ring[i].x, yi = ring[i].y;
-                const xj = ring[j].x, yj = ring[j].y;
-                const intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
-                if (intersect) inside = !inside;
-            }
-            return inside;
+        let inside = false;
+        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+          const xi = ring[i].x,
+            yi = ring[i].y;
+          const xj = ring[j].x,
+            yj = ring[j].y;
+          const intersect =
+            yi > pt.y !== yj > pt.y &&
+            pt.x < ((xj - xi) * (pt.y - yi)) / (yj - yi) + xi;
+          if (intersect) inside = !inside;
+        }
+        return inside;
       };
 
       for (let k = 0; k < levels; k++) {
         const t0 = performance.now();
         const threshold = p.map(k, 0, levels - 1, minElevation, maxElevation);
         const z = p.map(k, 0, levels - 1, 0, zScale);
-        
+
         // Monochrome Gradient: Dark to Light
         // Map level k to brightness 20 -> 95
         const brightness = p.map(k, 0, levels - 1, 20, 95);
         const fillColor = p.color(hue, sat, brightness);
-        
+
         const polygonsToUnion: MultiPoly = [];
 
         // Run-length optimization logic
@@ -415,8 +421,8 @@ const sketchFactory =
             polygonsToUnion.push(rect);
           }
         }
-        
-        tMarching += (performance.now() - t0);
+
+        tMarching += performance.now() - t0;
 
         // Union polygons for this level
         if (polygonsToUnion.length > 0) {
@@ -424,31 +430,31 @@ const sketchFactory =
             const tU_start = performance.now();
             // Union in chunks to avoid stack overflow or memory spikes if too many
             const merged = polygonClipping.union(polygonsToUnion as any);
-            tUnion += (performance.now() - tU_start);
+            tUnion += performance.now() - tU_start;
 
             // Draw Layer Shadows (Projected relative to layer below)
             if (showShadows && k > 0) {
               const tS_start = performance.now();
               const shadowZ = p.map(k - 1, 0, levels - 1, 0, zScale); // Shadow falls exactly on the layer below
               const maxOffset = 60; // Max shadow throw in map units
-              
+
               // Shadow color
-              p.stroke(hue, sat, 10, 80); 
+              p.stroke(hue, sat, 10, 80);
               p.strokeWeight(1.5); // Stipple dot size
-              
+
               // Calculate screen-space shadow vector (approximate at center)
               // We want to trace BACK from a screen pixel to the object
               const origin = project(0, 0, shadowZ);
               const tip = project(maxOffset, maxOffset, shadowZ);
               const vecX = tip.x - origin.x;
               const vecY = tip.y - origin.y;
-              
+
               // Performance: Reduced steps for ray trace check (was 20)
               const steps = 5;
-              
+
               merged.forEach((poly) => {
                 poly.forEach((ring) => {
-                   const isClosed =
+                  const isClosed =
                     ring.length > 1 &&
                     ring[0][0] === ring[ring.length - 1][0] &&
                     ring[0][1] === ring[ring.length - 1][1];
@@ -460,68 +466,74 @@ const sketchFactory =
                   // Performance Update: Use raw sharp polygon for shadow hit testing (faster)
                   // Visual difference is negligible with stippling
                   const screenPolyPoints = rawPoints;
-                   
-                   // 1. Get Base Polygon in Screen Space & its AABB
-                   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-                   const screenPoly: Point[] = screenPolyPoints.map(pt => {
-                       const proj = project(pt.x, pt.y, shadowZ);
-                       if(proj.x < minX) minX = proj.x;
-                       if(proj.x > maxX) maxX = proj.x;
-                       if(proj.y < minY) minY = proj.y;
-                       if(proj.y > maxY) maxY = proj.y;
-                       return proj;
-                   });
-                   
-                   // 2. Expand Bounding Box to cover the Shadow Sweep
-                   // Shadow moves by (vecX, vecY)
-                   const bbMinX = Math.min(minX, minX + vecX);
-                   const bbMaxX = Math.max(maxX, maxX + vecX);
-                   const bbMinY = Math.min(minY, minY + vecY);
-                   const bbMaxY = Math.max(maxY, maxY + vecY);
-                   
-                   // 3. Stipple w/ Optimization (AABB First)
-                   for(let sy = bbMinY; sy <= bbMaxY; sy += shadowDensity) {
-                       for(let sx = bbMinX; sx <= bbMaxX; sx += shadowDensity) {
-                           // Jitter
-                           const jx = sx + p.random(-shadowDensity, shadowDensity);
-                           const jy = sy + p.random(-shadowDensity, shadowDensity);
-                           
-                           let hit = -1;
-                           for(let s = 0; s <= steps; s++) {
-                               const t = s / steps;
-                               const tx = jx - vecX * t;
-                               const ty = jy - vecY * t;
-                               
-                               // Optimization: Fast AABB Test
-                               if (tx < minX || tx > maxX || ty < minY || ty > maxY) {
-                                   continue;
-                               }
 
-                               if(pointInPoly({x: tx, y: ty}, screenPoly)) {
-                                   hit = t; 
-                                   break; 
-                               }
-                           }
-                           
-                           if(hit !== -1) {
-                               const prob = p.map(hit, 0, 1, 0.9, 0.0);
-                               const n = p.noise(jx * shadowNoiseScale, jy * shadowNoiseScale);
-                               
-                               if (p.random() < prob * n) {
-                                   p.point(jx, jy);
-                               }
-                           }
-                       }
-                   }
+                  // 1. Get Base Polygon in Screen Space & its AABB
+                  let minX = Infinity,
+                    maxX = -Infinity,
+                    minY = Infinity,
+                    maxY = -Infinity;
+                  const screenPoly: Point[] = screenPolyPoints.map((pt) => {
+                    const proj = project(pt.x, pt.y, shadowZ);
+                    if (proj.x < minX) minX = proj.x;
+                    if (proj.x > maxX) maxX = proj.x;
+                    if (proj.y < minY) minY = proj.y;
+                    if (proj.y > maxY) maxY = proj.y;
+                    return proj;
+                  });
+
+                  // 2. Expand Bounding Box to cover the Shadow Sweep
+                  // Shadow moves by (vecX, vecY)
+                  const bbMinX = Math.min(minX, minX + vecX);
+                  const bbMaxX = Math.max(maxX, maxX + vecX);
+                  const bbMinY = Math.min(minY, minY + vecY);
+                  const bbMaxY = Math.max(maxY, maxY + vecY);
+
+                  // 3. Stipple w/ Optimization (AABB First)
+                  for (let sy = bbMinY; sy <= bbMaxY; sy += shadowDensity) {
+                    for (let sx = bbMinX; sx <= bbMaxX; sx += shadowDensity) {
+                      // Jitter
+                      const jx = sx + p.random(-shadowDensity, shadowDensity);
+                      const jy = sy + p.random(-shadowDensity, shadowDensity);
+
+                      let hit = -1;
+                      for (let s = 0; s <= steps; s++) {
+                        const t = s / steps;
+                        const tx = jx - vecX * t;
+                        const ty = jy - vecY * t;
+
+                        // Optimization: Fast AABB Test
+                        if (tx < minX || tx > maxX || ty < minY || ty > maxY) {
+                          continue;
+                        }
+
+                        if (pointInPoly({ x: tx, y: ty }, screenPoly)) {
+                          hit = t;
+                          break;
+                        }
+                      }
+
+                      if (hit !== -1) {
+                        const prob = p.map(hit, 0, 1, 0.9, 0.0);
+                        const n = p.noise(
+                          jx * shadowNoiseScale,
+                          jy * shadowNoiseScale,
+                        );
+
+                        if (p.random() < prob * n) {
+                          p.point(jx, jy);
+                        }
+                      }
+                    }
+                  }
                 });
               });
 
-              tShadows += (performance.now() - tS_start);
+              tShadows += performance.now() - tS_start;
             }
 
             // Draw Terrain Layer
             const tD_start = performance.now();
-            
+
             if (showFill && k > 0) {
               p.fill(fillColor); // Opaque tinted color
             } else {
@@ -533,7 +545,7 @@ const sketchFactory =
             } else {
               p.noStroke();
             }
-            
+
             merged.forEach((poly) => {
               // poly is [Outer, Hole, Hole...]
               poly.forEach((ring) => {
@@ -560,12 +572,14 @@ const sketchFactory =
 
                 p.beginShape();
                 smoothString.forEach((pt) => {
-                    const proj = project(pt.x, pt.y, z);
-                    p.vertex(proj.x, proj.y);
+                  const proj = project(pt.x, pt.y, z);
+                  p.vertex(proj.x, proj.y);
                 });
                 p.endShape(p.CLOSE);
               });
-            });            tDraw += (performance.now() - tD_start);          } catch (e) {
+            });
+            tDraw += performance.now() - tD_start;
+          } catch (e) {
             console.error("Clipping error", e);
           }
         }
@@ -575,15 +589,18 @@ const sketchFactory =
       p.drawingContext.restore();
 
       const tTotal = performance.now() - tStart;
-      console.log(`%c Render Stats (${tTotal.toFixed(0)}ms)`, "font-weight: bold; font-size: 14px;");
+      console.log(
+        `%c Render Stats (${tTotal.toFixed(0)}ms)`,
+        "font-weight: bold; font-size: 14px;",
+      );
       console.table({
         "Marching Squares": `${tMarching.toFixed(0)}ms`,
         "Polygon Union": `${tUnion.toFixed(0)}ms`,
         "Shadow Rendering": `${tShadows.toFixed(0)}ms`,
         "Terrain Drawing": `${tDraw.toFixed(0)}ms`,
-        "Total Render": `${tTotal.toFixed(0)}ms`
+        "Total Render": `${tTotal.toFixed(0)}ms`,
       });
-      
+
       if (vars.debug) {
         p.push();
         p.stroke(0, 100, 100); // Red in HSB

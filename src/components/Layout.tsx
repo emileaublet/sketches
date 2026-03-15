@@ -3,9 +3,9 @@ import { Outlet, Link } from "react-router";
 
 const Layout: React.FC = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen">
       <header className="border-b">
-        <div className="container flex items-center justify-between p-4 mx-auto">
+        <div className="flex items-center justify-between p-4 mx-auto">
           <Link to="/">
             <span className="text-lg font-medium">Émile's Sketches</span>
           </Link>
@@ -17,11 +17,11 @@ const Layout: React.FC = () => {
           </Link>
         </div>
       </header>
-      <main className="container p-4 mx-auto grow">
+      <main>
         <Outlet />
       </main>
-      <footer className="mt-12">
-        <div className="container p-4 mx-auto">
+      <footer>
+        <div className="p-4 mx-auto">
           <p className="text-sm text-center text-muted-foreground">
             &copy; {new Date().getFullYear()} Émile Aublet. All rights reserved.
           </p>

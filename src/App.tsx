@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { Routes, Route } from "react-router";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
@@ -7,15 +7,7 @@ import { loadSketches } from "./utils/loadSketches";
 import type { Meta } from "./types";
 
 function App() {
-  const [sketches, setSketches] = useState<Meta[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadSketches().then((loadedSketches) => {
-      setSketches(loadedSketches);
-      setIsLoading(false);
-    });
-  }, []);
+  const sketches = useMemo(() => loadSketches(), []);
 
   // Helper function to find the next non-hidden sketch
   const findNextSketch = (currentIndex: number): Meta => {
@@ -48,11 +40,6 @@ function App() {
     // If all sketches are hidden except current, return current
     return sketches[currentIndex];
   };
-
-  // Don't render routes until sketches are loaded
-  if (isLoading) {
-    return <div>Loading...</div>; // You could replace this with a proper loading component
-  }
 
   return (
     <Routes>
