@@ -19,6 +19,7 @@ type Constants = BaseConstants & {
   columns: [number, number];
   lineWidth: number;
   lineJitter: number; // Amount of jitter/noise on lines (0 = straight lines)
+  jitterSegmentLength: number; // Pixel length between jitter vertices (smaller = spikier, larger = smoother)
   lineSpacing: [number, number]; // Range for spacing between lines (smaller = more lines)
   orientation: "horizontal" | "vertical";
   pointsPerSide: number; // Number of points per side for blob shape (higher = smoother)
@@ -35,6 +36,7 @@ export const constants: Constants = {
   columns: [12, 22],
   lineWidth: 0.5,
   lineJitter: 0, // 0 = off, >0 = wavy lines
+  jitterSegmentLength: 5, // pixels per jitter segment
   lineSpacing: [1, 8], // Range for line spacing
   orientation: "horizontal",
   pointsPerSide: 4, // Number of points per side (higher = smoother edges)
@@ -44,6 +46,7 @@ export const constants: Constants = {
 export const constantsProps = {
   lineWidth: { min: 0.1, max: 2, step: 0.1 },
   lineJitter: { min: 0, max: 2, step: 0.05 },
+  jitterSegmentLength: { min: 1, max: 30, step: 1 },
   orientation: { options: ["horizontal", "vertical"] },
   pointsPerSide: { min: 2, max: 10, step: 1 },
   cornerRadiusPercent: { min: 0, max: 20, step: 1 },
@@ -303,6 +306,7 @@ const stairsSketch =
       const lineSpacingRange = vars.lineSpacing ?? constants.lineSpacing;
       const lineSpacing = p.random(lineSpacingRange[0], lineSpacingRange[1]);
       const lineJitter = vars.lineJitter ?? constants.lineJitter;
+      const jitterSegmentLength = vars.jitterSegmentLength ?? constants.jitterSegmentLength;
 
       // ALWAYS draw horizontal lines (left to right) regardless of orientation
       // The orientation only affects how columns/rows are stacked
@@ -336,8 +340,7 @@ const stairsSketch =
 
           if (lineJitter > 0) {
             // Draw wavy line by creating multiple small segments
-            const segmentLength = 5; // pixels per segment
-            const numSegments = Math.ceil((endX - lineStartX) / segmentLength);
+            const numSegments = Math.ceil((endX - lineStartX) / jitterSegmentLength);
 
             p.beginShape();
             for (let i = 0; i <= numSegments; i++) {

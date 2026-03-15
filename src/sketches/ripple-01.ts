@@ -13,6 +13,8 @@ type Constants = BaseConstants & {
   gapMax: number;
   lineSpacing: number;
   jitter: number;
+  jitterSegmentLength: number;
+  colorPasses: number;
   lineThickness: number;
   colors: DotPen[];
 };
@@ -36,6 +38,8 @@ export const constants: Constants = {
   gapMax: 18,
   lineSpacing: 2.5,
   jitter: 1,
+  jitterSegmentLength: 10,
+  colorPasses: 1,
   lineThickness: 0.4,
   colors: all("zebraSarasa"),
 };
@@ -47,6 +51,8 @@ export const constantsProps = {
   gapMax: { min: 0, max: 80, step: 1 },
   lineSpacing: { min: 0.5, max: 10, step: 0.25 },
   jitter: { min: 0, max: 8, step: 0.25 },
+  jitterSegmentLength: { min: 1, max: 50, step: 1 },
+  colorPasses: { min: 1, max: 4, step: 1 },
   lineThickness: { min: 0.1, max: 1, step: 0.05 },
   colors: (value: DotPen[]) =>
     penColorMultiselect({
@@ -85,18 +91,14 @@ const ripple01Sketch =
       const gapMax = vars.gapMax ?? constants.gapMax;
       const lineSpacing = vars.lineSpacing ?? constants.lineSpacing;
       const jitter = vars.jitter ?? constants.jitter;
+      const jitterSegmentLength = vars.jitterSegmentLength ?? constants.jitterSegmentLength;
+      const colorPasses = Math.round(vars.colorPasses ?? constants.colorPasses);
       const lineThickness = vars.lineThickness ?? constants.lineThickness;
 
       const colorPool = (vars.colors ?? constants.colors) as DotPen[];
       const colors = colorPool.length > 0 ? colorPool : all("zebraSarasa");
 
-      // Jitter function adapted from tartan-01: perpendicular jitter with edge tapering
-      function drawJitteryLine(
-        x1: number,
-        y1: number,
-        x2: number,
-        y2: number,
-      ) {
+      function drawJitteryLine(x1: number, y1: number, x2: number, y2: number) {
         const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
         if (len < 0.5) return;
 
@@ -111,9 +113,9 @@ const ripple01Sketch =
         const perpX = -dy;
         const perpY = dx;
 
+        const avgStep = jitterSegmentLength / len;
         const tValues: number[] = [0];
         let t = 0;
-        const avgStep = 0.1;
         while (t < 1) {
           t += avgStep * p.random(0.5, 1.5);
           tValues.push(t >= 1 ? 1 : t + p.random(-0.02, 0.02));
@@ -132,75 +134,105 @@ const ripple01Sketch =
         p.endShape();
       }
 
-      // Build band edges as insets from the draw area.
-      // Band i occupies [bandEdges[2i], bandEdges[2i+1]].
-      const maxInset = Math.min(drawW, drawH) / 2;
-      const bandEdges: number[] = [];
-      let cursor = 0;
+      // Build asymmetric bands: each side has its own cursor advancing independently
+      const maxInsetW = drawW / 2;
+      const maxInsetH = drawH / 2;
+      const maxInset = Math.min(maxInsetW, maxInsetH);
 
-      while (cursor < maxInset) {
-        const bw = p.random(bandWidthMin, bandWidthMax);
-        const inner = cursor + bw;
-        if (inner >= maxInset) {
-          bandEdges.push(cursor, maxInset);
-          break;
-        }
-        bandEdges.push(cursor, inner);
-        cursor = inner + p.random(gapMin, gapMax);
+      interface BandEdge {
+        leftOuter: number;
+        leftInner: number;
+        rightOuter: number;
+        rightInner: number;
+        topOuter: number;
+        topInner: number;
+        botOuter: number;
+        botInner: number;
       }
 
-      // Render bands: even-indexed band → horizontal lines; odd-indexed → vertical lines.
-      // This alternation makes adjacent bands "weave" visually.
-      for (let i = 0; i < bandEdges.length - 1; i += 2) {
-        const outerInset = bandEdges[i];
-        const innerInset = bandEdges[i + 1];
-        const color = colors[(i / 2) % colors.length];
+      const bands: BandEdge[] = [];
+      let leftCursor = 0,
+        rightCursor = 0,
+        topCursor = 0,
+        botCursor = 0;
 
-        setStroke(color, p);
-        p.strokeWeight(lineThickness);
+      while (Math.min(leftCursor, rightCursor, topCursor, botCursor) < maxInset) {
+        const leftInner = Math.min(leftCursor + p.random(bandWidthMin, bandWidthMax), maxInset);
+        const rightInner = Math.min(rightCursor + p.random(bandWidthMin, bandWidthMax), maxInset);
+        const topInner = Math.min(topCursor + p.random(bandWidthMin, bandWidthMax), maxInset);
+        const botInner = Math.min(botCursor + p.random(bandWidthMin, bandWidthMax), maxInset);
+
+        bands.push({
+          leftOuter: leftCursor,
+          leftInner,
+          rightOuter: rightCursor,
+          rightInner,
+          topOuter: topCursor,
+          topInner,
+          botOuter: botCursor,
+          botInner,
+        });
+
+        leftCursor = leftInner + p.random(gapMin, gapMax);
+        rightCursor = rightInner + p.random(gapMin, gapMax);
+        topCursor = topInner + p.random(gapMin, gapMax);
+        botCursor = botInner + p.random(gapMin, gapMax);
+      }
+
+      // Render bands: even-indexed → horizontal lines, odd-indexed → vertical lines
+      for (let i = 0; i < bands.length; i++) {
+        const band = bands[i];
+        const isHorizontal = i % 2 === 0;
 
         // Outer rect
-        const ox = startX + outerInset;
-        const oy = startY + outerInset;
-        const ow = drawW - 2 * outerInset;
-        const oh = drawH - 2 * outerInset;
+        const ox = startX + band.leftOuter;
+        const oy = startY + band.topOuter;
+        const ox2 = startX + drawW - band.rightOuter;
+        const oy2 = startY + drawH - band.botOuter;
 
-        // Inner rect (the hollow center of this band)
-        const ix = startX + innerInset;
-        const iy = startY + innerInset;
-        const iw = drawW - 2 * innerInset;
-        const ih = drawH - 2 * innerInset;
+        // Inner rect
+        const ix = startX + band.leftInner;
+        const iy = startY + band.topInner;
+        const ix2 = startX + drawW - band.rightInner;
+        const iy2 = startY + drawH - band.botInner;
 
-        const isHorizontal = (i / 2) % 2 === 0;
         const spacing = p.random(lineSpacing * 0.7, lineSpacing * 1.5);
 
-        if (isHorizontal) {
-          // Horizontal lines, clipped to the band ring
-          let y = oy;
-          while (y <= oy + oh) {
-            if (y < iy || y > iy + ih) {
-              drawJitteryLine(ox, y, ox + ow, y);
-            } else {
-              // Left segment
-              drawJitteryLine(ox, y, ix, y);
-              // Right segment
-              drawJitteryLine(ix + iw, y, ox + ow, y);
+        // Draw colorPasses passes with random colors each time
+        for (let pass = 0; pass < colorPasses; pass++) {
+          const color = p.random(colors) as DotPen;
+          setStroke(color, p);
+          p.strokeWeight(lineThickness);
+
+          // Slight per-pass offset so passes don't overlap perfectly
+          const passOffset = pass === 0 ? 0 : p.random(-spacing * 0.4, spacing * 0.4);
+
+          if (isHorizontal) {
+            let y = oy + passOffset;
+            while (y <= oy2) {
+              if (y < iy || y > iy2) {
+                // Outside inner rect: draw full width
+                drawJitteryLine(ox, y, ox2, y);
+              } else {
+                // Inside inner rect Y range: draw left and right segments
+                if (ix > ox) drawJitteryLine(ox, y, ix, y);
+                if (ox2 > ix2) drawJitteryLine(ix2, y, ox2, y);
+              }
+              y += spacing;
             }
-            y += spacing;
-          }
-        } else {
-          // Vertical lines, clipped to the band ring
-          let x = ox;
-          while (x <= ox + ow) {
-            if (x < ix || x > ix + iw) {
-              drawJitteryLine(x, oy, x, oy + oh);
-            } else {
-              // Top segment
-              drawJitteryLine(x, oy, x, iy);
-              // Bottom segment
-              drawJitteryLine(x, iy + ih, x, oy + oh);
+          } else {
+            let x = ox + passOffset;
+            while (x <= ox2) {
+              if (x < ix || x > ix2) {
+                // Outside inner rect: draw full height
+                drawJitteryLine(x, oy, x, oy2);
+              } else {
+                // Inside inner rect X range: draw top and bottom segments
+                if (iy > oy) drawJitteryLine(x, oy, x, iy);
+                if (oy2 > iy2) drawJitteryLine(x, iy2, x, oy2);
+              }
+              x += spacing;
             }
-            x += spacing;
           }
         }
       }

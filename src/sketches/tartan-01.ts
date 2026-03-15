@@ -8,6 +8,7 @@ import { penColorMultiselect } from "@/components/PenColorMultiselect";
 
 type Constants = BaseConstants & {
   jitter: number;
+  jitterSegmentLength: number;
   lineSpacing: number;
   columnWidthMin: number;
   columnWidthMax: number;
@@ -37,6 +38,7 @@ export const constants: Constants = {
   marginY: 40,
   debug: false,
   jitter: 1,
+  jitterSegmentLength: 10,
   lineSpacing: 2,
   columnWidthMin: 15,
   columnWidthMax: 60,
@@ -54,6 +56,7 @@ export const constants: Constants = {
 
 export const constantsProps = {
   jitter: { min: 0, max: 10, step: 0.5 },
+  jitterSegmentLength: { min: 1, max: 50, step: 1 },
   lineSpacing: { min: 0.5, max: 10, step: 0.25 },
   columnWidthMin: { min: 5, max: 600, step: 5 },
   columnWidthMax: { min: 10, max: 600, step: 5 },
@@ -100,6 +103,7 @@ const tartan01Sketch =
       const startY = marginY;
 
       const jitter = vars.jitter ?? constants.jitter;
+      const jitterSegmentLength = vars.jitterSegmentLength ?? constants.jitterSegmentLength;
       const lineSpacing = vars.lineSpacing ?? constants.lineSpacing;
       const columnWidthMin = vars.columnWidthMin ?? constants.columnWidthMin;
       const columnWidthMax = vars.columnWidthMax ?? constants.columnWidthMax;
@@ -133,7 +137,7 @@ const tartan01Sketch =
         // Build irregular segment positions (not evenly spaced)
         const tValues: number[] = [0];
         let currentT = 0;
-        const avgSegmentSize = 0.1; // roughly 10% of line per segment
+        const avgSegmentSize = jitterSegmentLength / Math.max(len, 1);
 
         while (currentT < 1) {
           // Vary segment size between 50% and 150% of average
