@@ -720,6 +720,18 @@ const P5Wrapper: React.FC<P5WrapperProps> = ({
             <RotateCcw />
           </Button>
 
+          {rotation !== 0 && (
+            <Button
+              variant="ghost"
+              className={cx("text-white", "min-w-12")}
+              onClick={() => setRotation(0)}
+              aria-label="Reset rotation"
+              title="Reset rotation"
+            >
+              {rotation}°
+            </Button>
+          )}
+
           <Button
             size="icon"
             variant="ghost"

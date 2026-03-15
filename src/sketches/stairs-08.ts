@@ -55,8 +55,7 @@ const stairsSketch =
     const colors: DotPen[] = [
       "staedtlerPens.yellow",
       "staedtlerPens.orange",
-      "staedtlerPensNew.crimson",
-      "staedtlerPensNew.purple",
+
       "staedtlerPens.blue",
     ];
 

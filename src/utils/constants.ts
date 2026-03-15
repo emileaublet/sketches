@@ -83,7 +83,7 @@ export type LevaControlType =
 // Utility function to convert constants to Leva controls
 export function createControls<T extends Record<string, any>>(
   constants: T,
-  controlConfig?: Partial<Record<keyof T, LevaControlType>>
+  controlConfig?: Partial<Record<keyof T, LevaControlType>>,
 ): Record<keyof T, LevaControlType> {
   let controls = {} as Record<keyof T, LevaControlType>;
 
@@ -102,6 +102,15 @@ export function createControls<T extends Record<string, any>>(
         "18x24 -- 4570x6100",
         "8.5x11 -- 2159x2794",
         "A3 -- 2940x4200",
+        "12x9 -- 3048x2286",
+        "14x11 -- 3556x2794",
+        "17x11 -- 4318x2794",
+        "16x12 -- 4064x3048",
+        "17x14 -- 4318x3556",
+        "18x12 -- 4572x3048",
+        "24x18 -- 6100x4570",
+        "11x8.5 -- 2794x2159",
+        "A3 Landscape -- 4200x2940",
       ],
     },
     paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.0001 },
@@ -116,6 +125,11 @@ export function createControls<T extends Record<string, any>>(
     // Use provided config if available
     if (controlConfig?.[configKey]) {
       const config = controlConfig[configKey]!;
+      // Plugin factory: if config is a function, call it with the constant value
+      if (typeof config === "function") {
+        controls[configKey] = config(value) as LevaControlType;
+        continue;
+      }
       // If config doesn't have a value, use the one from constants
       if (
         typeof config === "object" &&
@@ -138,7 +152,7 @@ export function createControls<T extends Record<string, any>>(
     } else if (typeof value === "number") {
       // Smart defaults based on property name patterns
       if (key.includes("width") || key.includes("height")) {
-        controls[configKey] = { value, min: 100, max: 2000, step: 50 };
+        controls[configKey] = { value, min: 100, max: 6000, step: 50 };
       } else if (key.includes("margin") || key.includes("padding")) {
         controls[configKey] = { value, min: 0, max: 400, step: 5 };
       } else if (key.includes("thickness") || key.includes("weight")) {
