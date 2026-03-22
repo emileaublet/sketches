@@ -11,7 +11,7 @@ type Constants = BaseConstants & {
   bandWidthMax: number;
   gapMin: number;
   gapMax: number;
-  chevronSpacing: number;
+  chevronDensity: number;
   chevronFill: number;
   colorPasses: number;
   lineThickness: number;
@@ -36,7 +36,7 @@ export const constants: Constants = {
   bandWidthMax: 24,
   gapMin: 0,
   gapMax: 4,
-  chevronSpacing: 9,
+  chevronDensity: 1.0,
   chevronFill: 0.75,
   colorPasses: 3,
   lineThickness: 0.4,
@@ -49,7 +49,7 @@ export const constantsProps = {
   bandWidthMax: { min: 5, max: 100, step: 1 },
   gapMin: { min: 0, max: 20, step: 1 },
   gapMax: { min: 0, max: 40, step: 1 },
-  chevronSpacing: { min: 3, max: 40, step: 1 },
+  chevronDensity: { min: 0.2, max: 3, step: 0.1 },
   chevronFill: { min: 0.1, max: 1.0, step: 0.05 },
   colorPasses: { min: 1, max: 4, step: 1 },
   lineThickness: { min: 0.1, max: 1, step: 0.05 },
@@ -88,7 +88,7 @@ const ripple02Sketch =
       const bandWidthMax = vars.bandWidthMax ?? constants.bandWidthMax;
       const gapMin = vars.gapMin ?? constants.gapMin;
       const gapMax = vars.gapMax ?? constants.gapMax;
-      const chevronSpacing = vars.chevronSpacing ?? constants.chevronSpacing;
+      const chevronDensity = vars.chevronDensity ?? constants.chevronDensity;
       const chevronFill = vars.chevronFill ?? constants.chevronFill;
       const colorPasses = Math.round(vars.colorPasses ?? constants.colorPasses);
       const lineThickness = vars.lineThickness ?? constants.lineThickness;
@@ -125,18 +125,20 @@ const ripple02Sketch =
 
         if (rMid > 0) {
           const circumference = 2 * Math.PI * rMid;
-          const count = Math.max(3, Math.round(circumference / chevronSpacing));
 
-          // Chevron dimensions scale with the band width
-          const armSpread = (actualBandW / 2) * chevronFill;
-          const armLen = chevronSpacing * 0.6;
+          // armSize = armSpread = armLen → enforces exactly 90° at the tip
+          const armSize = (actualBandW / 2) * chevronFill;
+
+          // count: density=1 means chevrons just touching (spacing = armSize*2)
+          const count = Math.max(3, Math.round((circumference / (armSize * 2)) * chevronDensity));
 
           for (let pass = 0; pass < colorPasses; pass++) {
             const color = p.random(colors) as DotPen;
             setStroke(color, p);
 
-            // Offset each pass so they interleave rather than stack
-            const startAngle = (pass / colorPasses) * ((2 * Math.PI) / count);
+            // Each pass gets a fully random start angle — they overlap
+            // imperfectly because count varies per ring width
+            const startAngle = p.random(Math.PI * 2);
 
             for (let j = 0; j < count; j++) {
               const angle = startAngle + (j / count) * 2 * Math.PI;
@@ -153,14 +155,15 @@ const ripple02Sketch =
               const ry = Math.sin(angle);
 
               // Tip: behind the chevron (against direction of travel)
-              const tipX = px - tx * armLen * 0.5;
-              const tipY = py - ty * armLen * 0.5;
+              const tipX = px - tx * armSize * 0.5;
+              const tipY = py - ty * armSize * 0.5;
 
               // Two arm endpoints: forward along tangent, spread radially
-              const arm1X = px + tx * armLen * 0.5 + rx * armSpread;
-              const arm1Y = py + ty * armLen * 0.5 + ry * armSpread;
-              const arm2X = px + tx * armLen * 0.5 - rx * armSpread;
-              const arm2Y = py + ty * armLen * 0.5 - ry * armSpread;
+              // armSpread = armLen = armSize → 90° angle at tip
+              const arm1X = px + tx * armSize * 0.5 + rx * armSize;
+              const arm1Y = py + ty * armSize * 0.5 + ry * armSize;
+              const arm2X = px + tx * armSize * 0.5 - rx * armSize;
+              const arm2Y = py + ty * armSize * 0.5 - ry * armSize;
 
               p.line(tipX, tipY, arm1X, arm1Y);
               p.line(tipX, tipY, arm2X, arm2Y);
