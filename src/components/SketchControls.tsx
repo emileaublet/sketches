@@ -144,6 +144,7 @@ export function SketchControls({
           "w-full rounded-t-lg md:w-[340px] md:rounded-lg",
           open ? "pb-3" : "pb-0",
         )}
+        onWheel={(e) => e.stopPropagation()}
       >
         <div
           className={cx(

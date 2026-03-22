@@ -3,7 +3,7 @@ import { Outlet, Link } from "react-router";
 
 const Layout: React.FC = () => {
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen">
+    <div className="grid grid-rows-[auto_1fr_auto] h-screen overflow-hidden">
       <header className="border-b">
         <div className="flex items-center justify-between p-4 mx-auto">
           <Link to="/">
@@ -17,7 +17,7 @@ const Layout: React.FC = () => {
           </Link>
         </div>
       </header>
-      <main>
+      <main className="min-h-0 overflow-y-auto">
         <Outlet />
       </main>
       <footer>
