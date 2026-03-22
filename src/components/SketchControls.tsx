@@ -140,7 +140,8 @@ export function SketchControls({
     <div className="flex flex-col h-full items-end gap-1">
       <div
         className={cx(
-          "controls-scroll w-[340px] overflow-y-auto rounded-lg border border-border bg-background/90 backdrop-blur-sm shadow-lg flex flex-col gap-5",
+          "controls-scroll overflow-y-auto border border-border bg-background/90 backdrop-blur-sm shadow-lg flex flex-col gap-5",
+          "w-full rounded-t-lg md:w-[340px] md:rounded-lg",
           open ? "pb-3" : "pb-0",
         )}
       >

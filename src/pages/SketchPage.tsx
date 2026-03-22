@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { SketchCanvas } from "@/components/SketchCanvas";
 import { SketchControls } from "@/components/SketchControls";
 import { useSketchState } from "@/hooks/useSketchState";
@@ -21,6 +21,7 @@ import {
   Loader2,
   CheckCircle2,
   RotateCcw,
+  SlidersHorizontal,
 } from "lucide-react";
 import type { Meta } from "@/types";
 
@@ -32,6 +33,7 @@ interface SketchPageProps {
 
 const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
   const s = useSketchState({ meta: sketch, prev, next });
+  const [controlsOpen, setControlsOpen] = useState(false);
 
   // ── Keyboard shortcuts ───────────────────────────────────────────
   useEffect(() => {
@@ -98,7 +100,7 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
               {sketch.description}
             </p>
           </div>
-          <div className="flex items-center justify-end px-2 w-full border-b border-white/10">
+          <div className="flex items-center justify-end px-2 w-full border-b border-white/10 overflow-x-auto">
             {process.env.NODE_ENV === "development" && (
               <div className="flex-grow flex items-center justify-start">
                 <Button
@@ -214,15 +216,53 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
           )}
 
           {Object.keys(s.controlSchema).length > 0 && (
-            <div className="absolute top-4 right-4 z-20 h-[calc(100%_-_2rem)]">
-              <SketchControls
-                schema={s.controlSchema}
-                values={s.controlValues}
-                onChange={(key, value) =>
-                  s.setControlValues((prev) => ({ ...prev, [key]: value }))
-                }
-              />
-            </div>
+            <>
+              {/* Desktop: always-visible absolute panel */}
+              <div className="hidden md:block absolute top-4 right-4 z-20 h-[calc(100%_-_2rem)]">
+                <SketchControls
+                  schema={s.controlSchema}
+                  values={s.controlValues}
+                  onChange={(key, value) =>
+                    s.setControlValues((prev) => ({ ...prev, [key]: value }))
+                  }
+                />
+              </div>
+
+              {/* Mobile: floating toggle button */}
+              <Button
+                size="icon"
+                variant="secondary"
+                className="md:hidden absolute bottom-4 right-4 z-30 rounded-full shadow-lg"
+                onClick={() => setControlsOpen((o) => !o)}
+                aria-label="Toggle controls"
+              >
+                <SlidersHorizontal className="w-5 h-5" />
+              </Button>
+
+              {/* Mobile: backdrop */}
+              {controlsOpen && (
+                <div
+                  className="md:hidden fixed inset-0 bg-black/40 z-40"
+                  onClick={() => setControlsOpen(false)}
+                />
+              )}
+
+              {/* Mobile: bottom sheet */}
+              <div
+                className={cx(
+                  "md:hidden fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300",
+                  controlsOpen ? "translate-y-0" : "translate-y-full",
+                )}
+              >
+                <SketchControls
+                  schema={s.controlSchema}
+                  values={s.controlValues}
+                  onChange={(key, value) =>
+                    s.setControlValues((prev) => ({ ...prev, [key]: value }))
+                  }
+                />
+              </div>
+            </>
           )}
         </div>
 
