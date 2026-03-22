@@ -116,12 +116,14 @@ const ripple02Sketch =
 
       // Build concentric circular rings with a single radius cursor
       let r = 0;
+      let ringIndex = 0;
       while (r < maxRadius) {
         const bandW = p.random(bandWidthMin, bandWidthMax);
         const rInner = r;
         const rOuter = Math.min(r + bandW, maxRadius);
         const rMid = (rInner + rOuter) / 2;
         const actualBandW = rOuter - rInner;
+        const ringDir = dir * (ringIndex % 2 === 0 ? 1 : -1);
 
         if (rMid > 0) {
           const circumference = 2 * Math.PI * rMid;
@@ -146,9 +148,9 @@ const ripple02Sketch =
               const px = cx + Math.cos(angle) * rMid;
               const py = cy + Math.sin(angle) * rMid;
 
-              // Tangent (CW or CCW)
-              const tx = Math.sin(angle) * dir;
-              const ty = -Math.cos(angle) * dir;
+              // Tangent — alternates per ring
+              const tx = Math.sin(angle) * ringDir;
+              const ty = -Math.cos(angle) * ringDir;
 
               // Radial outward
               const rx = Math.cos(angle);
@@ -172,6 +174,7 @@ const ripple02Sketch =
         }
 
         r = rOuter + p.random(gapMin, gapMax);
+        ringIndex++;
       }
 
       ctx.restore();
