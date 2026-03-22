@@ -1,84 +1,79 @@
 import { p5SVG } from "p5.js-svg";
 import { Meta } from "../types";
-import { DotPen, all } from "@/pens";
-import { setStroke } from "@/utils/setStroke";
 import { setupCanvas } from "@/utils/canvasSetup";
 import { BaseConstants } from "../utils/constants";
+import { DotPen, all } from "@/pens";
 import { penColorMultiselect } from "@/components/PenColorMultiselect";
-
-// Multiple rotated ellipses, each filled with dense parallel scan lines
-// perpendicular to the major axis — like latitude lines on a lens.
-// Overlapping areas show color mixing via MULTIPLY blend.
+import { setStroke } from "@/utils/setStroke";
 
 type Constants = BaseConstants & {
-  numShapes: number;
-  widthMin: number;
-  widthMax: number;
-  heightMin: number;
-  heightMax: number;
-  spread: number;
-  lineSpacing: number;
-  jitter: number;
-  jitterSegmentLength: number;
-  lineThickness: number;
-  colors: DotPen[];
+  ratio: number;
+  repelX: number;
+  repelY: number;
+  penColors: DotPen[];
+  firstOutlineScale: number;
+  outlineWeight: number;
+  outlineTightness: number;
+  outlineCurvePower: number;
+  outlineDirectionDeg: number;
+  outlineRotateDeg: number;
 };
 
 export const meta: Meta = {
   id: "overlap-01",
   title: "Overlap 01",
-  description: "Overlapping hatched ellipses with MULTIPLY color blending",
+  description: "",
   thumbnail: "/overlap-01.png",
 };
 
 export const constants: Constants = {
   width: 560,
   height: 700,
-  marginX: 20,
-  marginY: 20,
+  marginX: 40,
+  marginY: 40,
   debug: false,
-  numShapes: 5,
-  widthMin: 150,
-  widthMax: 400,
-  heightMin: 80,
-  heightMax: 220,
-  spread: 0.3,
-  lineSpacing: 2,
-  jitter: 1.5,
-  jitterSegmentLength: 0.1,
-  lineThickness: 0.4,
-  colors: all("zebraSarasa"),
+  rotate: -75,
+  ratio: 0.72,
+  repelX: 14,
+  repelY: -8,
+  penColors: all("staedtlerPens"),
+  firstOutlineScale: 1.75,
+  outlineWeight: 0.2,
+  outlineTightness: 1.64,
+  outlineCurvePower: 1.1,
+  outlineDirectionDeg: 45,
+  outlineRotateDeg: 0,
 };
 
 export const constantsProps = {
-  numShapes: { min: 2, max: 10, step: 1 },
-  widthMin: { min: 20, max: 600, step: 10 },
-  widthMax: { min: 40, max: 800, step: 10 },
-  heightMin: { min: 10, max: 300, step: 10 },
-  heightMax: { min: 20, max: 400, step: 10 },
-  spread: { min: 0, max: 1, step: 0.05 },
-  lineSpacing: { min: 0.5, max: 8, step: 0.25 },
-  jitter: { min: 0, max: 15, step: 0.5 },
-  jitterSegmentLength: { min: 0.01, max: 0.5, step: 0.01 },
-  lineThickness: { min: 0.1, max: 1, step: 0.05 },
-  colors: (value: DotPen[]) =>
+  ratio: { min: 0.1, max: 2, step: 0.01 },
+  repelX: { min: -200, max: 200, step: 1 },
+  repelY: { min: -200, max: 200, step: 1 },
+  penColors: (value: DotPen[]) =>
     penColorMultiselect({
-      family: "zebraSarasa",
+      family: "staedtlerPens",
       selected: value?.length ? value : undefined,
-      label: "Colors",
+      label: "Outline Colors",
     }),
+  firstOutlineScale: { min: 1, max: 2, step: 0.01 },
+  outlineWeight: { min: 0.1, max: 2, step: 0.05 },
+  outlineTightness: { min: 0.2, max: 5, step: 0.01 },
+  outlineCurvePower: { min: 1, max: 4, step: 0.1 },
+  outlineDirectionDeg: { min: 0, max: 360, step: 1 },
+  outlineRotateDeg: { min: -180, max: 180, step: 1 },
 };
 
 const overlap01Sketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     p.setup = () => {
+      const debug = vars.debug ?? constants.debug;
+
       setupCanvas(p, {
         width: vars.width ?? constants.width,
         height: vars.height ?? constants.height,
         seed,
-        noFill: true,
-        strokeWeight: vars.lineThickness ?? constants.lineThickness,
-        debug: vars.debug ?? constants.debug,
+        noFill: false,
+        debug,
         marginX: vars.marginX ?? constants.marginX,
         marginY: vars.marginY ?? constants.marginY,
         useSVG: vars.useSVG ?? true,
@@ -89,100 +84,240 @@ const overlap01Sketch =
       const marginY = vars.marginY ?? constants.marginY;
       const drawW = p.width - 2 * marginX;
       const drawH = p.height - 2 * marginY;
-      const centerX = marginX + drawW / 2;
-      const centerY = marginY + drawH / 2;
 
-      const numShapes = Math.round(vars.numShapes ?? constants.numShapes);
-      const widthMin = vars.widthMin ?? constants.widthMin;
-      const widthMax = vars.widthMax ?? constants.widthMax;
-      const heightMin = vars.heightMin ?? constants.heightMin;
-      const heightMax = vars.heightMax ?? constants.heightMax;
-      const spread = vars.spread ?? constants.spread;
-      const lineSpacing = vars.lineSpacing ?? constants.lineSpacing;
-      const jitter = vars.jitter ?? constants.jitter;
-      const jitterSegmentLength =
-        vars.jitterSegmentLength ?? constants.jitterSegmentLength;
-      const lineThickness = vars.lineThickness ?? constants.lineThickness;
+      let rectW = drawW;
+      const ratioRaw = vars.ratio ?? constants.ratio;
+      const ratio = Math.round(ratioRaw * 1000) / 1000;
+      let rectH = rectW * ratio;
+      if (rectH > drawH) {
+        const scale = drawH / rectH;
+        rectW *= scale;
+        rectH *= scale;
+      }
+      const rotate = vars.rotate ?? constants.rotate ?? 0;
+      const repelX = vars.repelX ?? constants.repelX;
+      const repelY = vars.repelY ?? constants.repelY;
+      const penColors = vars.penColors ?? constants.penColors;
+      const firstOutlineScale =
+        vars.firstOutlineScale ?? constants.firstOutlineScale;
+      const outlineWeight = vars.outlineWeight ?? constants.outlineWeight;
+      const outlineTightness =
+        vars.outlineTightness ?? constants.outlineTightness;
+      const outlineCurvePower =
+        vars.outlineCurvePower ?? constants.outlineCurvePower;
+      const outlineDirectionDeg =
+        vars.outlineDirectionDeg ?? constants.outlineDirectionDeg;
+      const outlineRotateDeg =
+        vars.outlineRotateDeg ?? constants.outlineRotateDeg;
 
-      const colorPool = (vars.colors ?? constants.colors) as DotPen[];
-      const colors = colorPool.length > 0 ? colorPool : all("zebraSarasa");
+      const cornerRadius = Math.min(rectW, rectH) / 2;
 
-      p.blendMode(p.MULTIPLY);
+      p.colorMode(p.RGB);
+      p.noFill();
+      p.strokeWeight(outlineWeight);
+      p.strokeCap(p.ROUND);
+      p.strokeJoin(p.ROUND);
+      const cx = p.width / 2;
+      const cy = p.height / 2;
 
-      function drawJitteryLine(
-        x1: number,
-        y1: number,
-        x2: number,
-        y2: number,
+      const palette = penColors.length ? penColors : all("staedtlerPens");
+      const firstColor = p.random(palette);
+      let secondColor = p.random(palette);
+      if (palette.length > 1) {
+        while (secondColor === firstColor) {
+          secondColor = p.random(palette);
+        }
+      }
+
+      const buildOutlinePoints = (
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        r: number,
+        segmentLen: number,
+      ) => {
+        const pts: Array<{ x: number; y: number }> = [];
+        const addLine = (x1: number, y1: number, x2: number, y2: number) => {
+          const len = Math.hypot(x2 - x1, y2 - y1);
+          const steps = Math.max(2, Math.ceil(len / segmentLen));
+          for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            pts.push({ x: x1 + (x2 - x1) * t, y: y1 + (y2 - y1) * t });
+          }
+        };
+        const addArc = (
+          cx: number,
+          cy: number,
+          start: number,
+          end: number,
+        ) => {
+          const arcLen = Math.abs(end - start) * r;
+          const steps = Math.max(3, Math.ceil(arcLen / segmentLen));
+          for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const a = start + (end - start) * t;
+            pts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+          }
+        };
+
+        const left = x;
+        const right = x + w;
+        const top = y;
+        const bottom = y + h;
+
+        addLine(left + r, top, right - r, top);
+        addArc(right - r, top + r, -Math.PI / 2, 0);
+        addLine(right, top + r, right, bottom - r);
+        addArc(right - r, bottom - r, 0, Math.PI / 2);
+        addLine(right - r, bottom, left + r, bottom);
+        addArc(left + r, bottom - r, Math.PI / 2, Math.PI);
+        addLine(left, bottom - r, left, top + r);
+        addArc(left + r, top + r, Math.PI, Math.PI * 1.5);
+
+        return pts;
+      };
+
+      const pointInRoundedRect = (
+        px: number,
+        py: number,
+        w: number,
+        h: number,
+        r: number,
+      ) => {
+        if (px < 0 || px > w || py < 0 || py > h) return false;
+        const innerLeft = r;
+        const innerRight = w - r;
+        const innerTop = r;
+        const innerBottom = h - r;
+        if (
+          (px >= innerLeft && px <= innerRight) ||
+          (py >= innerTop && py <= innerBottom)
+        ) {
+          return true;
+        }
+        const cx = px < innerLeft ? innerLeft : innerRight;
+        const cy = py < innerTop ? innerTop : innerBottom;
+        const dx = px - cx;
+        const dy = py - cy;
+        return dx * dx + dy * dy <= r * r;
+      };
+
+      p.rectMode(p.CORNER);
+
+      p.push();
+      p.translate(cx - repelX / 2, cy - repelY / 2);
+      p.rotate(p.radians(rotate));
+      p.translate(-rectW / 2, -rectH / 2);
+      setStroke(firstColor, p);
+      p.strokeWeight(outlineWeight);
+      p.noFill();
+      const offsetLimit = Math.hypot(rectW, rectH);
+      const offsetStartX = 0;
+      const offsetStartY = 0;
+      const directionRad = p.radians(outlineDirectionDeg);
+      const dirX = Math.cos(directionRad);
+      const dirY = Math.sin(directionRad);
+      const baseStep =
+        Math.max(0.15, Math.min(rectW, rectH) / 260) /
+        Math.pow(outlineTightness, 1.6);
+      const growthRatio = 1 + 0.012 / Math.pow(outlineTightness, 1.3);
+      for (
+        let offset = 0, i = 0;
+        offset <= offsetLimit;
+        offset +=
+          baseStep * Math.pow(growthRatio, Math.pow(i, outlineCurvePower)),
+          i++
       ) {
-        const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-        if (len < 0.5) return;
-
-        if (jitter <= 0) {
-          p.line(x1, y1, x2, y2);
-          return;
-        }
-
-        const dx = (x2 - x1) / len;
-        const dy = (y2 - y1) / len;
-        const perpX = -dy;
-        const perpY = dx;
-
-        const avgStep = jitterSegmentLength;
-        const tValues: number[] = [0];
-        let t = 0;
-        while (t < 1) {
-          t += avgStep * p.random(0.5, 1.5);
-          tValues.push(t >= 1 ? 1 : t + p.random(-0.02, 0.02));
-        }
+        const grow = firstOutlineScale + i * 0.01;
+        const w = rectW * grow;
+        const h = rectH * grow;
+        const r = Math.min(w, h) / 2;
+        const yPivot = (rectH - h) / 2;
+        const dx = offset * dirX;
+        const dy = offset * dirY;
+        const segmentLen = Math.max(0.8, outlineWeight * 2.5);
+        const points = buildOutlinePoints(0, 0, w, h, r, segmentLen);
+        const rad = p.radians(outlineRotateDeg);
+        const cosA = Math.cos(rad);
+        const sinA = Math.sin(rad);
+        const pivotX = 0;
+        const pivotY = h / 2;
 
         p.beginShape();
-        for (const tv of tValues) {
-          const tc = Math.max(0, Math.min(1, tv));
-          const x = p.lerp(x1, x2, tc);
-          const y = p.lerp(y1, y2, tc);
-          const edge = 0.3 + 0.7 * Math.sin(tc * Math.PI);
-          const j = jitter * edge * p.random(0.6, 1.4);
-          const d = p.random(-j, j);
-          p.vertex(x + perpX * d, y + perpY * d);
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i];
+          const ax = pt.x - pivotX;
+          const ay = pt.y - pivotY;
+          const rx = pivotX + ax * cosA - ay * sinA + offsetStartX + dx;
+          const ry = pivotY + ax * sinA + ay * cosA + offsetStartY + dy + yPivot;
+          if (pointInRoundedRect(rx, ry, rectW, rectH, cornerRadius)) {
+            p.curveVertex(rx, ry);
+          }
         }
         p.endShape();
       }
+      p.pop();
 
-      // Build shapes
-      const spreadX = drawW * spread * 0.5;
-      const spreadY = drawH * spread * 0.5;
+      p.push();
+      p.translate(cx + repelX / 2, cy + repelY / 2);
+      p.rotate(p.radians(rotate + 180));
+      p.translate(-rectW / 2, -rectH / 2);
+      setStroke(secondColor, p);
+      p.strokeWeight(outlineWeight);
+      p.noFill();
+      for (
+        let offset = 0, i = 0;
+        offset <= offsetLimit;
+        offset +=
+          baseStep * Math.pow(growthRatio, Math.pow(i, outlineCurvePower)),
+          i++
+      ) {
+        const grow = firstOutlineScale + i * 0.01;
+        const w = rectW * grow;
+        const h = rectH * grow;
+        const r = Math.min(w, h) / 2;
+        const yPivot = (rectH - h) / 2;
+        const dx = offset * dirX;
+        const dy = offset * dirY;
+        const segmentLen = Math.max(0.8, outlineWeight * 2.5);
+        const points = buildOutlinePoints(0, 0, w, h, r, segmentLen);
+        const rad = p.radians(outlineRotateDeg);
+        const cosA = Math.cos(rad);
+        const sinA = Math.sin(rad);
+        const pivotX = 0;
+        const pivotY = h / 2;
 
-      for (let i = 0; i < numShapes; i++) {
-        const cx = centerX + p.random(-spreadX, spreadX);
-        const cy = centerY + p.random(-spreadY, spreadY);
-        const a = p.random(widthMin, widthMax) / 2; // semi-major axis
-        const b = p.random(heightMin, heightMax) / 2; // semi-minor axis
-        const angle = p.random(0, Math.PI); // rotation of major axis
-
-        const color = colors[i % colors.length];
-        setStroke(color, p);
-        p.strokeWeight(lineThickness);
-
-        const ca = Math.cos(angle);
-        const sa = Math.sin(angle);
-
-        // Scan perpendicular to major axis: step along minor axis in local frame
-        const spacing = p.random(lineSpacing * 0.85, lineSpacing * 1.15);
-        let ly = -b;
-        while (ly <= b) {
-          // Half-width at this local y along the ellipse
-          const hx = a * Math.sqrt(Math.max(0, 1 - (ly / b) ** 2));
-          if (hx > 0.5) {
-            // Transform local (-hx, ly) and (hx, ly) to global coords
-            const x1 = cx - hx * ca - ly * sa;
-            const y1 = cy - hx * sa + ly * ca;
-            const x2 = cx + hx * ca - ly * sa;
-            const y2 = cy + hx * sa + ly * ca;
-            drawJitteryLine(x1, y1, x2, y2);
+        p.beginShape();
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i];
+          const ax = pt.x - pivotX;
+          const ay = pt.y - pivotY;
+          const rx = pivotX + ax * cosA - ay * sinA + offsetStartX + dx;
+          const ry = pivotY + ax * sinA + ay * cosA + offsetStartY + dy + yPivot;
+          if (pointInRoundedRect(rx, ry, rectW, rectH, cornerRadius)) {
+            p.curveVertex(rx, ry);
           }
-          ly += spacing;
         }
+        p.endShape();
+      }
+      p.pop();
+
+      if (debug) {
+        const drawMaskOutline = (tx: number, ty: number) => {
+          p.push();
+          p.translate(tx, ty);
+          p.rotate(p.radians(rotate));
+          p.translate(-rectW / 2, -rectH / 2);
+          p.stroke(255, 0, 0, 180);
+          p.strokeWeight(0.6);
+          p.noFill();
+          p.rect(0, 0, rectW, rectH, cornerRadius);
+          p.pop();
+        };
+
+        drawMaskOutline(cx - repelX / 2, cy - repelY / 2);
+        drawMaskOutline(cx + repelX / 2, cy + repelY / 2);
       }
     };
   };

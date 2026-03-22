@@ -33,6 +33,7 @@ type Constants = BaseConstants & {
   showStroke: boolean;
   shadowNoiseScale: number;
   shadowDensity: number;
+  colorPalette: "random" | "monochrome" | "ocean" | "earth" | "sunset" | "ink";
 };
 
 export const constants: Constants = {
@@ -42,24 +43,25 @@ export const constants: Constants = {
   marginY: 50,
   debug: false,
   gridCellSize: 8,
-  noiseScale: 0.003,
+  noiseScale: 0.004,
   noiseOctaves: 4,
   noiseFalloff: 0.5,
-  distortionAmount: 50,
+  distortionAmount: 80,
   distortionScale: 0.002,
-  levels: 12,
+  levels: 16,
   minElevation: 0.2,
   maxElevation: 0.8,
   cornerRadius: 5,
   bezierSteps: 3,
   viewAngle: 45,
   zScale: 150,
-  projection: "isometric",
+  projection: "top",
   showShadows: false,
-  showFill: true,
+  showFill: false,
   showStroke: true,
   shadowNoiseScale: 0.02,
   shadowDensity: 4,
+  colorPalette: "ink",
 };
 
 export const constantsProps = {
@@ -82,6 +84,7 @@ export const constantsProps = {
   showStroke: {},
   shadowNoiseScale: { min: 0.001, max: 0.1, step: 0.001 },
   shadowDensity: { min: 1, max: 10, step: 1 },
+  colorPalette: { options: ["random", "monochrome", "ocean", "earth", "sunset", "ink"] },
 };
 
 type Pair = [number, number];
@@ -129,9 +132,37 @@ const sketchFactory =
         p.randomSeed(seed);
       }
 
-      // Random Monochrome Tint
-      const hue = p.random(0, 360);
-      const sat = p.random(30, 80); // Nice vibrant saturation
+      // Palette-based hue/sat
+      const colorPalette = vars.colorPalette ?? constants.colorPalette;
+
+      let hue: number, sat: number;
+      switch (colorPalette) {
+        case "random":
+          hue = p.random(0, 360);
+          sat = p.random(30, 80);
+          break;
+        case "monochrome":
+          hue = p.random(0, 360);
+          sat = 0;
+          break;
+        case "ocean":
+          hue = 200 + p.random(-20, 20);
+          sat = 60 + p.random(-10, 10);
+          break;
+        case "earth":
+          hue = 30 + p.random(-15, 15);
+          sat = 40 + p.random(-10, 10);
+          break;
+        case "sunset":
+          hue = 15 + p.random(-10, 10);
+          sat = 75 + p.random(-10, 10);
+          break;
+        case "ink":
+        default:
+          hue = 220 + p.random(-30, 30);
+          sat = 15 + p.random(-10, 10);
+          break;
+      }
 
       const offsetX = p.random(10000);
       const offsetY = p.random(10000);
@@ -541,7 +572,9 @@ const sketchFactory =
             }
 
             if (showStroke) {
-              p.stroke(hue, sat, 20); // Darker stroke for definition
+              // Vary stroke color slightly by level for depth
+              const strokeBrightness = p.map(k, 0, levels - 1, 30, 60);
+              p.stroke(hue, sat + 20, strokeBrightness);
             } else {
               p.noStroke();
             }

@@ -187,7 +187,7 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
         </div>
 
         {/* ── Canvas ──────────────────────────────────────────────── */}
-        <div className="relative">
+        <div className="relative min-h-0">
           <SketchCanvas
             sketchFn={s.sketchFn}
             containerRef={s.containerRef}

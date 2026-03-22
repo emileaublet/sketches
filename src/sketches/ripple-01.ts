@@ -28,21 +28,21 @@ export const meta: Meta = {
 };
 
 export const constants: Constants = {
-  width: 560,
-  height: 700,
+  width: 500,
+  height: 500,
   marginX: 40,
   marginY: 40,
   debug: false,
-  bandWidthMin: 10,
-  bandWidthMax: 60,
-  gapMin: 2,
-  gapMax: 18,
-  lineSpacing: 2.5,
-  jitter: 2,
-  jitterSegmentLength: 0.1,
-  colorPasses: 1,
+  bandWidthMin: 5,
+  bandWidthMax: 5,
+  gapMin: 0,
+  gapMax: 0,
+  lineSpacing: 1.75,
+  jitter: 0,
+  jitterSegmentLength: 0.14,
+  colorPasses: 3,
   lineThickness: 0.4,
-  circularity: 0,
+  circularity: 1,
   colors: all("zebraSarasa"),
 };
 
