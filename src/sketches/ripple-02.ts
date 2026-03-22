@@ -101,17 +101,17 @@ const ripple02Sketch =
       const cx = marginX + drawW / 2;
       const cy = marginY + drawH / 2;
 
-      // Rings fill to the diagonal so chevrons reach all four corners
-      const maxRadius = Math.sqrt((drawW / 2) ** 2 + (drawH / 2) ** 2);
+      // Rings contained within the inscribed circle
+      const maxRadius = Math.min(drawW, drawH) / 2;
 
       p.strokeWeight(lineThickness);
       p.strokeCap(p.ROUND);
 
-      // Clip everything to the draw area
+      // Clip to circle so arm tips don't bleed outside
       const ctx = p.drawingContext as CanvasRenderingContext2D;
       ctx.save();
       ctx.beginPath();
-      ctx.rect(marginX, marginY, drawW, drawH);
+      ctx.arc(cx, cy, maxRadius, 0, Math.PI * 2);
       ctx.clip();
 
       // Build concentric circular rings with a single radius cursor
