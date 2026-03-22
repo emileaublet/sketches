@@ -16,7 +16,6 @@ export const meta: Meta = {
 
 type Constants = BaseConstants &
   GridConstants & {
-    numNodes: number;
     numSegments: number;
     pivotMin: number;
     pivotMax: number;
@@ -30,7 +29,6 @@ export const constants: Constants = {
   height: 850,
   marginX: 120,
   marginY: 120,
-  numNodes: 25,
   debug: false,
   cols: 20,
   rows: 27,
