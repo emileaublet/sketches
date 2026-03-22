@@ -15,6 +15,8 @@ type Constants = BaseConstants & {
   noiseScale: number;
   strokeWeight: number;
   colorCycles: number;
+  flowStrength: number;
+  flowScale: number;
   penColors: DotPen[];
 };
 
@@ -40,6 +42,8 @@ export const constants: Constants = {
   noiseScale: 0.005,
   strokeWeight: 0.4,
   colorCycles: 2,
+  flowStrength: 12,
+  flowScale: 0.015,
   penColors: all("zebraSarasa"),
 };
 
@@ -52,6 +56,8 @@ export const constantsProps = {
   noiseScale: { min: 0.001, max: 0.02, step: 0.001 },
   strokeWeight: { min: 0.1, max: 1.5, step: 0.1 },
   colorCycles: { min: 1, max: 5, step: 1 },
+  flowStrength: { min: 0, max: 40, step: 1 },
+  flowScale: { min: 0.003, max: 0.04, step: 0.001 },
   penColors: (value: DotPen[]) =>
     penColorMultiselect({
       family: "zebraSarasa",
@@ -100,8 +106,13 @@ const stripedOrbs01Sketch =
       p.strokeCap(p.ROUND);
       p.noFill();
 
+      const flowStrength = vars.flowStrength ?? constants.flowStrength;
+      const flowScale = vars.flowScale ?? constants.flowScale;
+
       const noiseOffX = p.random(1000);
       const noiseOffY = p.random(1000);
+      const flowOffX = p.random(1000);
+      const flowOffY = p.random(1000);
 
       interface Orb {
         x: number;
@@ -140,51 +151,56 @@ const stripedOrbs01Sketch =
         }
       }
 
+      const ctx = p.drawingContext as CanvasRenderingContext2D;
+
       const totalOrbs = orbs.length;
       orbs.forEach((orb, orbIdx) => {
-        // Stripe angle from flow field at orb center
         const noiseVal = p.noise(
           noiseOffX + orb.x * noiseScale,
           noiseOffY + orb.y * noiseScale
         );
-        const stripeAngle = noiseVal * Math.PI; // 0 to PI
-
+        const stripeAngle = noiseVal * Math.PI;
         const cosA = Math.cos(stripeAngle);
         const sinA = Math.sin(stripeAngle);
-        // Perpendicular direction (offset between stripes)
         const perpX = -sinA;
         const perpY = cosA;
 
-        // Color base for this orb
         const colorBase =
           Math.floor((orbIdx / totalOrbs) * colors.length * colorCycles) %
           colors.length;
 
-        // Draw stripes as chords of the circle
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+        ctx.clip();
+
         let stripeIdx = 0;
         for (let d = -orb.radius; d <= orb.radius; d += stripeSpacing) {
           const halfChord = Math.sqrt(orb.radius * orb.radius - d * d);
-          if (halfChord <= 0) {
-            stripeIdx++;
-            continue;
-          }
+          if (halfChord <= 0) { stripeIdx++; continue; }
 
           const colorIdx = (stripeIdx + colorBase) % colors.length;
           setStroke(colors[colorIdx], p);
 
-          // Center of chord (perpendicular offset from orb center)
           const px = orb.x + perpX * d;
           const py = orb.y + perpY * d;
 
-          // Chord endpoints
-          p.line(
-            px - cosA * halfChord,
-            py - sinA * halfChord,
-            px + cosA * halfChord,
-            py + sinA * halfChord
-          );
+          const segCount = Math.max(3, Math.ceil(halfChord * 2 / 5));
+          p.beginShape();
+          for (let s = 0; s <= segCount; s++) {
+            const t = (s / segCount) * 2 - 1;
+            const lx = px + cosA * halfChord * t;
+            const ly = py + sinA * halfChord * t;
+            const warp =
+              (p.noise(flowOffX + lx * flowScale, flowOffY + ly * flowScale) - 0.5) *
+              2 * flowStrength;
+            p.curveVertex(lx + perpX * warp, ly + perpY * warp);
+          }
+          p.endShape();
           stripeIdx++;
         }
+
+        ctx.restore();
       });
     };
   };

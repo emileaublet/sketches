@@ -135,13 +135,18 @@ const beadedFlow01Sketch =
           const color = p.random(colors) as DotPen;
           setStroke(color, p);
 
-          const dx = Math.cos(angle);
-          const dy = Math.sin(angle);
-
+          let bx = x;
+          let by = y;
           for (let i = 0; i < dotCount; i++) {
-            const bx = x + dx * i * dotSpacing;
-            const by = y + dy * i * dotSpacing;
             p.ellipse(bx, by, dotRadius * 2, dotRadius * 2);
+            // Re-sample the flow angle at the current bead position
+            const localAngle =
+              p.noise(noiseOffX + bx * noiseScale, noiseOffY + by * noiseScale) *
+              p.TWO_PI;
+            bx += Math.cos(localAngle) * dotSpacing;
+            by += Math.sin(localAngle) * dotSpacing;
+            // Stop if the bead exits the draw area
+            if (bx < marginX || bx > marginX + drawW || by < marginY || by > marginY + drawH) break;
           }
         }
       }

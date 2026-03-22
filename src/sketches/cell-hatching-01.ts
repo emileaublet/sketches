@@ -15,6 +15,8 @@ type Constants = BaseConstants & {
   emptyChance: number;
   colorPasses: number;
   passAngleOffset: number;
+  flowStrength: number;
+  flowScale: number;
   penColors: DotPen[];
 };
 
@@ -39,6 +41,8 @@ export const constants: Constants = {
   emptyChance: 0.15,
   colorPasses: 2,
   passAngleOffset: 60,
+  flowStrength: 8,
+  flowScale: 0.012,
   penColors: all("staedtlerPens"),
 };
 
@@ -51,6 +55,8 @@ export const constantsProps = {
   emptyChance: { min: 0, max: 0.5, step: 0.05 },
   colorPasses: { min: 1, max: 3, step: 1 },
   passAngleOffset: { min: 0, max: 90, step: 1 },
+  flowStrength: { min: 0, max: 30, step: 1 },
+  flowScale: { min: 0.002, max: 0.04, step: 0.001 },
   penColors: (value: DotPen[]) =>
     penColorMultiselect({
       family: "staedtlerPens",
@@ -92,6 +98,11 @@ const cellHatching01Sketch =
 
       const palette = (vars.penColors ?? constants.penColors) as DotPen[];
       const colors = palette.length > 0 ? palette : all("staedtlerPens");
+
+      const flowStrength = vars.flowStrength ?? constants.flowStrength;
+      const flowScale = vars.flowScale ?? constants.flowScale;
+      const flowOffX = p.random(1000);
+      const flowOffY = p.random(1000);
 
       const noiseOffX = p.random(1000);
       const noiseOffY = p.random(1000);
@@ -157,7 +168,22 @@ const cellHatching01Sketch =
             for (let s = -steps; s <= steps; s++) {
               const ox = cx + perpX * s * lineSpacing;
               const oy = cy + perpY * s * lineSpacing;
-              p.line(ox - dx * diag, oy - dy * diag, ox + dx * diag, oy + dy * diag);
+              const x0 = ox - dx * diag;
+              const y0 = oy - dy * diag;
+              const x1 = ox + dx * diag;
+              const y1 = oy + dy * diag;
+              const segCount = Math.max(3, Math.ceil(diag * 2 / 8));
+              p.beginShape();
+              for (let sv = 0; sv <= segCount; sv++) {
+                const t = sv / segCount;
+                const lx = x0 + (x1 - x0) * t;
+                const ly = y0 + (y1 - y0) * t;
+                const warp =
+                  (p.noise(flowOffX + lx * flowScale, flowOffY + ly * flowScale) - 0.5) *
+                  2 * flowStrength;
+                p.curveVertex(lx + perpX * warp, ly + perpY * warp);
+              }
+              p.endShape();
             }
 
             ctx.restore();
