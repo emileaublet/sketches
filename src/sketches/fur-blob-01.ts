@@ -13,6 +13,7 @@ type Constants = BaseConstants & {
   furSpacing: number;
   furLength: number;
   furJitter: number;
+  gravity: number;
   eyeRadius: number;
   eyeOffsetX: number;
   eyeOffsetY: number;
@@ -39,6 +40,7 @@ export const constants: Constants = {
   furSpacing: 2.5,
   furLength: 10,
   furJitter: 0.25,
+  gravity: 0.35,
   eyeRadius: 22,
   eyeOffsetX: 35,
   eyeOffsetY: -15,
@@ -53,6 +55,7 @@ export const constantsProps = {
   furSpacing: { min: 1, max: 8, step: 0.5 },
   furLength: { min: 3, max: 25, step: 1 },
   furJitter: { min: 0, max: 1, step: 0.05 },
+  gravity: { min: 0, max: 1, step: 0.05 },
   eyeRadius: { min: 0, max: 60, step: 2 },
   eyeOffsetX: { min: 0, max: 80, step: 5 },
   eyeOffsetY: { min: -80, max: 40, step: 5 },
@@ -93,6 +96,7 @@ const furBlob01 =
       const furSpacing = vars.furSpacing ?? constants.furSpacing;
       const furLength = vars.furLength ?? constants.furLength;
       const furJitter = vars.furJitter ?? constants.furJitter;
+      const gravity = vars.gravity ?? constants.gravity;
       const eyeRadius = vars.eyeRadius ?? constants.eyeRadius;
       const eyeOffsetX = vars.eyeOffsetX ?? constants.eyeOffsetX;
       const eyeOffsetY = vars.eyeOffsetY ?? constants.eyeOffsetY;
@@ -144,8 +148,13 @@ const furBlob01 =
           if (!isInsideBlob(x, y)) continue;
           if (isInEye(x, y)) continue;
 
+          // Blend radial direction with downward (gravity)
+          const radialDx = (x - cx);
+          const radialDy = (y - cy);
+          const blendedDx = radialDx * (1 - gravity);
+          const blendedDy = radialDy * (1 - gravity) + gravity * 100;
           const angle =
-            Math.atan2(y - cy, x - cx) + p.random(-furJitter, furJitter);
+            Math.atan2(blendedDy, blendedDx) + p.random(-furJitter, furJitter);
           const len = furLength * p.random(0.5, 1.5);
 
           setStroke(p.random(colors) as DotPen, p);

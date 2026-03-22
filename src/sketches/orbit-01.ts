@@ -13,6 +13,7 @@ type Constants = BaseConstants & {
   blobRoughness: number;
   lineSpacing: number;
   strokeWeight: number;
+  jitter: number;
   penColors: DotPen[];
 };
 
@@ -35,6 +36,7 @@ export const constants: Constants = {
   blobRoughness: 0.3,
   lineSpacing: 2.5,
   strokeWeight: 0.4,
+  jitter: 1.5,
   penColors: all("staedtlerPens"),
 };
 
@@ -45,6 +47,7 @@ export const constantsProps = {
   blobRoughness: { min: 0, max: 0.8, step: 0.05 },
   lineSpacing: { min: 0.5, max: 10, step: 0.5 },
   strokeWeight: { min: 0.1, max: 1.5, step: 0.1 },
+  jitter: { min: 0, max: 8, step: 0.5 },
   penColors: (value: DotPen[]) =>
     penColorMultiselect({
       family: "staedtlerPens",
@@ -84,6 +87,7 @@ const orbit01Sketch =
       const blobRoughness = vars.blobRoughness ?? constants.blobRoughness;
       const lineSpacing = vars.lineSpacing ?? constants.lineSpacing;
       const strokeWeight = vars.strokeWeight ?? constants.strokeWeight;
+      const jitter = vars.jitter ?? constants.jitter;
       const palette = (vars.penColors ?? constants.penColors) as DotPen[];
       const colors = palette.length > 0 ? palette : all("staedtlerPens");
 
@@ -108,6 +112,27 @@ const orbit01Sketch =
           noiseOffY: p.random(1000),
           colorIdx: i % colors.length,
         });
+      }
+
+      function drawJitteryLine(x1: number, y1: number, x2: number, y2: number, pxH: number, pyH: number) {
+        if (jitter <= 0) {
+          p.line(x1, y1, x2, y2);
+          return;
+        }
+        const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        if (len < 0.5) return;
+        const segLen = Math.max(4, len / 8);
+        const segs = Math.ceil(len / segLen);
+        p.beginShape();
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const lx = x1 + (x2 - x1) * t;
+          const ly = y1 + (y2 - y1) * t;
+          const edge = 0.3 + 0.7 * Math.sin(t * Math.PI);
+          const d = p.random(-jitter * edge, jitter * edge);
+          p.curveVertex(lx + pxH * d, ly + pyH * d);
+        }
+        p.endShape();
       }
 
       for (let b = 0; b < blobs.length; b++) {
@@ -155,11 +180,13 @@ const orbit01Sketch =
           const offsetDist = s * lineSpacing;
           const ox = blob.x + perpH.x * offsetDist;
           const oy = blob.y + perpH.y * offsetDist;
-          p.line(
+          drawJitteryLine(
             ox - cosH * diag,
             oy - sinH * diag,
             ox + cosH * diag,
             oy + sinH * diag,
+            perpH.x,
+            perpH.y,
           );
         }
 

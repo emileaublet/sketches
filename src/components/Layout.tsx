@@ -1,7 +1,33 @@
-import React from "react";
-import { Outlet, Link } from "react-router";
+import React, { useRef, useEffect } from "react";
+import { Outlet, Link, useLocation } from "react-router";
 
 const Layout: React.FC = () => {
+  const mainRef = useRef<HTMLElement>(null);
+  const location = useLocation();
+
+  // Restore scroll position when navigating back to "/"
+  useEffect(() => {
+    if (location.pathname === "/") {
+      const saved = sessionStorage.getItem("homeScrollTop");
+      if (saved && mainRef.current) {
+        mainRef.current.scrollTop = parseInt(saved, 10);
+      }
+    }
+  }, [location.pathname]);
+
+  // Save scroll position while on "/"
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (location.pathname === "/") {
+        sessionStorage.setItem("homeScrollTop", String(el.scrollTop));
+      }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [location.pathname]);
+
   return (
     <div className="grid grid-rows-[auto_1fr_auto] h-screen overflow-hidden">
       <header className="border-b">
@@ -17,7 +43,7 @@ const Layout: React.FC = () => {
           </Link>
         </div>
       </header>
-      <main className="min-h-0 overflow-y-auto">
+      <main ref={mainRef} className="min-h-0 overflow-y-auto">
         <Outlet />
       </main>
       <footer>
