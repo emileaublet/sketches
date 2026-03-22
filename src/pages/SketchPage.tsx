@@ -250,7 +250,7 @@ const SketchPage: React.FC<SketchPageProps> = ({ sketch, prev, next }) => {
               {/* Mobile: bottom sheet */}
               <div
                 className={cx(
-                  "md:hidden fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300",
+                  "md:hidden fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 max-h-[40vh] overflow-y-auto bg-background/90 backdrop-blur-sm rounded-t-lg border-t border-border",
                   controlsOpen ? "translate-y-0" : "translate-y-full",
                 )}
               >
