@@ -72,7 +72,7 @@ export const HEAD_PATTERN_OPTIONS: HeadPattern[] = [
 
 // --- helpers -----------------------------------------------------------------
 
-function polygonBounds(polygon: Point[]): { x: number; y: number; w: number; h: number } {
+export function polygonBounds(polygon: Point[]): { x: number; y: number; w: number; h: number } {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const pt of polygon) {
     if (pt.x < minX) minX = pt.x;
@@ -83,7 +83,7 @@ function polygonBounds(polygon: Point[]): { x: number; y: number; w: number; h: 
   return { x: minX, y: minY, w: Math.max(1, maxX - minX), h: Math.max(1, maxY - minY) };
 }
 
-function pointInPolygon(x: number, y: number, polygon: Point[]): boolean {
+export function pointInPolygon(x: number, y: number, polygon: Point[]): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const pi = polygon[i]!;
@@ -156,7 +156,7 @@ function clipToPolygon(
 }
 
 /** Inset polygon vertices toward its centroid by `inset` pixels. */
-function insetPolygon(polygon: Point[], inset: number): Point[] {
+export function insetPolygon(polygon: Point[], inset: number): Point[] {
   if (polygon.length < 3) return polygon;
   let cx = 0, cy = 0;
   for (const pt of polygon) { cx += pt.x; cy += pt.y; }
@@ -171,7 +171,7 @@ function insetPolygon(polygon: Point[], inset: number): Point[] {
 }
 
 /** True if a circle of radius `r` at (x,y) overlaps any (cx,cy,cr) in `placed`. */
-function overlapsAny(
+export function overlapsAny(
   x: number, y: number, r: number,
   placed: Array<{ x: number; y: number; r: number }>,
   pad: number,
