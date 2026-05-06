@@ -1,0 +1,59 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e6]: Sketches
+    - list [ref=e7]:
+      - listitem [ref=e8] [cursor=pointer]:
+        - generic [ref=e10]: Flow Field
+      - listitem [ref=e11] [cursor=pointer]:
+        - generic [ref=e13]: Ripple
+      - listitem [ref=e14] [cursor=pointer]:
+        - generic [ref=e16]: Orbit
+      - listitem [ref=e17] [cursor=pointer]:
+        - generic [ref=e19]: Spiral
+      - listitem [ref=e20] [cursor=pointer]:
+        - generic [ref=e22]: Voronoi
+      - listitem [ref=e23] [cursor=pointer]:
+        - generic [ref=e25]: Moiré
+      - listitem [ref=e26] [cursor=pointer]:
+        - generic [ref=e28]: Fragmented Arcs
+      - listitem [ref=e29] [cursor=pointer]:
+        - generic [ref=e31]: Erosion
+  - main [ref=e33]:
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e36]: Seed
+        - spinbutton [ref=e37]: "42"
+        - button "↺" [ref=e38] [cursor=pointer]
+      - button "Export SVG" [ref=e39] [cursor=pointer]
+    - generic [ref=e42]: canvas
+  - complementary [ref=e43]:
+    - generic [ref=e46]: Flow Field
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e49]: Line Spacing
+        - generic [ref=e50]:
+          - slider [ref=e52] [cursor=pointer]
+          - generic [ref=e56]: "6"
+      - generic [ref=e57]:
+        - generic [ref=e58]: Noise Scale
+        - generic [ref=e59]:
+          - slider [ref=e61] [cursor=pointer]
+          - generic [ref=e65]: "0.01"
+      - generic [ref=e66]:
+        - generic [ref=e67]: Stroke Weight
+        - generic [ref=e68]:
+          - slider [ref=e70] [cursor=pointer]
+          - generic [ref=e74]: "0.8"
+      - generic [ref=e75]:
+        - generic [ref=e76]: Iterations
+        - generic [ref=e77]:
+          - slider [ref=e79] [cursor=pointer]
+          - generic [ref=e83]: "40"
+      - generic [ref=e84]:
+        - generic [ref=e85]: Debug
+        - checkbox [ref=e88] [cursor=pointer]
+      - generic [ref=e91]:
+        - generic [ref=e92]: Pen Family
+        - button "staedtlerPens" [ref=e94]:
+          - generic [ref=e95]: staedtlerPens
+          - img [ref=e97]

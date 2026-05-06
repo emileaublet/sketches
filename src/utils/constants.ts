@@ -80,10 +80,18 @@ export type LevaControlType =
   | { value: string; options?: string[] }
   | { value: [number, number]; min?: number; max?: number; step?: number };
 
+export type LevaControlConfig<T> =
+  | LevaControlType
+  | ((value: T) => LevaControlType);
+
+type LevaControlConfigMap<T> = {
+  [K in keyof T]?: LevaControlConfig<T[K]>;
+};
+
 // Utility function to convert constants to Leva controls
 export function createControls<T extends Record<string, any>>(
   constants: T,
-  controlConfig?: Partial<Record<keyof T, LevaControlType>>
+  controlConfig?: LevaControlConfigMap<T>,
 ): Record<keyof T, LevaControlType> {
   let controls = {} as Record<keyof T, LevaControlType>;
 
@@ -99,15 +107,26 @@ export function createControls<T extends Record<string, any>>(
         "12x16 -- 3048x4064",
         "14x17 -- 3556x4318",
         "12x18 -- 3048x4572",
+        "16x20 -- 4064x5080",
         "18x24 -- 4570x6100",
         "8.5x11 -- 2159x2794",
         "A3 -- 2940x4200",
+        "12x9 -- 3048x2286",
+        "14x11 -- 3556x2794",
+        "17x11 -- 4318x2794",
+        "16x12 -- 4064x3048",
+        "17x14 -- 4318x3556",
+        "18x12 -- 4572x3048",
+        "20x16 -- 5080x4064",
+        "24x18 -- 6100x4570",
+        "11x8.5 -- 2794x2159",
+        "A3 Landscape -- 4200x2940",
       ],
     },
-    paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.0001 },
+    paperSizeRatio: { value: 0.25, min: 0.1, max: 1, step: 0.01 },
     ...rest,
-    useSVG: false, // Always add useSVG control
-    ...(debug !== undefined ? { debug } : {}),
+    useSVG: { value: false }, // Always add useSVG control
+    ...(debug !== undefined ? { debug: { value: debug } } : {}),
   } as Record<keyof T, LevaControlType>;
 
   for (const [key, value] of Object.entries(constants)) {
@@ -116,6 +135,11 @@ export function createControls<T extends Record<string, any>>(
     // Use provided config if available
     if (controlConfig?.[configKey]) {
       const config = controlConfig[configKey]!;
+      // Plugin factory: if config is a function, call it with the constant value
+      if (typeof config === "function") {
+        controls[configKey] = config(value) as LevaControlType;
+        continue;
+      }
       // If config doesn't have a value, use the one from constants
       if (
         typeof config === "object" &&
@@ -127,7 +151,7 @@ export function createControls<T extends Record<string, any>>(
           value,
         } as LevaControlType;
       } else {
-        controls[configKey] = config;
+        controls[configKey] = config as LevaControlType;
       }
       continue;
     }
@@ -138,9 +162,9 @@ export function createControls<T extends Record<string, any>>(
     } else if (typeof value === "number") {
       // Smart defaults based on property name patterns
       if (key.includes("width") || key.includes("height")) {
-        controls[configKey] = { value, min: 100, max: 2000, step: 50 };
+        controls[configKey] = { value, min: 100, max: 6000, step: 50 };
       } else if (key.includes("margin") || key.includes("padding")) {
-        controls[configKey] = { value, min: 0, max: 200, step: 5 };
+        controls[configKey] = { value, min: 0, max: 400, step: 5 };
       } else if (key.includes("thickness") || key.includes("weight")) {
         controls[configKey] = { value, min: 0.1, max: 5, step: 0.1 };
       } else if (key.includes("rotate") || key.includes("angle")) {
@@ -157,7 +181,7 @@ export function createControls<T extends Record<string, any>>(
           step: 1,
         };
       } else if (key.includes("numPoints")) {
-        controls[configKey] = { value, min: 1, max: 500, step: 1 };
+        controls[configKey] = { value, min: 1, max: 8000, step: 1 };
       } else if (key.includes("patternSize")) {
         controls[configKey] = { value, min: 0, max: 10, step: 1 };
       } else if (key.includes("pointSize")) {

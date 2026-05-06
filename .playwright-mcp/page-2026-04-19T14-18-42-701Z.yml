@@ -1,0 +1,216 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e6]
+    - link "Desktop" [ref=e11] [cursor=pointer]:
+      - /url: /desktop
+      - img [ref=e12]
+      - generic [ref=e14]: Desktop
+    - link "Docs" [ref=e15] [cursor=pointer]:
+      - /url: /docs
+      - img [ref=e16]
+      - generic [ref=e18]: Docs
+    - link "Changelog" [ref=e20] [cursor=pointer]:
+      - /url: /changelog
+      - img [ref=e21]
+      - generic [ref=e25]: Changelog
+    - generic [ref=e26]:
+      - button "Switch to light mode" [ref=e27]:
+        - img [ref=e28]
+      - generic [ref=e34]:
+        - img [ref=e35]
+        - 'slider "Animation speed: 1x" [ref=e38] [cursor=pointer]': "1"
+        - generic [ref=e39]: 1x
+  - generic [ref=e41]:
+    - generic [ref=e42]:
+      - generic [ref=e44]:
+        - img
+        - textbox "Search..." [ref=e45]
+        - generic [ref=e46]: ⌘K
+      - navigation [ref=e47]:
+        - generic [ref=e48]:
+          - button "Getting Started" [ref=e49]:
+            - img [ref=e51]
+            - img [ref=e54]
+            - generic [ref=e56]: Getting Started
+          - generic [ref=e57]:
+            - button "Agentic Coding" [ref=e59]: Agentic Coding
+            - button "Introduction" [ref=e62]
+            - button "Installation" [ref=e64]
+            - button "CSS Setup" [ref=e66]
+            - button "ShadCN CLI" [ref=e68]
+            - button "Quick Start" [ref=e70]
+            - button "CSS Isolation" [ref=e72]
+        - generic [ref=e73]:
+          - button "Components" [ref=e74]:
+            - img [ref=e76]
+            - img [ref=e79]
+            - generic [ref=e81]: Components
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - generic [ref=e84]: Form Controls
+              - button "Button" [ref=e85]
+            - button "Input" [ref=e87]
+            - button "Textarea" [ref=e89]
+            - button "Checkbox" [ref=e91]
+            - button "Switch" [ref=e93]
+            - button "Select" [ref=e95]
+            - button "MultiSelect" [ref=e97]
+            - button "SearchInput" [ref=e99]
+            - button "Slider" [ref=e101]
+            - button "DateSelect" [ref=e103]
+            - button "Upload" [ref=e105]
+            - generic [ref=e106]:
+              - generic [ref=e107]: Feedback
+              - button "Badge" [ref=e108]
+            - button "Progress" [ref=e110]
+            - button "Skeleton" [ref=e112]
+            - generic [ref=e113]:
+              - generic [ref=e114]: Overlays
+              - button "Dialog" [ref=e115]
+            - button "Modal" [ref=e117]
+            - button "Popover" [ref=e119]
+            - button "Tooltip" [ref=e121]
+            - button "DropdownMenu" [ref=e123]
+            - button "ContextMenu" [ref=e125]
+            - generic [ref=e126]:
+              - generic [ref=e127]: Data Display
+              - button "Table" [ref=e128]
+            - button "Card" [ref=e130]
+            - button "Avatar" [ref=e132]
+            - button "Image" [ref=e134]
+            - button "Charts" [ref=e136]
+            - generic [ref=e137]:
+              - generic [ref=e138]: Navigation
+              - button "Tabs" [ref=e139]
+            - button "Accordion" [ref=e141]
+            - button "Sidebar" [ref=e143]
+            - generic [ref=e144]:
+              - generic [ref=e145]: Layout
+              - button "Window" [ref=e146]
+            - generic [ref=e147]:
+              - generic [ref=e148]: Effects
+              - button "Reveal" [ref=e149]
+            - button "Backgrounds" [ref=e151]
+            - button "Hover Effects" [ref=e153]
+            - generic [ref=e154]:
+              - generic [ref=e155]: Specialized
+              - button "ContactForm" [ref=e156]
+            - button "MdEditor" [ref=e158]
+            - button "CloseButton" [ref=e160]
+        - generic [ref=e161]:
+          - button "Theming" [ref=e162]:
+            - img [ref=e164]
+            - img [ref=e167]
+            - generic [ref=e173]: Theming
+          - generic [ref=e174]:
+            - button "Colors" [ref=e176]
+            - button "Dark Mode" [ref=e178]
+            - button "Customization" [ref=e180]
+      - link "GitHub" [ref=e182] [cursor=pointer]:
+        - /url: https://github.com
+        - img [ref=e184]
+        - generic [ref=e188]: GitHub
+    - generic [ref=e190]:
+      - button "Copy for AI" [ref=e192]:
+        - img [ref=e193]
+        - text: Copy for AI
+      - generic [ref=e196]:
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - generic [ref=e199]: New
+            - generic [ref=e200]: AI-Ready
+          - heading "Agentic Coding" [level=1] [ref=e201]
+          - paragraph [ref=e202]: Get up-to-date Darwin UI documentation directly in your AI coding assistant.
+        - generic [ref=e203]:
+          - heading "What is Agentic Coding?" [level=2] [ref=e204]
+          - paragraph [ref=e205]: Agentic coding uses AI assistants like Claude, Cursor, or GitHub Copilot to help you write code. The challenge? AI models have knowledge cutoffs and may not know about the latest API changes.
+          - paragraph [ref=e206]:
+            - strong [ref=e207]: "Solution:"
+            - text: Use Context7 to give your AI assistant access to the latest Darwin UI documentation in real-time.
+        - generic [ref=e208]:
+          - heading "Context7 Integration" [level=2] [ref=e209]
+          - paragraph [ref=e210]: Darwin UI is indexed on Context7, providing structured documentation that AI agents can fetch and understand.
+          - generic [ref=e211]:
+            - link "Context7 Library context7.com/surajmandalcell/darwin-ui Structured docs for AI agents" [ref=e212] [cursor=pointer]:
+              - /url: https://context7.com/surajmandalcell/darwin-ui
+              - generic [ref=e213]:
+                - img [ref=e214]
+                - heading "Context7 Library" [level=3] [ref=e218]
+                - img [ref=e219]
+              - paragraph [ref=e223]: context7.com/surajmandalcell/darwin-ui
+              - paragraph [ref=e224]: Structured docs for AI agents
+            - link "Documentation darwin-ui.mandalsuraj.com Human-readable documentation" [ref=e225] [cursor=pointer]:
+              - /url: https://darwin-ui.mandalsuraj.com
+              - generic [ref=e226]:
+                - img [ref=e227]
+                - heading "Documentation" [level=3] [ref=e229]
+                - img [ref=e230]
+              - paragraph [ref=e234]: darwin-ui.mandalsuraj.com
+              - paragraph [ref=e235]: Human-readable documentation
+        - generic [ref=e236]:
+          - heading "How to Use" [level=2] [ref=e237]
+          - generic [ref=e238]:
+            - generic [ref=e239]:
+              - heading "With Cursor / Claude Code" [level=3] [ref=e240]
+              - paragraph [ref=e241]: "If you have Context7 MCP configured, simply ask your AI to fetch Darwin UI docs:"
+              - generic [ref=e242]:
+                - generic [ref=e243]:
+                  - generic [ref=e245]: bash
+                  - button "Copy code to clipboard" [ref=e246]:
+                    - img [ref=e247]
+                    - generic [ref=e250]: Copy
+                - code [ref=e252]:
+                  - generic [ref=e253]: "1"
+                  - text: When working with Darwin UI, always fetch the latest
+                  - generic [ref=e254]: "2"
+                  - text: "documentation from Context7 first:"
+                  - generic [ref=e255]: "3"
+                  - generic [ref=e256]: "4"
+                  - text: "\"Use context7 MCP to get Darwin UI docs before implementing\""
+            - generic [ref=e257]:
+              - heading "Manual Reference" [level=3] [ref=e258]
+              - paragraph [ref=e259]: "Include this in your prompt to help AI find the latest docs:"
+              - generic [ref=e260]:
+                - generic [ref=e261]:
+                  - generic [ref=e263]: bash
+                  - button "Copy code to clipboard" [ref=e264]:
+                    - img [ref=e265]
+                    - generic [ref=e268]: Copy
+                - code [ref=e270]:
+                  - generic [ref=e271]: "1"
+                  - text: "For Darwin UI components, reference the latest docs:"
+                  - generic [ref=e272]: "2"
+                  - text: "- Context7: context7.com/surajmandalcell/darwin-ui"
+                  - generic [ref=e273]: "3"
+                  - text: "- Docs: darwin-ui.mandalsuraj.com"
+            - generic [ref=e274]:
+              - heading "Direct URL" [level=3] [ref=e275]
+              - paragraph [ref=e276]: "AI agents can fetch documentation directly:"
+              - generic [ref=e277]:
+                - generic [ref=e278]:
+                  - generic [ref=e280]: bash
+                  - button "Copy code to clipboard" [ref=e281]:
+                    - img [ref=e282]
+                    - generic [ref=e285]: Copy
+                - code [ref=e287]:
+                  - generic [ref=e288]: "1"
+                  - text: "Use Context7 to fetch Darwin UI documentation:"
+                  - generic [ref=e289]: "2"
+                  - text: https://context7.com/surajmandalcell/darwin-ui
+        - generic [ref=e290]:
+          - heading "Benefits" [level=2] [ref=e291]
+          - generic [ref=e292]:
+            - generic [ref=e295]:
+              - paragraph [ref=e296]: Always Up-to-Date
+              - paragraph [ref=e297]: AI gets the latest API and component changes
+            - generic [ref=e300]:
+              - paragraph [ref=e301]: Accurate Code
+              - paragraph [ref=e302]: Reduces hallucinations and incorrect prop usage
+            - generic [ref=e305]:
+              - paragraph [ref=e306]: Faster Development
+              - paragraph [ref=e307]: No need to manually copy-paste docs into prompts
+            - generic [ref=e310]:
+              - paragraph [ref=e311]: Better Examples
+              - paragraph [ref=e312]: AI can reference real code examples from docs

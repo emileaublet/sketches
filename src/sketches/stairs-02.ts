@@ -19,7 +19,23 @@ export const meta: Meta = {
 };
 
 type Constants = BaseConstants & {
-  columns: [number, number];
+  columns: number;
+  lineLengthScale: number;
+  itemsDensity: number;
+  probInside: number;
+  probOutside: number;
+  lineThickness: number;
+  jitter: number;
+  angleJitter: number;
+  splitChance: number;
+  splitGap: number;
+  splitGapVariance: number;
+  heightVariance: number;
+  heightShape: string;
+  heightProb: number;
+  columnWidthVariance: number;
+  columnGap: number;
+  lineLengthVariance: number;
 };
 
 export const constants: Constants = {
@@ -27,17 +43,74 @@ export const constants: Constants = {
   height: 700,
   marginX: 80,
   marginY: 80,
-  columns: [18, 22],
+  columns: 20,
+  lineLengthScale: 2.0,
+  itemsDensity: 4.0,
+  probInside: 0.8,
+  probOutside: 0.1,
+  lineThickness: 0.5,
+  jitter: 0,
+  angleJitter: 0,
+  splitChance: 0,
+  splitGap: 0.1,
+  splitGapVariance: 0,
+  heightVariance: 0.2,
+  heightShape: "uniform",
+  heightProb: 1.0,
+  columnWidthVariance: 0,
+  columnGap: 0,
+  lineLengthVariance: 0,
   debug: false,
   rotate: 0,
+};
+
+export const constantsProps = {
+  columns: { min: 2, max: 200, step: 1 },
+  lineLengthScale: { min: 0.5, max: 5, step: 0.1 },
+  itemsDensity: { min: 1, max: 20, step: 0.5 },
+  probInside: { min: 0, max: 1, step: 0.05 },
+  probOutside: { min: 0, max: 1, step: 0.05 },
+  lineThickness: { min: 0.1, max: 5, step: 0.1 },
+  jitter: { min: 0, max: 5, step: 0.1 },
+  angleJitter: { min: 0, max: 45, step: 1 },
+  splitChance: { min: 0, max: 1, step: 0.05 },
+  splitGap: { min: 0.01, max: 0.5, step: 0.01 },
+  splitGapVariance: { min: 0, max: 1, step: 0.05 },
+  heightVariance: { min: 0, max: 0.8, step: 0.05 },
+  heightProb: { min: 0, max: 1, step: 0.05 },
+  columnWidthVariance: { min: 0, max: 1, step: 0.05 },
+  columnGap: { min: -50, max: 50, step: 1 },
+  lineLengthVariance: { min: 0, max: 1, step: 0.05 },
+  heightShape: {
+    options: [
+      "uniform",
+      "bell",
+      "inverted-bell",
+      "ramp-up",
+      "ramp-down",
+      "sine",
+      "triangle",
+      "oval",
+      "fish",
+      "pulse",
+      "steps",
+      "inverted-sine",
+      "inverted-triangle",
+      "inverted-oval",
+      "inverted-fish",
+      "inverted-pulse",
+      "inverted-steps",
+    ],
+  },
 };
 
 const stairsSketch =
   (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
     let path: any[] = [];
 
-    let lineThickness = 0.5; // strokeWeight
-    let lineLen = p.random(8, 14); // length of each line
+    // Extract constants
+    const lineThickness = vars.lineThickness ?? constants.lineThickness;
+
     p.setup = () => {
       setupCanvas(p, {
         width: vars.width ?? constants.width,
@@ -85,13 +158,14 @@ const stairsSketch =
       }
       const colors: DotPen[] = [
         "staedtlerPens.yellow",
-        "staedtlerPens.teal",
-        "staedtlerPens.red",
-        "staedtlerPens.rose",
         "staedtlerPens.orange",
+        "staedtlerPens.red",
+        "staedtlerPensNew.crimson",
+        "staedtlerPens.rose",
         "staedtlerPens.violet",
-        "staedtlerPens.green",
+        "staedtlerPensNew.blue",
         "staedtlerPens.navy",
+        "staedtlerPens.green",
       ];
       let index = 0;
       for (let color of colors) {
@@ -103,77 +177,161 @@ const stairsSketch =
     function generateRibbonPath() {
       const marginX = vars.marginX ?? constants.marginX;
       const marginY = vars.marginY ?? constants.marginY;
+      const heightVariance = vars.heightVariance ?? constants.heightVariance;
+      const heightShape = vars.heightShape ?? constants.heightShape;
+      const heightProb = vars.heightProb ?? constants.heightProb;
+      const columnWidthVariance =
+        vars.columnWidthVariance ?? constants.columnWidthVariance;
+      const columnGap = vars.columnGap ?? constants.columnGap;
 
       const { drawW, drawH } = calculateDrawArea(p, marginX, marginY);
 
-      const columnsGap = 0;
-      const columns = p.floor(p.random(vars.columns ?? constants.columns));
-      const columnWidth = (drawW - (columns - 2) * columnsGap) / columns;
-
-      lineLen = drawW / columns / p.random(1.5, 2.8);
+      const columns = vars.columns ?? constants.columns;
 
       path = [];
 
       const topY = marginY;
       const bottomY = p.height - marginY;
 
-      let xPositions = [];
-      let startX = marginX + columnWidth / 2;
+      // Calculate variable column widths
+      const weights = [];
       for (let i = 0; i < columns; i++) {
-        xPositions.push(startX + i * (columnWidth + columnsGap));
+        weights.push(
+          p.random(1 - columnWidthVariance, 1 + columnWidthVariance),
+        );
+      }
+      const sumWeights = weights.reduce((a, b) => a + b, 0);
+      const totalGaps = (columns - 1) * columnGap;
+      const availableWidth = drawW - totalGaps;
+      const columnWidths = weights.map(
+        (w) => (w / sumWeights) * availableWidth,
+      );
+
+      let xPositions = [];
+      let currentX = marginX;
+      for (let i = 0; i < columns; i++) {
+        xPositions.push(currentX + columnWidths[i] / 2);
+        currentX += columnWidths[i] + columnGap;
       }
 
-      let lastY = topY + p.random(0, drawH / 2);
-      path.push({ x: xPositions[0], y: lastY });
+      const getVarianceMultiplier = (i: number) => {
+        const t = i / (columns - 1);
+        switch (heightShape) {
+          case "bell":
+            return Math.sin(Math.PI * t);
+          case "inverted-bell":
+            return 1 - Math.sin(Math.PI * t);
+          case "ramp-up":
+            return t;
+          case "ramp-down":
+            return 1 - t;
+          case "sine":
+            return (Math.sin(Math.PI * 4 * t - Math.PI / 2) + 1) / 2;
+          case "triangle":
+            return 1 - Math.abs(2 * t - 1);
+          case "oval":
+            return Math.sqrt(1 - Math.pow(2 * t - 1, 2));
+          case "fish":
+            return Math.sin(Math.PI * t) * (1.5 - t);
+          case "pulse":
+            return Math.pow(Math.abs(Math.sin(Math.PI * 4 * t)), 4);
+          case "steps":
+            return Math.floor(t * 6) / 5;
+          case "inverted-sine":
+            return 1 - (Math.sin(Math.PI * 4 * t - Math.PI / 2) + 1) / 2;
+          case "inverted-triangle":
+            return Math.abs(2 * t - 1);
+          case "inverted-oval":
+            return 1 - Math.sqrt(1 - Math.pow(2 * t - 1, 2));
+          case "inverted-fish":
+            return 1 - Math.sin(Math.PI * t) * (1.5 - t);
+          case "inverted-pulse":
+            return 1 - Math.pow(Math.abs(Math.sin(Math.PI * 4 * t)), 4);
+          case "inverted-steps":
+            return 1 - Math.floor(t * 6) / 5;
+          case "uniform":
+          default:
+            return 1;
+        }
+      };
+
+      const getVerticalOffset = (maxVal: number) => {
+        return p.lerp(maxVal, p.random(0, maxVal), heightProb);
+      };
+
+      const startMult = getVarianceMultiplier(0);
+      let currentY =
+        topY + getVerticalOffset(drawH * heightVariance * startMult);
+
       for (let i = 0; i < columns; i++) {
         const x = xPositions[i];
-        const radius = Math.min(columnWidth * 0.5, 15);
+        const currentColumnWidth = columnWidths[i];
+        const mult = getVarianceMultiplier(i);
 
+        // Calculate progressive widths at boundaries
+        const prevWidth = i > 0 ? columnWidths[i - 1] : currentColumnWidth;
+        const nextWidth =
+          i < columns - 1 ? columnWidths[i + 1] : currentColumnWidth;
+
+        const wStart = (prevWidth + currentColumnWidth) / 2;
+        const wEnd = (currentColumnWidth + nextWidth) / 2;
+
+        // Start of column (vertical part)
+        path.push({ x, y: currentY, w: wStart });
+
+        // End of column (vertical part)
+        let nextY;
         if (i % 2 === 0) {
-          //path.push({ x: x, y: bottomY - radius });
-
-          if (i < columns - 1) {
-            const cxArc = (x + xPositions[i + 1]) / 2;
-            const cyArc =
-              bottomY - p.random(0, drawH / p.random(4, 8)) - radius;
-            for (let angle = Math.PI; angle >= 0; angle -= 0.03) {
-              const arcX = cxArc + radius * Math.cos(angle);
-              const arcY = cyArc + radius * Math.sin(angle);
-              path.push({ x: arcX, y: arcY });
-            }
-          }
+          nextY = bottomY - getVerticalOffset(drawH * heightVariance * mult);
         } else {
-          //path.push({ x: x, y: topY + radius });
+          nextY = topY + getVerticalOffset(drawH * heightVariance * mult);
+        }
+        path.push({ x, y: nextY, w: wEnd });
+        currentY = nextY;
 
-          if (i < columns - 1) {
-            const lY = topY + p.random(0, drawH / p.random(4, 8));
-            const cxArc = (x + xPositions[i + 1]) / 2;
-            const cyArc = lY + radius;
-            for (let angle = -Math.PI; angle <= 0; angle += 0.03) {
-              const arcX = cxArc + radius * Math.cos(angle);
-              const arcY = cyArc + radius * Math.sin(angle);
-              path.push({ x: arcX, y: arcY });
+        // Arc to next column
+        if (i < columns - 1) {
+          const nextX = xPositions[i + 1];
+          const cxArc = (x + nextX) / 2;
+          const arcR = (nextX - x) / 2;
+
+          const wArcStart = wEnd;
+          const nextNextWidth =
+            i + 1 < columns - 1 ? columnWidths[i + 2] : columnWidths[i + 1];
+          const wArcEnd = (columnWidths[i + 1] + nextNextWidth) / 2;
+
+          if (i % 2 === 0) {
+            // Bottom arc
+            for (let angle = Math.PI; angle >= 0; angle -= 0.1) {
+              const arcX = cxArc + arcR * Math.cos(angle);
+              const arcY = currentY + arcR * Math.sin(angle);
+              const tArc = (Math.PI - angle) / Math.PI;
+              const w = p.lerp(wArcStart, wArcEnd, tArc);
+              path.push({ x: arcX, y: arcY, w });
             }
-            lastY = lY;
+          } else {
+            // Top arc
+            for (let angle = -Math.PI; angle <= 0; angle += 0.1) {
+              const arcX = cxArc + arcR * Math.cos(angle);
+              const arcY = currentY + arcR * Math.sin(angle);
+              const tArc = (angle + Math.PI) / Math.PI;
+              const w = p.lerp(wArcStart, wArcEnd, tArc);
+              path.push({ x: arcX, y: arcY, w });
+            }
           }
         }
-      }
-
-      const last = columns - 1;
-      if (last % 2 === 0) {
-        path.push({ x: xPositions[last], y: bottomY - p.random(0, drawH / 2) });
-      } else {
-        path.push({ x: xPositions[last], y: topY + p.random(0, drawH / 2) });
       }
     }
 
     function drawPath(color: DotPen, index = 0, totalColors = 1) {
+      const lineLengthVariance =
+        vars.lineLengthVariance ?? constants.lineLengthVariance;
       const dists = calculatePathDistances(path);
       let total = dists[dists.length - 1];
 
       // items must be adjusted to path length
-
-      const items = dists.length * p.random(3, 5);
+      const itemsDensity = vars.itemsDensity ?? constants.itemsDensity;
+      const items = dists.length * itemsDensity;
 
       let offsetMin = 0;
       let offsetMax = items;
@@ -201,6 +359,7 @@ const stairsSketch =
         let localT = (target - dists[idx]) / segLen;
         let px = p.lerp(p0.x, p1.x, localT);
         let py = p.lerp(p0.y, p1.y, localT);
+        let pw = p.lerp(p0.w, p1.w, localT);
 
         let aheadIndex = p.min(idx + 3, path.length - 1);
         let ahead = path[aheadIndex];
@@ -208,29 +367,65 @@ const stairsSketch =
         let dy = ahead.y - p0.y;
         let angle = p.atan2(dy, dx) + p.HALF_PI;
 
+        const lengthScale = vars.lineLengthScale ?? constants.lineLengthScale;
+        const currentLineLen =
+          (pw / lengthScale) *
+          p.random(1 - lineLengthVariance, 1 + lineLengthVariance);
+
+        // Angle Jitter
+        const angleJitter = vars.angleJitter ?? constants.angleJitter;
+        angle += p.radians(p.random(-angleJitter, angleJitter));
+
         // random color per line
         setStroke(color, p);
         p.strokeWeight(lineThickness);
 
         // compute endpoints of the line segment
-        let x1 = px - (p.cos(angle) * lineLen) / 2;
-        let y1 = py - (p.sin(angle) * lineLen) / 2;
-        let x2 = px + (p.cos(angle) * lineLen) / 2;
-        let y2 = py + (p.sin(angle) * lineLen) / 2;
+        const jitter = vars.jitter ?? constants.jitter;
+        const c = p.cos(angle);
+        const s = p.sin(angle);
+
         if (patterns[k] === 0) continue;
-        p.line(x1, y1, x2, y2);
+
+        const splitChance = vars.splitChance ?? constants.splitChance;
+        const splitGap = vars.splitGap ?? constants.splitGap;
+        const splitGapVariance =
+          vars.splitGapVariance ?? constants.splitGapVariance;
+
+        if (p.random() < splitChance) {
+          const currentGap =
+            splitGap * p.random(1 - splitGapVariance, 1 + splitGapVariance);
+          const gapLen = currentLineLen * currentGap;
+          // Segment 1
+          const x1 = px - (c * currentLineLen) / 2 + p.random(-jitter, jitter);
+          const y1 = py - (s * currentLineLen) / 2 + p.random(-jitter, jitter);
+          const x2 = px - (c * gapLen) / 2 + p.random(-jitter, jitter);
+          const y2 = py - (s * gapLen) / 2 + p.random(-jitter, jitter);
+          // Segment 2
+          const x3 = px + (c * gapLen) / 2 + p.random(-jitter, jitter);
+          const y3 = py + (s * gapLen) / 2 + p.random(-jitter, jitter);
+          const x4 = px + (c * currentLineLen) / 2 + p.random(-jitter, jitter);
+          const y4 = py + (s * currentLineLen) / 2 + p.random(-jitter, jitter);
+
+          p.line(x1, y1, x2, y2);
+          p.line(x3, y3, x4, y4);
+        } else {
+          let x1 = px - (c * currentLineLen) / 2 + p.random(-jitter, jitter);
+          let y1 = py - (s * currentLineLen) / 2 + p.random(-jitter, jitter);
+          let x2 = px + (c * currentLineLen) / 2 + p.random(-jitter, jitter);
+          let y2 = py + (s * currentLineLen) / 2 + p.random(-jitter, jitter);
+          p.line(x1, y1, x2, y2);
+        }
       }
     }
-    const probabilityFactors = {
-      insideRange: 0.8, // Probability multiplier for patterns inside the offset range
-      outsideRange: 0.1, // Probability multiplier for patterns outside the offset range
-    };
-
     function generatePatterns(
       items: number,
       offsetMin: number,
-      offsetMax: number
+      offsetMax: number,
     ) {
+      const probInside = vars.probInside ?? constants.probInside;
+      const probOutside = vars.probOutside ?? constants.probOutside;
+
       let patterns: {
         type: "draw" | "skip";
         length: number;
@@ -246,19 +441,19 @@ const stairsSketch =
           const distToOffset =
             Math.min(
               Math.abs(patterns.reduce((a, b) => a + b.length, 0) - offsetMin),
-              Math.abs(patterns.reduce((a, b) => a + b.length, 0) - offsetMax)
+              Math.abs(patterns.reduce((a, b) => a + b.length, 0) - offsetMax),
             ) + 1;
           const probDraw = p.map(
             distToOffset,
             0,
             items / 2,
-            probabilityFactors.insideRange,
-            probabilityFactors.outsideRange
+            probInside,
+            probOutside,
           );
           drawing = p.random() < probDraw;
         }
         let length = Math.floor(
-          Math.min(p.random(drawing ? 12 : 6, drawing ? 50 : 30), itemsLeft)
+          Math.min(p.random(drawing ? 12 : 6, drawing ? 50 : 30), itemsLeft),
         );
         patterns.push({
           type: drawing ? "draw" : "skip",

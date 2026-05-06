@@ -1,0 +1,545 @@
+import { p5SVG } from "p5.js-svg";
+
+import { Meta } from "../types";
+import { DotPen } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+
+export const meta: Meta = {
+  id: "xmas",
+  title: "Xmas",
+  description: "Random upward-pointing triangles",
+  thumbnail: "/xmas.png",
+};
+
+type Constants = BaseConstants & {
+  mode: "trees" | "snowflakes" | "mixed";
+  lineWidth: number;
+  minSize: number;
+  maxSize: number;
+  maxAttempts: number;
+  padding: number;
+  fillProbability: number;
+  minLineGap: number;
+  maxLineGap: number;
+  minRatio: number;
+  maxRatio: number;
+  maxRotation: number;
+  fillerProbability: number;
+};
+
+export const constants: Constants = {
+  width: 550,
+  height: 700,
+  marginX: 40,
+  marginY: 40,
+  debug: false,
+  mode: "trees",
+  lineWidth: 0.5,
+  minSize: 10,
+  maxSize: 60,
+  maxAttempts: 15000,
+  padding: 2,
+  fillProbability: 0.5,
+  minLineGap: 1,
+  maxLineGap: 4,
+  minRatio: 0.4,
+  maxRatio: 0.8,
+  maxRotation: 15,
+  fillerProbability: 0.2,
+};
+
+export const constantsProps = {
+  mode: { options: ["trees", "snowflakes", "mixed"] },
+  lineWidth: { min: 0.1, max: 2, step: 0.1 },
+  minSize: { min: 5, max: 40, step: 1 },
+  maxSize: { min: 20, max: 150, step: 5 },
+  maxAttempts: { min: 1000, max: 30000, step: 1000 },
+  padding: { min: 0, max: 20, step: 1 },
+  fillProbability: { min: 0, max: 1, step: 0.1 },
+  minLineGap: { min: 0.5, max: 5, step: 0.1 },
+  maxLineGap: { min: 1, max: 10, step: 0.1 },
+  minRatio: { min: 0.1, max: 2, step: 0.05 },
+  maxRatio: { min: 0.1, max: 2, step: 0.05 },
+  maxRotation: { min: 0, max: 180, step: 5 },
+  fillerProbability: { min: 0, max: 1, step: 0.05 },
+};
+
+// Shape representation for collision detection
+interface Shape {
+  x: number; // center x for snowflakes/fillers, bottom center x for trees
+  y: number; // center y for snowflakes/fillers, bottom y for trees
+  width: number;
+  height: number;
+  type: "tree" | "snowflake" | "circle" | "square" | "plus" | "triangle";
+  rotation: number;
+  patternSeed: number;
+}
+
+function shapesOverlap(s1: Shape, s2: Shape, padding: number): boolean {
+  if (s1.type === "tree" && s2.type === "tree") {
+    return trianglesOverlap(s1, s2, padding);
+  }
+
+  // For snowflakes or mixed, use circular approximation for simplicity
+  const r1 = Math.max(s1.width, s1.height) / 2 + padding;
+  const r2 = Math.max(s2.width, s2.height) / 2 + padding;
+
+  // Adjust centers for trees (which are defined by bottom center)
+  const c1x = s1.x;
+  const c1y = s1.type === "tree" ? s1.y - s1.height / 2 : s1.y;
+  const c2x = s2.x;
+  const c2y = s2.type === "tree" ? s2.y - s2.height / 2 : s2.y;
+
+  const dist = Math.sqrt((c1x - c2x) ** 2 + (c1y - c2y) ** 2);
+  return dist < r1 + r2;
+}
+
+// Check if two triangles overlap using separating axis theorem (simplified for upward triangles)
+function trianglesOverlap(t1: Shape, t2: Shape, padding: number): boolean {
+  // Get bounding boxes first for quick rejection
+  const t1Left = t1.x - t1.width / 2 - padding;
+  const t1Right = t1.x + t1.width / 2 + padding;
+  const t1Top = t1.y - t1.height - padding;
+  const t1Bottom = t1.y + padding;
+
+  const t2Left = t2.x - t2.width / 2 - padding;
+  const t2Right = t2.x + t2.width / 2 + padding;
+  const t2Top = t2.y - t2.height - padding;
+  const t2Bottom = t2.y + padding;
+
+  // Quick bounding box rejection
+  if (
+    t1Right < t2Left ||
+    t2Right < t1Left ||
+    t1Bottom < t2Top ||
+    t2Bottom < t1Top
+  ) {
+    return false;
+  }
+
+  // For more precise check, use polygon intersection
+  // Get vertices of both triangles (with padding approximation)
+  const v1 = [
+    { x: t1.x, y: t1.y - t1.height - padding }, // top
+    { x: t1.x - t1.width / 2 - padding, y: t1.y + padding }, // bottom left
+    { x: t1.x + t1.width / 2 + padding, y: t1.y + padding }, // bottom right
+  ];
+
+  const v2 = [
+    { x: t2.x, y: t2.y - t2.height - padding },
+    { x: t2.x - t2.width / 2 - padding, y: t2.y + padding },
+    { x: t2.x + t2.width / 2 + padding, y: t2.y + padding },
+  ];
+
+  // Check if any vertex of t1 is inside t2
+  for (const v of v1) {
+    if (pointInTriangle(v, v2)) return true;
+  }
+
+  // Check if any vertex of t2 is inside t1
+  for (const v of v2) {
+    if (pointInTriangle(v, v1)) return true;
+  }
+
+  // Check if edges intersect
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (edgesIntersect(v1[i], v1[(i + 1) % 3], v2[j], v2[(j + 1) % 3])) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function pointInTriangle(
+  p: { x: number; y: number },
+  tri: { x: number; y: number }[]
+): boolean {
+  const [a, b, c] = tri;
+  const sign = (
+    p1: { x: number; y: number },
+    p2: { x: number; y: number },
+    p3: { x: number; y: number }
+  ) => (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+
+  const d1 = sign(p, a, b);
+  const d2 = sign(p, b, c);
+  const d3 = sign(p, c, a);
+
+  const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
+  const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
+
+  return !(hasNeg && hasPos);
+}
+
+function edgesIntersect(
+  a1: { x: number; y: number },
+  a2: { x: number; y: number },
+  b1: { x: number; y: number },
+  b2: { x: number; y: number }
+): boolean {
+  const ccw = (
+    A: { x: number; y: number },
+    B: { x: number; y: number },
+    C: { x: number; y: number }
+  ) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+
+  return (
+    ccw(a1, b1, b2) !== ccw(a2, b1, b2) && ccw(a1, a2, b1) !== ccw(a1, a2, b2)
+  );
+}
+
+function drawSnowflake(
+  p: p5SVG,
+  x: number,
+  y: number,
+  size: number,
+  colors: DotPen[],
+  lineWidth: number,
+  rotation: number,
+  patternSeed: number
+) {
+  p.push();
+  p.translate(x, y);
+  p.rotate(p.radians(rotation));
+
+  // Deterministic random based on patternSeed
+  let s = patternSeed;
+  const rng = () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+
+  const branches = 6;
+  const angle = p.TWO_PI / branches;
+  const radius = size / 2;
+
+  // Pick a single color for the whole snowflake for better aesthetic
+  const pen = colors[Math.floor(rng() * colors.length)];
+  setStroke(pen, p);
+  p.strokeWeight(lineWidth);
+
+  // Generate pattern parameters once for symmetry
+  const numSubBranches = rng() > 0.5 ? 1 : 2;
+  const subBranchAngle = p.PI / 4;
+  const subBranchLength = radius * (0.2 + rng() * 0.2);
+  const subBranchPositions =
+    numSubBranches === 1 ? [radius * 0.6] : [radius * 0.4, radius * 0.7];
+
+  const hasEndV = rng() > 0.5;
+  const vSize = radius * 0.15;
+
+  p.beginShape();
+  for (let i = 0; i < branches; i++) {
+    const currentAngle = i * angle;
+    const cosA = Math.cos(currentAngle);
+    const sinA = Math.sin(currentAngle);
+
+    p.vertex(0, 0);
+
+    // Go out and draw sub-branches
+    for (const pos of subBranchPositions) {
+      const px = pos * cosA;
+      const py = pos * sinA;
+      p.vertex(px, py);
+
+      // Left sub-branch
+      p.vertex(
+        px + Math.cos(currentAngle + subBranchAngle) * subBranchLength,
+        py + Math.sin(currentAngle + subBranchAngle) * subBranchLength
+      );
+      p.vertex(px, py);
+
+      // Right sub-branch
+      p.vertex(
+        px + Math.cos(currentAngle - subBranchAngle) * subBranchLength,
+        py + Math.sin(currentAngle - subBranchAngle) * subBranchLength
+      );
+      p.vertex(px, py);
+    }
+
+    // Go to tip
+    const tx = radius * cosA;
+    const ty = radius * sinA;
+    p.vertex(tx, ty);
+
+    if (hasEndV) {
+      // Left V (pointing back towards center)
+      p.vertex(
+        tx + Math.cos(currentAngle + p.PI - subBranchAngle) * vSize,
+        ty + Math.sin(currentAngle + p.PI - subBranchAngle) * vSize
+      );
+      p.vertex(tx, ty);
+      // Right V
+      p.vertex(
+        tx + Math.cos(currentAngle + p.PI + subBranchAngle) * vSize,
+        ty + Math.sin(currentAngle + p.PI + subBranchAngle) * vSize
+      );
+      p.vertex(tx, ty);
+    }
+
+    // Back to center
+    p.vertex(0, 0);
+  }
+  p.endShape();
+  p.pop();
+}
+
+function drawFiller(
+  p: p5SVG,
+  shape: Shape,
+  colors: DotPen[],
+  lineWidth: number
+) {
+  const pen =
+    colors[
+      Math.floor(Math.abs(Math.sin(shape.patternSeed)) * 10000) % colors.length
+    ];
+  setStroke(pen, p);
+  p.strokeWeight(lineWidth);
+
+  p.push();
+  p.translate(shape.x, shape.y);
+  p.rotate(p.radians(shape.rotation));
+
+  const r = shape.width / 2;
+
+  if (shape.type === "circle") {
+    p.ellipse(0, 0, shape.width, shape.height);
+  } else if (shape.type === "square") {
+    p.beginShape();
+    p.vertex(-r, -r);
+    p.vertex(r, -r);
+    p.vertex(r, r);
+    p.vertex(-r, r);
+    p.endShape(p.CLOSE);
+  } else if (shape.type === "plus") {
+    p.beginShape();
+    p.vertex(0, -r);
+    p.vertex(0, r);
+    p.vertex(0, 0);
+    p.vertex(-r, 0);
+    p.vertex(r, 0);
+    p.endShape();
+  } else if (shape.type === "triangle") {
+    p.beginShape();
+    p.vertex(0, -r);
+    p.vertex(-r, r);
+    p.vertex(r, r);
+    p.endShape(p.CLOSE);
+  }
+
+  p.pop();
+}
+
+const xmasSketch =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    const mode = vars.mode ?? constants.mode;
+
+    const treeColors: DotPen[] = [
+      "staedtlerPensNew.limeGreen",
+      "staedtlerPens.green",
+      "staedtlerPens.teal",
+      "staedtlerPens.blue",
+    ];
+
+    const snowflakeColors: DotPen[] = [
+      "staedtlerPens.blue",
+      "staedtlerPensNew.crimson",
+      "staedtlerPens.yellow",
+    ];
+
+    p.setup = () => {
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+        debug: vars.debug ?? constants.debug,
+        noLoop: true,
+        noFill: true,
+      });
+
+      const lineWidth = vars.lineWidth ?? constants.lineWidth;
+      const minSize = vars.minSize ?? constants.minSize;
+      const maxSize = vars.maxSize ?? constants.maxSize;
+      const maxAttempts = vars.maxAttempts ?? constants.maxAttempts;
+      const padding = vars.padding ?? constants.padding;
+      const fillProbability = vars.fillProbability ?? constants.fillProbability;
+      const minLineGap = vars.minLineGap ?? constants.minLineGap;
+      const maxLineGap = vars.maxLineGap ?? constants.maxLineGap;
+      const minRatio = vars.minRatio ?? constants.minRatio;
+      const maxRatio = vars.maxRatio ?? constants.maxRatio;
+      const maxRotation = vars.maxRotation ?? constants.maxRotation;
+      const fillerProbability =
+        vars.fillerProbability ?? constants.fillerProbability;
+      const marginX = vars.marginX ?? constants.marginX;
+      const marginY = vars.marginY ?? constants.marginY;
+
+      // Store placed shapes for collision detection
+      const placedShapes: Shape[] = [];
+
+      // Try to place as many shapes as possible
+      let attempts = 0;
+      let consecutiveFailures = 0;
+      const maxConsecutiveFailures = 500;
+
+      while (
+        attempts < maxAttempts &&
+        consecutiveFailures < maxConsecutiveFailures
+      ) {
+        attempts++;
+
+        // Decide if this is a filler shape or a main shape
+        const isFiller = p.random() < fillerProbability;
+
+        // Start with larger shapes, gradually try smaller ones as space fills up
+        const sizeBias = Math.max(0, 1 - consecutiveFailures / 200);
+        const sizeRange = maxSize - minSize;
+
+        let height, width, type: Shape["type"];
+
+        if (isFiller) {
+          // Filler shapes are small
+          const fillerSize = p.random(5, 15);
+          height = fillerSize;
+          width = fillerSize;
+          const types: Shape["type"][] = [
+            "circle",
+            "square",
+            "plus",
+            "triangle",
+          ];
+          type = p.random(types);
+        } else {
+          height =
+            minSize +
+            p.random(sizeRange * 0.3, sizeRange) * sizeBias +
+            sizeRange * (1 - sizeBias) * p.random(0, 0.5);
+          const clampedHeight = Math.max(minSize, Math.min(maxSize, height));
+          height = clampedHeight;
+
+          if (mode === "mixed") {
+            type = "snowflake";
+          } else {
+            type = mode === "trees" ? "tree" : "snowflake";
+          }
+
+          width =
+            type === "tree"
+              ? p.random(height * minRatio, height * maxRatio)
+              : height;
+        }
+
+        // Random position
+        let x, y;
+        if (type === "tree") {
+          x = p.random(marginX + width / 2, p.width - marginX - width / 2);
+          y = p.random(marginY + height, p.height - marginY);
+        } else {
+          x = p.random(marginX + width / 2, p.width - marginX - width / 2);
+          y = p.random(marginY + height / 2, p.height - marginY - height / 2);
+        }
+
+        const newShape: Shape = {
+          x,
+          y,
+          width,
+          height,
+          type,
+          rotation: p.random(-maxRotation, maxRotation),
+          patternSeed: p.random(0, 1000000),
+        };
+
+        // Check for overlaps with all placed shapes
+        let overlaps = false;
+        for (const placed of placedShapes) {
+          if (shapesOverlap(newShape, placed, padding)) {
+            overlaps = true;
+            break;
+          }
+        }
+
+        if (!overlaps) {
+          placedShapes.push(newShape);
+          consecutiveFailures = 0;
+        } else {
+          consecutiveFailures++;
+        }
+      }
+
+      // Draw all placed shapes
+      for (const shape of placedShapes) {
+        if (shape.type === "snowflake") {
+          drawSnowflake(
+            p,
+            shape.x,
+            shape.y,
+            shape.width,
+            snowflakeColors,
+            lineWidth,
+            shape.rotation,
+            shape.patternSeed
+          );
+          continue;
+        }
+
+        if (shape.type !== "tree") {
+          // It's a filler shape
+          drawFiller(p, shape, snowflakeColors, lineWidth);
+          continue;
+        }
+
+        const isFilled = p.random() < fillProbability;
+        const treePen = p.random(treeColors);
+        setStroke(treePen, p);
+        p.strokeWeight(lineWidth);
+
+        if (isFilled) {
+          // Fill with horizontal lines (zigzag for single path)
+          const gap = p.random(minLineGap, maxLineGap);
+
+          p.beginShape();
+          let leftToRight = true;
+          for (let ly = shape.y - shape.height; ly <= shape.y; ly += gap) {
+            const progress = (ly - (shape.y - shape.height)) / shape.height;
+            const currentWidth = shape.width * progress;
+            const xStart = shape.x - currentWidth / 2;
+            const xEnd = shape.x + currentWidth / 2;
+
+            if (leftToRight) {
+              p.vertex(xStart, ly);
+              p.vertex(xEnd, ly);
+            } else {
+              p.vertex(xEnd, ly);
+              p.vertex(xStart, ly);
+            }
+            leftToRight = !leftToRight;
+          }
+          // Close the outline in the same path
+          p.vertex(shape.x + shape.width / 2, shape.y);
+          p.vertex(shape.x - shape.width / 2, shape.y);
+          p.vertex(shape.x, shape.y - shape.height);
+          p.endShape();
+        } else {
+          // Outline only
+          p.beginShape();
+          p.vertex(shape.x, shape.y - shape.height); // Top point
+          p.vertex(shape.x - shape.width / 2, shape.y); // Bottom left
+          p.vertex(shape.x + shape.width / 2, shape.y); // Bottom right
+          p.endShape(p.CLOSE);
+        }
+      }
+
+      console.log(
+        `Placed ${placedShapes.length} ${mode} in ${attempts} attempts`
+      );
+    };
+  };
+
+export default xmasSketch;

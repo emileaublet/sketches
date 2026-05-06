@@ -28,6 +28,7 @@ export interface LinePatternConfig {
   // Options
   linesStartOnPath?: boolean; // true = lines start on path, false = centered on path
   avoidIntersections?: boolean; // If true, lines won't be drawn where they would intersect existing lines
+  checkBoundary?: (x: number, y: number) => boolean; // Optional function to check if a point is valid (e.g. inside a shape)
 } // Global line tracking for intersection detection
 interface LineSegment {
   x1: number;
@@ -239,6 +240,13 @@ export const drawPerpendicularLines = (
       }
 
       const newLine: LineSegment = { x1, y1, x2, y2 };
+
+      // Check boundary if provided
+      if (config.checkBoundary) {
+        if (!config.checkBoundary(x1, y1) || !config.checkBoundary(x2, y2)) {
+          continue;
+        }
+      }
 
       // Check for intersections if the feature is enabled
       if (config.avoidIntersections) {

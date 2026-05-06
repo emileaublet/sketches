@@ -1,0 +1,167 @@
+import { p5SVG } from "p5.js-svg";
+
+import { Meta } from "../types";
+import { DotPen } from "@/pens";
+import { setStroke } from "@/utils/setStroke";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+
+export const meta: Meta = {
+  id: "yo",
+  title: "Yo",
+  description: "100 radial lines from center",
+  thumbnail: "/yo.png",
+};
+
+type Constants = BaseConstants & {
+  lineWidth: number;
+  linesPerSegment: number;
+  lineLength: number;
+  innerRadius: number;
+  overlapPercent: number;
+  edgeSpread: number;
+  lineJitter: number;
+  radiusJitter: number;
+};
+
+export const constants: Constants = {
+  width: 550,
+  height: 700,
+  marginX: 80,
+  marginY: 80,
+  debug: false,
+  lineWidth: 0.5,
+  linesPerSegment: 30,
+  lineLength: 200,
+  innerRadius: 0,
+  overlapPercent: 50,
+  edgeSpread: 15,
+  lineJitter: 1,
+  radiusJitter: 5,
+};
+
+export const constantsProps = {
+  lineWidth: { min: 0.1, max: 2, step: 0.1 },
+  linesPerSegment: { min: 10, max: 100, step: 1 },
+  lineLength: { min: 50, max: 400, step: 10 },
+  innerRadius: { min: 0, max: 200, step: 5 },
+  overlapPercent: { min: 0, max: 200, step: 5 },
+  edgeSpread: { min: 0, max: 100, step: 1 },
+  lineJitter: { min: 0, max: 5, step: 0.1 },
+  radiusJitter: { min: 0, max: 30, step: 1 },
+};
+
+const yoSketch =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    // 12 colors for 12 pie sections
+    const colors: DotPen[] = [
+      "staedtlerPens.red",
+      "staedtlerPens.orange",
+      "staedtlerPens.yellow",
+      "staedtlerPensNew.limeGreen",
+      "staedtlerPens.green",
+      "staedtlerPens.teal",
+      "staedtlerPens.blue",
+      "staedtlerPens.violet",
+      "staedtlerPens.mauve",
+      "staedtlerPensNew.pink",
+    ];
+
+    p.setup = () => {
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+        debug: vars.debug ?? constants.debug,
+        noLoop: true,
+        noFill: true,
+        angleMode: "RADIANS",
+      });
+
+      const linesPerSegment = vars.linesPerSegment ?? constants.linesPerSegment;
+      const lineLength = vars.lineLength ?? constants.lineLength;
+      const lineWidth = vars.lineWidth ?? constants.lineWidth;
+      const innerRadius = vars.innerRadius ?? constants.innerRadius;
+      const overlapPercent = vars.overlapPercent ?? constants.overlapPercent;
+      const lineJitter = vars.lineJitter ?? constants.lineJitter;
+
+      const centerX = p.width / 2;
+      const centerY = p.height / 2;
+
+      p.strokeWeight(lineWidth);
+
+      const numColors = colors.length;
+      const segmentAngle = p.TWO_PI / numColors;
+
+      // Overlap: how much each segment extends beyond its boundaries (as fraction of segment)
+      const overlapFraction = overlapPercent / 100;
+      const edgeSpread = vars.edgeSpread ?? constants.edgeSpread;
+
+      // Draw each color segment with overlap
+      // Lines are evenly spaced, but gaps increase toward edges
+      for (let c = 0; c < numColors; c++) {
+        setStroke(colors[c], p);
+
+        // Segment center angle
+        const segmentCenter = (c + 0.5) * segmentAngle;
+
+        // Base angular range for this segment (including overlap on both sides)
+        const halfRange = (segmentAngle / 2) * (1 + overlapFraction);
+
+        // Base gap between lines (if evenly spaced)
+        const baseGap = (2 * halfRange) / (linesPerSegment - 1);
+
+        // Draw lines: gap increases toward edges based on edgeSpread
+        let currentAngle = segmentCenter - halfRange;
+
+        for (let i = 0; i < linesPerSegment; i++) {
+          // Randomize inner and outer radius slightly per line
+          const radiusJitter = vars.radiusJitter ?? constants.radiusJitter;
+          const lineInnerRadius =
+            innerRadius + p.random(-radiusJitter, radiusJitter);
+          const lineOuterRadius =
+            lineLength + p.random(-radiusJitter, radiusJitter);
+
+          if (lineJitter > 0) {
+            // Draw wavy line with multiple segments
+            const numSegments = Math.ceil(
+              (lineOuterRadius - lineInnerRadius) / 8
+            );
+            p.beginShape();
+            for (let s = 0; s <= numSegments; s++) {
+              const t = s / numSegments;
+              const radius =
+                lineInnerRadius + t * (lineOuterRadius - lineInnerRadius);
+              // Add perpendicular jitter (noise-based for smoothness)
+              const noiseVal = p.noise(c * 10 + i * 0.5, s * 0.3) - 0.5;
+              const jitterAngle = currentAngle + noiseVal * lineJitter * 0.02;
+              const x = centerX + Math.cos(jitterAngle) * radius;
+              const y = centerY + Math.sin(jitterAngle) * radius;
+              p.vertex(x, y);
+            }
+            p.endShape();
+          } else {
+            // Straight line
+            const startX = centerX + Math.cos(currentAngle) * lineInnerRadius;
+            const startY = centerY + Math.sin(currentAngle) * lineInnerRadius;
+            const endX = centerX + Math.cos(currentAngle) * lineOuterRadius;
+            const endY = centerY + Math.sin(currentAngle) * lineOuterRadius;
+            p.line(startX, startY, endX, endY);
+          }
+
+          // Calculate gap to next line
+          // Distance from center (0 at center, 1 at edges)
+          const distFromCenter = Math.abs(
+            (i - (linesPerSegment - 1) / 2) / ((linesPerSegment - 1) / 2)
+          );
+          // Gap multiplier: 1 at center, increases toward edges
+          const gapMultiplier = 1 + distFromCenter * (edgeSpread / 50);
+          currentAngle += baseGap * gapMultiplier;
+        }
+      }
+    };
+  };
+
+export default yoSketch;

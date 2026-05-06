@@ -4,6 +4,6 @@ import { findColor } from "./findColor";
 
 export const setStroke = (pen: DotPen, p: p5SVG) => {
   const { color, lineWidth, opaque } = findColor(pen);
-  p.stroke(color[0], color[1], color[2], opaque ? 250 : 220);
+  p.stroke(color[0], color[1], color[2], opaque ? 250 : 200);
   p.strokeWeight(lineWidth);
 };

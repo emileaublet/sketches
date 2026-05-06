@@ -1,0 +1,289 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Émile's Sketches" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - link "aublet.ca" [ref=e7] [cursor=pointer]:
+        - /url: https://aublet.ca
+  - main [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - heading "Bibitte" [level=1] [ref=e12]
+          - paragraph [ref=e13]: Flat geometric insect generator — bold specimen poster style
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - button "Back" [disabled]:
+              - img
+            - generic [ref=e16]: 01 / 01
+            - button "Next" [disabled]:
+              - img
+          - button "Switch to light mode" [ref=e17] [cursor=pointer]:
+            - img
+          - button "Refresh sketch" [ref=e18] [cursor=pointer]:
+            - img
+          - button "Copy SVG to clipboard" [ref=e19] [cursor=pointer]:
+            - img
+          - button "Download SVG" [ref=e20] [cursor=pointer]:
+            - img
+          - button "Upload SVG" [ref=e21] [cursor=pointer]:
+            - img
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - text: Controls
+          - button [ref=e32]:
+            - img
+        - generic [ref=e33]:
+          - text: Paper Size
+          - combobox [ref=e34]:
+            - img [ref=e35]
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: Paper Size Ratio
+            - generic [ref=e40]: "0.25"
+          - slider [ref=e45]
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e48]: Width
+            - generic [ref=e49]: "600"
+          - slider [ref=e54]
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: Height
+            - generic [ref=e58]: "800"
+          - slider [ref=e63]
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - generic [ref=e66]: Margin X
+            - generic [ref=e67]: "40"
+          - slider [ref=e72]
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - generic [ref=e75]: Margin Y
+            - generic [ref=e76]: "40"
+          - slider [ref=e81]
+        - generic [ref=e82]:
+          - generic [ref=e83]: Use SVG
+          - switch [ref=e84] [cursor=pointer]
+        - generic [ref=e85]:
+          - text: Archetype
+          - combobox [ref=e86]:
+            - generic: beetle
+            - img [ref=e87]
+        - generic [ref=e89]:
+          - text: Body Mode
+          - combobox [ref=e90]:
+            - generic: unified
+            - img [ref=e91]
+        - generic [ref=e93]:
+          - text: Body Shape
+          - combobox [ref=e94]:
+            - generic: shield
+            - img [ref=e95]
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - generic [ref=e99]: Body Length
+            - generic [ref=e100]: "260"
+          - slider [ref=e105]
+        - generic [ref=e106]:
+          - generic [ref=e107]:
+            - generic [ref=e108]: Body Width
+            - generic [ref=e109]: "160"
+          - slider [ref=e114]
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - generic [ref=e117]: Body Taper
+            - generic [ref=e118]: "0.5"
+          - slider [ref=e123]
+        - generic [ref=e124]:
+          - generic [ref=e125]: Show Center Line
+          - switch [checked] [ref=e126] [cursor=pointer]
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - generic [ref=e129]: Head Size
+            - generic [ref=e130]: "0.7"
+          - slider [ref=e135]
+        - generic [ref=e136]:
+          - text: Head Shape
+          - combobox [ref=e137]:
+            - generic: oval
+            - img [ref=e138]
+        - generic [ref=e140]:
+          - generic [ref=e141]: Has Mandibles
+          - switch [ref=e142] [cursor=pointer]
+        - generic [ref=e143]:
+          - generic [ref=e144]:
+            - generic [ref=e145]: Mandible Size
+            - generic [ref=e146]: "0.8"
+          - slider [ref=e151]
+        - generic [ref=e152]:
+          - generic [ref=e153]: Has Horn
+          - switch [ref=e154] [cursor=pointer]
+        - generic [ref=e155]:
+          - generic [ref=e156]:
+            - generic [ref=e157]: Horn Length
+            - generic [ref=e158]: "0.7"
+          - slider [ref=e163]
+        - generic [ref=e164]:
+          - generic [ref=e165]:
+            - generic [ref=e166]: Antennae Length
+            - generic [ref=e167]: "0.5"
+          - slider [ref=e172]
+        - generic [ref=e173]:
+          - generic [ref=e174]:
+            - generic [ref=e175]: Antennae Segments
+            - generic [ref=e176]: "3"
+          - slider [ref=e181]
+        - generic [ref=e182]:
+          - generic [ref=e183]:
+            - generic [ref=e184]: Antennae Curvature
+            - generic [ref=e185]: "0.4"
+          - slider [ref=e190]
+        - generic [ref=e191]:
+          - text: Antennae Tip Shape
+          - combobox [ref=e192]:
+            - generic: dot
+            - img [ref=e193]
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]: Leg Pairs
+            - generic [ref=e198]: "3"
+          - slider [ref=e203]
+        - generic [ref=e204]:
+          - generic [ref=e205]:
+            - generic [ref=e206]: Leg Length
+            - generic [ref=e207]: 60 – 110
+          - generic [ref=e208]:
+            - slider "Minimum" [ref=e212]
+            - slider "Maximum" [ref=e214]
+        - generic [ref=e215]:
+          - generic [ref=e216]:
+            - generic [ref=e217]: Leg Thickness
+            - generic [ref=e218]: "2"
+          - slider [ref=e223]
+        - generic [ref=e224]:
+          - generic [ref=e225]:
+            - generic [ref=e226]: Leg Curvature
+            - generic [ref=e227]: "0.35"
+          - slider [ref=e232]
+        - generic [ref=e233]:
+          - generic [ref=e234]: Has Joint Dots
+          - switch [ref=e235] [cursor=pointer]
+        - generic [ref=e236]:
+          - text: Foot Style
+          - combobox [ref=e237]:
+            - generic: dot
+            - img [ref=e238]
+        - generic [ref=e240]:
+          - generic [ref=e241]: Has Wings
+          - switch [ref=e242] [cursor=pointer]
+        - generic [ref=e243]:
+          - generic [ref=e244]:
+            - generic [ref=e245]: Wing Pairs
+            - generic [ref=e246]: "1"
+          - slider [ref=e250]
+        - generic [ref=e251]:
+          - text: Wing Shape
+          - combobox [ref=e252]:
+            - generic: teardrop
+            - img [ref=e253]
+        - generic [ref=e255]:
+          - generic [ref=e256]:
+            - generic [ref=e257]: Wing Length Factor
+            - generic [ref=e258]: "1.1"
+          - slider [ref=e263]
+        - generic [ref=e264]:
+          - generic [ref=e265]:
+            - generic [ref=e266]: Wing Width Factor
+            - generic [ref=e267]: "0.8"
+          - slider [ref=e272]
+        - generic [ref=e273]:
+          - text: Body Pattern
+          - combobox [ref=e274]:
+            - generic: scales
+            - img [ref=e275]
+        - generic [ref=e277]:
+          - generic [ref=e278]:
+            - generic [ref=e279]: Body Pattern Density
+            - generic [ref=e280]: "9"
+          - slider [ref=e285]
+        - generic [ref=e286]:
+          - text: Wing Pattern
+          - combobox [ref=e287]:
+            - generic: herringbone
+            - img [ref=e288]
+        - generic [ref=e290]:
+          - generic [ref=e291]:
+            - generic [ref=e292]: Wing Pattern Density
+            - generic [ref=e293]: "8"
+          - slider [ref=e298]
+        - generic [ref=e299]:
+          - text: Head Pattern
+          - combobox [ref=e300]:
+            - generic: dotGrid
+            - img [ref=e301]
+        - generic [ref=e303]:
+          - generic [ref=e304]:
+            - generic [ref=e305]: Head Pattern Density
+            - generic [ref=e306]: "6"
+          - slider [ref=e311]
+        - generic [ref=e312]:
+          - generic [ref=e313]: Has Stinger
+          - switch [ref=e314] [cursor=pointer]
+        - generic [ref=e315]:
+          - generic [ref=e316]: Has Spines
+          - switch [ref=e317] [cursor=pointer]
+        - generic [ref=e318]:
+          - generic [ref=e319]:
+            - generic [ref=e320]: Dominant Hue
+            - generic [ref=e321]: "28"
+          - slider [ref=e326]
+        - generic [ref=e327]:
+          - generic [ref=e328]:
+            - generic [ref=e329]: Contrast Hue1
+            - generic [ref=e330]: "190"
+          - slider [ref=e335]
+        - generic [ref=e336]:
+          - generic [ref=e337]:
+            - generic [ref=e338]: Contrast Hue2
+            - generic [ref=e339]: "330"
+          - slider [ref=e344]
+        - generic [ref=e345]:
+          - generic [ref=e346]:
+            - generic [ref=e347]: Saturation
+            - generic [ref=e348]: "82"
+          - slider [ref=e353]
+        - generic [ref=e354]:
+          - generic [ref=e355]:
+            - generic [ref=e356]: Lightness
+            - generic [ref=e357]: 38 – 62
+          - generic [ref=e358]:
+            - slider "Minimum" [ref=e362]
+            - slider "Maximum" [ref=e364]
+        - generic [ref=e365]:
+          - text: Outline Color
+          - combobox [ref=e366]:
+            - generic: nearBlack
+            - img [ref=e367]
+        - generic [ref=e369]:
+          - generic [ref=e370]:
+            - generic [ref=e371]: Outline Weight
+            - generic [ref=e372]: "3.5"
+          - slider [ref=e377]
+        - generic [ref=e378]:
+          - generic [ref=e379]: Debug
+          - switch [ref=e380] [cursor=pointer]
+      - generic [ref=e381]:
+        - generic [ref=e382]:
+          - img [ref=e383]
+          - textbox [ref=e385]: "2265659797"
+        - generic [ref=e386]:
+          - button "Rotate counterclockwise" [ref=e387]:
+            - img
+          - button "Zoom in" [ref=e388]:
+            - img
+          - button "Reset zoom" [ref=e389]: 1 x
+          - button "Zoom out" [ref=e390]:
+            - img
+  - contentinfo [ref=e391]:
+    - paragraph [ref=e393]: © 2026 Émile Aublet. All rights reserved.

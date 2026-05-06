@@ -1,0 +1,589 @@
+import { p5SVG } from "p5.js-svg";
+import { Meta } from "../types";
+import { setupCanvas } from "@/utils/canvasSetup";
+import { BaseConstants } from "../utils/constants";
+import { calculateDrawArea } from "@/utils/drawingArea";
+import { KielmFont } from "@/utils/kielmFont";
+
+export const meta: Meta = {
+  id: "calendar",
+  title: "Calendar",
+  description: "A customizable calendar generator",
+  thumbnail: "/calendar.png",
+};
+
+type Constants = BaseConstants & {
+  year: number;
+  month: string;
+  fontSizeHeader: number;
+  fontSizeDays: number;
+  fontSizeLabels: number;
+  showOtherMonths: boolean;
+  showGrid: boolean;
+  headerHeight: number;
+  fontHeader: string;
+  lineWidth: number;
+  daysStretchX: number;
+  daysStretchY: number;
+  labelsStretchX: number;
+  labelsStretchY: number;
+  labelFormat: string;
+  paddingDays: number;
+  paddingLabels: number;
+  colorMain: string;
+  colorOtherMonth: string;
+};
+
+const months = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
+
+// Outline fonts for header
+const outlineFonts = [
+  "NationalPark-Regular.ttf",
+  "NationalPark-Bold.ttf",
+  "NationalPark-ExtraBold.ttf",
+  "NationalPark-Light.ttf",
+  "NationalPark-Medium.ttf",
+  "NationalPark-SemiBold.ttf",
+  "NationalPark-ExtraLight.ttf",
+  "RedHatDisplay-Regular.ttf",
+  "RedHatDisplay-Bold.ttf",
+  "RedHatDisplay-Black.ttf",
+  "RedHatDisplay-Light.ttf",
+  "RedHatDisplay-Medium.ttf",
+  "RedHatDisplay-SemiBold.ttf",
+  "RedHatDisplay-ExtraBold.ttf",
+  "RedHatDisplay-Italic.ttf",
+  "RedHatDisplay-BoldItalic.ttf",
+  "RedHatDisplay-BlackItalic.ttf",
+  "RedHatDisplay-LightItalic.ttf",
+  "RedHatDisplay-MediumItalic.ttf",
+  "RedHatDisplay-SemiBoldItalic.ttf",
+  "RedHatDisplay-ExtraBoldItalic.ttf",
+  "StackSansHeadline-Regular.ttf",
+  "StackSansHeadline-Bold.ttf",
+  "StackSansHeadline-ExtraLight.ttf",
+  "StackSansHeadline-Light.ttf",
+  "StackSansHeadline-Medium.ttf",
+  "StackSansHeadline-SemiBold.ttf",
+  "asikue-trial/AsikueTrial-Regular.otf",
+  "asikue-trial/AsikueTrial-Bold.otf",
+  "asikue-trial/AsikueTrial-Medium.otf",
+  "asikue-trial/AsikueTrial-SemiBold.otf",
+  "asikue-trial/AsikueTrial-ExtraBold.otf",
+  "asikue-trial/AsikueTrial-Oblique.otf",
+  "asikue-trial/AsikueTrial-BoldOblique.otf",
+  "asikue-trial/AsikueTrial-MediumOblique.otf",
+  "asikue-trial/AsikueTrial-SemiBoldOblique.otf",
+  "asikue-trial/AsikueTrial-ExtraBoldOblique.otf",
+  "made-mellow-personal-use/MADEMellowPERSONALUSE-Regular.otf",
+  "made-mellow-personal-use/MADEMellowPERSONALUSE-Bold.otf",
+  "made-mellow-personal-use/MADEMellowPERSONALUSE-Light.otf",
+  "made-mellow-personal-use/MADEMellowPERSONALUSE-Medium.otf",
+  "made-mellow-personal-use/MADEMellowPERSONALUSE-SemiBold.otf",
+  "made-mellow-personal-use/MADEMellowPERSONALUSE-Black.otf",
+  "moderniz/Moderniz.otf",
+  "milker/Milker.otf",
+  "nokie/Nokie.otf",
+  "rich-taste/Rich Taste.otf",
+  "sardin-demo/Sardin DEMO.otf",
+  "chunko-bold-demo/Chunko Bold Demo.otf",
+  "chunko-bold-demo/Chunko Bold Demo.ttf",
+  "ut-boldonse-demo/UT Boldonse Demo.otf",
+  "ut-boldonse-demo/UT Boldonse Demo.ttf",
+  "space-grotesk/SpaceGrotesk-Regular.ttf",
+  "space-grotesk/SpaceGrotesk-Bold.ttf",
+  "space-grotesk/SpaceGrotesk-Light.ttf",
+  "space-grotesk/SpaceGrotesk-Medium.ttf",
+  "outfit/Outfit-Regular.ttf",
+  "outfit/Outfit-Bold.ttf",
+  "outfit/Outfit-Black.ttf",
+  "outfit/Outfit-ExtraBold.ttf",
+  "outfit/Outfit-ExtraLight.ttf",
+  "outfit/Outfit-Light.ttf",
+  "outfit/Outfit-Medium.ttf",
+  "outfit/Outfit-SemiBold.ttf",
+  "outfit/Outfit-Thin.ttf",
+  "dm-sans/DMSans-Regular.ttf",
+  "dm-sans/DMSans-Bold.ttf",
+  "dm-sans/DMSans-Medium.ttf",
+  "dm-sans/DMSans-SemiBold.ttf",
+  "dm-sans/DMSans-Light.ttf",
+  "dm-sans/DMSans-ExtraBold.ttf",
+  "dm-sans/DMSans-Black.ttf",
+  "dm-sans/DMSans-Thin.ttf",
+  "dm-sans/DMSans-ExtraLight.ttf",
+];
+
+export const constants: Constants = {
+  width: 500,
+  height: 700,
+  marginX: 50,
+  marginY: 50,
+  debug: false,
+  rotate: 0,
+  year: 2025,
+  month: "Janvier",
+  fontSizeHeader: 100,
+  fontSizeDays: 20,
+  fontSizeLabels: 20,
+  showOtherMonths: true,
+  showGrid: true,
+  headerHeight: 300,
+  fontHeader: "NationalPark-Bold.ttf",
+  lineWidth: 0.3,
+  daysStretchX: 0,
+  daysStretchY: 0,
+  labelsStretchX: 0,
+  labelsStretchY: 0,
+  labelFormat: "Full",
+  paddingDays: 15,
+  paddingLabels: 15,
+  colorMain: "#000000",
+  colorOtherMonth: "#aaaaaa",
+};
+
+export const constantsProps = {
+  year: { min: 2020, max: 2030, step: 1 },
+  month: { options: months },
+  fontSizeHeader: { min: 10, max: 300, step: 1 },
+  fontSizeDays: { min: 5, max: 50, step: 1 },
+  fontSizeLabels: { min: 5, max: 50, step: 1 },
+  showOtherMonths: { value: true },
+  showGrid: { value: true },
+  headerHeight: { min: 50, max: 300, step: 10 },
+  fontHeader: { options: outlineFonts },
+  lineWidth: { min: 0.1, max: 2, step: 0.1 },
+  daysStretchX: { min: -50, max: 50, step: 1 },
+  daysStretchY: { min: -50, max: 50, step: 1 },
+  labelsStretchX: { min: -50, max: 50, step: 1 },
+  labelsStretchY: { min: -50, max: 50, step: 1 },
+  labelFormat: { options: ["Full", "Initial"] },
+  paddingDays: { min: 0, max: 50, step: 1 },
+  paddingLabels: { min: 0, max: 50, step: 1 },
+  colorMain: { value: "#000000" },
+  colorOtherMonth: { value: "#aaaaaa" },
+};
+
+/**
+ * Helper to draw text as clean outline paths for pen plotting.
+ * Uses opentype.js path commands directly for perfect vector output.
+ */
+function drawTextAsPath(
+  p: p5SVG,
+  font: any,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  alignH: any,
+  alignV: any,
+  w: number = 0,
+  h: number = 0,
+) {
+  if (!font || !font.font) return;
+
+  const bounds = font.textBounds(text, 0, 0, fontSize);
+
+  let tx = x;
+  let ty = y;
+
+  if (alignH === p.CENTER) tx += (w - bounds.w) / 2 - bounds.x;
+  else if (alignH === p.RIGHT) tx += w - bounds.w - bounds.x;
+  else tx -= bounds.x; // LEFT
+
+  if (alignV === p.CENTER) ty += (h + bounds.h) / 2;
+  else if (alignV === p.TOP) ty += bounds.h;
+  else if (alignV === p.BOTTOM) ty -= bounds.y;
+
+  // Access the underlying opentype.js font object
+  const otFont = font.font;
+  const path = otFont.getPath(text, tx, ty, fontSize);
+
+  p.push();
+  p.noFill();
+
+  let inShape = false;
+  let startX = 0;
+  let startY = 0;
+  let currX = 0;
+  let currY = 0;
+
+  for (const cmd of path.commands) {
+    switch (cmd.type) {
+      case "M": // MoveTo - start a new sub-path
+        if (inShape) {
+          p.endShape();
+        }
+        p.beginShape();
+        p.vertex(cmd.x, cmd.y);
+        inShape = true;
+        startX = cmd.x;
+        startY = cmd.y;
+        currX = cmd.x;
+        currY = cmd.y;
+        break;
+      case "L": // LineTo
+        if (!inShape) {
+          p.beginShape();
+          p.vertex(currX, currY);
+          inShape = true;
+        }
+        p.vertex(cmd.x, cmd.y);
+        currX = cmd.x;
+        currY = cmd.y;
+        break;
+      case "C": // Cubic Bezier
+        if (!inShape) {
+          p.beginShape();
+          p.vertex(currX, currY);
+          inShape = true;
+        }
+        p.bezierVertex(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
+        currX = cmd.x;
+        currY = cmd.y;
+        break;
+      case "Q": // Quadratic Bezier
+        if (!inShape) {
+          p.beginShape();
+          p.vertex(currX, currY);
+          inShape = true;
+        }
+        p.quadraticVertex(cmd.x1, cmd.y1, cmd.x, cmd.y);
+        currX = cmd.x;
+        currY = cmd.y;
+        break;
+      case "Z": // ClosePath
+        p.endShape(p.CLOSE);
+        inShape = false;
+        currX = startX;
+        currY = startY;
+        break;
+    }
+  }
+
+  if (inShape) {
+    p.endShape();
+  }
+
+  p.pop();
+}
+
+/**
+ * Draws the month header (uses outline/contour rendering)
+ */
+function drawHeader(
+  p: p5SVG,
+  font: any,
+  month: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  fontSize: number,
+) {
+  drawTextAsPath(p, font, month, x, y, fontSize, p.CENTER, p.CENTER, w, h);
+}
+
+/**
+ * Draws a day label (S, M, T, etc.) - uses single stroke rendering
+ */
+function drawDayLabel(
+  p: p5SVG,
+  kielm: KielmFont,
+  label: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  fontSize: number,
+  sx: number,
+  sy: number,
+  padding: number,
+) {
+  const ty = fontSize;
+  const tx = ty * 0.5;
+  const px = x + w / 2;
+  const py = y + padding;
+  kielm.drawString(label, px, py, tx, ty, sx, sy, "CENTER");
+}
+
+/**
+ * Draws a cell for the current month - uses single stroke rendering
+ */
+function drawCurrentMonthCell(
+  p: p5SVG,
+  kielm: KielmFont,
+  day: number,
+  x: number,
+  y: number,
+  _w: number,
+  _h: number,
+  fontSize: number,
+  sx: number,
+  sy: number,
+  padding: number,
+) {
+  const ty = fontSize;
+  const tx = ty * 0.5;
+  kielm.drawString(
+    day.toString(),
+    x + padding,
+    y + padding,
+    tx,
+    ty,
+    sx,
+    sy,
+    "LEFT",
+  );
+}
+
+/**
+ * Draws a cell for previous or next month - uses single stroke rendering
+ */
+function drawOtherMonthCell(
+  p: p5SVG,
+  kielm: KielmFont,
+  day: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  fontSize: number,
+  sx: number,
+  sy: number,
+  padding: number,
+  color: string,
+) {
+  p.push();
+  p.stroke(color);
+  p.rect(x, y, w, h); // Draw border in other color
+
+  const ty = fontSize;
+  const tx = ty * 0.5;
+  kielm.drawString(
+    day.toString(),
+    x + padding,
+    y + padding,
+    tx,
+    ty,
+    sx,
+    sy,
+    "LEFT",
+  );
+  p.pop();
+}
+
+const sketchFactory =
+  (seed: number | null, vars: typeof constants) => (p: p5SVG) => {
+    let fontHeader: any;
+
+    p.preload = () => {
+      const fontHeaderName = vars.fontHeader ?? constants.fontHeader;
+      fontHeader = p.loadFont(`/fonts/${fontHeaderName}`);
+    };
+
+    p.setup = () => {
+      const kielm = new KielmFont(p);
+      setupCanvas(p, {
+        width: vars.width ?? constants.width,
+        height: vars.height ?? constants.height,
+        seed,
+        marginX: vars.marginX ?? constants.marginX,
+        marginY: vars.marginY ?? constants.marginY,
+        debug: vars.debug ?? constants.debug,
+        noLoop: true,
+        noFill: true, // Plotter ready: no fills
+      });
+
+      const year = vars.year ?? constants.year;
+      const monthName = vars.month ?? constants.month;
+      const fontSizeHeader = vars.fontSizeHeader ?? constants.fontSizeHeader;
+      const fontSizeDays = vars.fontSizeDays ?? constants.fontSizeDays;
+      const fontSizeLabels = vars.fontSizeLabels ?? constants.fontSizeLabels;
+      const showOtherMonths = vars.showOtherMonths ?? constants.showOtherMonths;
+      const showGrid = vars.showGrid ?? constants.showGrid;
+      const headerHeightVal = vars.headerHeight ?? constants.headerHeight;
+      const lineWidth = vars.lineWidth ?? constants.lineWidth;
+      const marginX = vars.marginX ?? constants.marginX;
+      const marginY = vars.marginY ?? constants.marginY;
+      const daysStretchX = vars.daysStretchX ?? constants.daysStretchX;
+      const daysStretchY = vars.daysStretchY ?? constants.daysStretchY;
+      const labelsStretchX = vars.labelsStretchX ?? constants.labelsStretchX;
+      const labelsStretchY = vars.labelsStretchY ?? constants.labelsStretchY;
+      const labelFormat = vars.labelFormat ?? constants.labelFormat;
+      const paddingDays = vars.paddingDays ?? constants.paddingDays;
+      const paddingLabels = vars.paddingLabels ?? constants.paddingLabels;
+      const colorMain = vars.colorMain ?? constants.colorMain;
+      const colorOtherMonth = vars.colorOtherMonth ?? constants.colorOtherMonth;
+
+      p.stroke(colorMain);
+      p.strokeWeight(lineWidth);
+      p.noFill();
+
+      const {
+        drawW,
+        drawH: _drawH,
+        startX,
+        startY,
+      } = calculateDrawArea(p, marginX, marginY);
+
+      const monthIndex = months.indexOf(monthName);
+      const firstDay = new Date(year, monthIndex, 1);
+      const lastDay = new Date(year, monthIndex + 1, 0);
+      const prevLastDay = new Date(year, monthIndex, 0);
+
+      const startDayOfWeek = firstDay.getDay(); // 0 = Dimanche
+      const daysInMonth = lastDay.getDate();
+      const daysInPrevMonth = prevLastDay.getDate();
+
+      // Layout constants
+      const headerHeight = headerHeightVal;
+      const labelsHeight = fontSizeLabels + paddingLabels * 2;
+      const cellW = drawW / 7;
+      const cellH = cellW; // Make cells square
+      const gridH = cellH * 6;
+      const gridY = startY + headerHeight + labelsHeight;
+
+      // 1. Draw Header
+      drawHeader(
+        p,
+        fontHeader,
+        monthName,
+        startX,
+        startY,
+        drawW,
+        headerHeight,
+        fontSizeHeader,
+      );
+
+      // 2. Draw Day Labels
+      const labels = [
+        "Dimanche",
+        "Lundi",
+        "Mardi",
+        "Mercredi",
+        "Jeudi",
+        "Vendredi",
+        "Samedi",
+      ];
+      for (let i = 0; i < 7; i++) {
+        const label =
+          labelFormat === "Initial" ? labels[i].charAt(0) : labels[i];
+        drawDayLabel(
+          p,
+          kielm,
+          label,
+          startX + i * cellW,
+          startY + headerHeight,
+          cellW,
+          labelsHeight,
+          fontSizeLabels,
+          labelsStretchX,
+          labelsStretchY,
+          paddingLabels,
+        );
+      }
+
+      // 3. Draw Grid Lines
+      if (showGrid) {
+        p.push();
+        p.noFill();
+        p.stroke(colorMain);
+        p.strokeWeight(lineWidth);
+        // Vertical lines
+        for (let i = 0; i <= 7; i++) {
+          const x = startX + i * cellW;
+          p.line(x, gridY, x, gridY + gridH);
+        }
+        // Horizontal lines
+        for (let i = 0; i <= 6; i++) {
+          const y = gridY + i * cellH;
+          p.line(startX, y, startX + drawW, y);
+        }
+        p.pop();
+      }
+
+      // 4. Draw Days
+      let dayCount = 1;
+      let nextMonthDayCount = 1;
+
+      for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 7; col++) {
+          const x = startX + col * cellW;
+          const y = gridY + row * cellH;
+          const index = row * 7 + col;
+
+          if (index < startDayOfWeek) {
+            // Previous month
+            if (showOtherMonths) {
+              const prevDay = daysInPrevMonth - (startDayOfWeek - index - 1);
+              drawOtherMonthCell(
+                p,
+                kielm,
+                prevDay,
+                x,
+                y,
+                cellW,
+                cellH,
+                fontSizeDays,
+                daysStretchX,
+                daysStretchY,
+                paddingDays,
+                colorOtherMonth,
+              );
+            }
+          } else if (dayCount <= daysInMonth) {
+            // Current month
+            drawCurrentMonthCell(
+              p,
+              kielm,
+              dayCount,
+              x,
+              y,
+              cellW,
+              cellH,
+              fontSizeDays,
+              daysStretchX,
+              daysStretchY,
+              paddingDays,
+            );
+            dayCount++;
+          } else {
+            // Next month
+            if (showOtherMonths) {
+              drawOtherMonthCell(
+                p,
+                kielm,
+                nextMonthDayCount,
+                x,
+                y,
+                cellW,
+                cellH,
+                fontSizeDays,
+                daysStretchX,
+                daysStretchY,
+                paddingDays,
+                colorOtherMonth,
+              );
+              nextMonthDayCount++;
+            }
+          }
+        }
+      }
+    };
+  };
+
+export default sketchFactory;

@@ -8,6 +8,9 @@ export default defineConfig({
   // exclude all files in the sketches directory
   base: "/",
   plugins: [react(), tailwindcss()],
+  build: {
+    chunkSizeWarningLimit: 1800,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
