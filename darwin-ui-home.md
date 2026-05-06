@@ -1,0 +1,782 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - link [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+    - generic [ref=e11]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e22]: v2.0.0 - 36+ Components
+          - heading "Build beautiful interfaces." [level=1] [ref=e25]:
+            - generic [ref=e26]: Build
+            - generic [ref=e27]: beautiful
+            - generic [ref=e28]: interfaces.
+          - paragraph [ref=e29]: A macOS-inspired React component library. Glass-morphism, spring animations, dark theme. Built for developers who care about design.
+          - generic [ref=e30]:
+            - link "Get Started" [ref=e31] [cursor=pointer]:
+              - /url: /docs
+              - button "Get Started" [ref=e32]:
+                - text: Get Started
+                - img [ref=e33]
+            - link "View on GitHub" [ref=e35] [cursor=pointer]:
+              - /url: https://github.com/surajmandalcell/darwin-ui
+              - button "View on GitHub" [ref=e36]:
+                - img [ref=e37]
+                - text: View on GitHub
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]: 36+
+              - generic [ref=e43]: Components
+            - generic [ref=e44]:
+              - generic [ref=e45]: 100%
+              - generic [ref=e46]: TypeScript
+            - generic [ref=e47]:
+              - generic [ref=e48]: <5kb
+              - generic [ref=e49]: Per component
+        - generic [ref=e51]:
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - img [ref=e60]
+              - generic [ref=e65]:
+                - generic [ref=e66]: Darwin UI
+                - generic [ref=e67]: Component Library
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - generic [ref=e70]: Buttons
+                - generic [ref=e71]:
+                  - button "Primary" [ref=e72]
+                  - button [ref=e73]:
+                    - img [ref=e74]
+                  - button [ref=e75]:
+                    - img [ref=e76]
+              - generic [ref=e79]:
+                - generic [ref=e80]: Badges
+                - generic [ref=e81]:
+                  - generic [ref=e82]: Default
+                  - generic [ref=e83]: Secondary
+              - generic [ref=e84]:
+                - generic [ref=e85]: Controls
+                - generic [ref=e86]:
+                  - generic [ref=e87]:
+                    - generic [ref=e88]: Dark Mode
+                    - checkbox [checked] [ref=e91] [cursor=pointer]
+                  - generic [ref=e94]:
+                    - generic [ref=e95]:
+                      - generic [ref=e96]: Volume
+                      - generic [ref=e97]: 65%
+                    - slider [ref=e99] [cursor=pointer]
+                  - generic [ref=e103]:
+                    - text: Progress
+                    - progressbar [ref=e105]
+          - generic [ref=e109]:
+            - generic [ref=e110]: JD
+            - generic [ref=e111]:
+              - generic [ref=e112]: John Doe
+              - generic [ref=e113]: Online
+          - generic [ref=e119]: Build passing
+      - generic [ref=e122]: Scroll
+    - generic [ref=e126]:
+      - generic [ref=e127]:
+        - generic [ref=e129]:
+          - heading "Glass Morphism" [level=3] [ref=e130]
+          - paragraph [ref=e131]: Frosted glass effects with depth and translucency that feel native to macOS.
+        - img [ref=e132]
+      - generic [ref=e135]:
+        - generic [ref=e137]:
+          - heading "Spring Physics" [level=3] [ref=e138]
+          - paragraph [ref=e139]: Buttery smooth animations powered by Framer Motion with natural spring physics.
+        - img [ref=e140]
+      - generic [ref=e143]:
+        - generic [ref=e145]:
+          - heading "Dark by Default" [level=3] [ref=e146]
+          - paragraph [ref=e147]: Designed for dark interfaces first. Every component looks stunning in the dark.
+        - img [ref=e148]
+    - generic [ref=e151]:
+      - generic [ref=e152]:
+        - heading "Beautiful Components" [level=2] [ref=e153]
+        - paragraph [ref=e154]: 35 production-ready components with smooth animations and accessibility built-in.
+      - generic [ref=e156]:
+        - button "All" [ref=e157]
+        - button "Form Controls11" [ref=e158]
+        - button "Data Display7" [ref=e159]
+        - button "Feedback6" [ref=e160]
+        - button "Navigation5" [ref=e161]
+        - button "Charts6" [ref=e162]
+        - button "Layout2" [ref=e163]
+        - button "Rich Content2" [ref=e164]
+      - generic [ref=e166]:
+        - generic [ref=e167]:
+          - link "Button" [ref=e168] [cursor=pointer]:
+            - /url: /docs/components/button
+          - generic [ref=e170]:
+            - button "Primary" [ref=e171]
+            - button [ref=e172]:
+              - img [ref=e173]
+            - button [ref=e174]:
+              - img [ref=e175]
+        - generic [ref=e178]:
+          - link "Input" [ref=e179] [cursor=pointer]:
+            - /url: /docs/components/input
+          - generic [ref=e181]:
+            - textbox "Type your email..." [ref=e183]
+            - textbox "Password..." [ref=e185]
+        - generic [ref=e186]:
+          - link "Textarea" [ref=e187] [cursor=pointer]:
+            - /url: /docs/components/textarea
+          - textbox "Write your message here..." [ref=e190]
+        - generic [ref=e191]:
+          - link "Checkbox" [ref=e192] [cursor=pointer]:
+            - /url: /docs/components/checkbox
+          - generic [ref=e194]:
+            - generic [ref=e195] [cursor=pointer]:
+              - generic [ref=e196]:
+                - checkbox "Option A" [checked] [ref=e197]
+                - img [ref=e199]
+              - generic [ref=e201]: Option A
+            - generic [ref=e202] [cursor=pointer]:
+              - generic [ref=e203]:
+                - checkbox "Option B" [ref=e204]
+                - img [ref=e206]
+              - generic [ref=e208]: Option B
+        - generic [ref=e209]:
+          - link "Switch" [ref=e210] [cursor=pointer]:
+            - /url: /docs/components/switch
+          - generic [ref=e212]:
+            - generic [ref=e213] [cursor=pointer]:
+              - checkbox "Active" [checked] [ref=e215]
+              - generic [ref=e218]: Active
+            - generic [ref=e219] [cursor=pointer]:
+              - checkbox "Notify" [ref=e221]
+              - generic [ref=e224]: Notify
+        - generic [ref=e225]:
+          - link "Slider" [ref=e226] [cursor=pointer]:
+            - /url: /docs/components/slider
+          - generic [ref=e228]:
+            - slider [ref=e230] [cursor=pointer]
+            - slider [ref=e235] [cursor=pointer]
+        - generic [ref=e239]:
+          - link "Select" [ref=e240] [cursor=pointer]:
+            - /url: /docs/components/select
+          - generic [ref=e242]:
+            - generic [ref=e243]: React
+            - img [ref=e244]
+        - generic [ref=e246]:
+          - link "MultiSelect" [ref=e247] [cursor=pointer]:
+            - /url: /docs/components/multiselect
+          - generic [ref=e250]:
+            - generic [ref=e251]: React
+            - generic [ref=e252]: Vue
+            - generic [ref=e253]: "+3"
+        - generic [ref=e254]:
+          - link "DateSelect" [ref=e255] [cursor=pointer]:
+            - /url: /docs/components/dateselect
+          - generic [ref=e257]:
+            - img [ref=e258]
+            - generic [ref=e260]: Jan 22, 2026
+        - generic [ref=e261]:
+          - link "SearchInput" [ref=e262] [cursor=pointer]:
+            - /url: /docs/components/searchinput
+          - generic [ref=e264]:
+            - generic:
+              - img
+            - searchbox "Search components, docs, examples..." [ref=e265]
+        - generic [ref=e266]:
+          - link "Upload" [ref=e267] [cursor=pointer]:
+            - /url: /docs/components/upload
+          - generic [ref=e269]:
+            - img [ref=e270]
+            - generic [ref=e273]: Drop files
+        - generic [ref=e274]:
+          - link "Badge" [ref=e275] [cursor=pointer]:
+            - /url: /docs/components/badge
+          - generic [ref=e277]:
+            - generic [ref=e278]: Active
+            - generic [ref=e279]: Pending
+            - generic [ref=e280]: Error
+        - generic [ref=e281]:
+          - link "Avatar" [ref=e282] [cursor=pointer]:
+            - /url: /docs/components/avatar
+          - generic [ref=e284]:
+            - generic [ref=e287]: JD
+            - generic [ref=e290]: SM
+            - generic [ref=e293]: AK
+            - generic [ref=e294]: "+1"
+        - generic [ref=e295]:
+          - link "Card" [ref=e296] [cursor=pointer]:
+            - /url: /docs/components/card
+          - generic [ref=e298]:
+            - heading "Dashboard Overview" [level=3] [ref=e300]
+            - generic [ref=e301]:
+              - paragraph [ref=e302]: Your analytics and metrics are ready to view.
+              - generic [ref=e303]:
+                - generic [ref=e304]: Active
+                - generic [ref=e305]: 3 updates
+        - generic [ref=e306]:
+          - link "Table" [ref=e307] [cursor=pointer]:
+            - /url: /docs/components/table
+          - generic [ref=e309]:
+            - generic [ref=e310]:
+              - generic [ref=e311]: Name
+              - generic [ref=e312]: Status
+              - generic [ref=e313]: Role
+            - generic [ref=e314]:
+              - generic [ref=e315]: Alice
+              - generic [ref=e317]: Active
+              - generic [ref=e318]: Admin
+            - generic [ref=e319]:
+              - generic [ref=e320]: Bob
+              - generic [ref=e322]: Pending
+              - generic [ref=e323]: User
+        - generic [ref=e324]:
+          - link "Progress" [ref=e325] [cursor=pointer]:
+            - /url: /docs/components/progress
+          - generic [ref=e327]:
+            - generic [ref=e328]:
+              - progressbar [ref=e329]
+              - generic [ref=e330]: 75%
+            - progressbar [ref=e332]
+            - progressbar [ref=e334]
+        - link "Skeleton" [ref=e336] [cursor=pointer]:
+          - /url: /docs/components/skeleton
+        - generic [ref=e342]:
+          - link "Image" [ref=e343] [cursor=pointer]:
+            - /url: /docs/components/image
+          - img "Mountain" [ref=e345]
+        - generic [ref=e346]:
+          - link "Alert" [ref=e347] [cursor=pointer]:
+            - /url: /docs/components/alert
+          - generic [ref=e349]:
+            - img [ref=e350]
+            - generic [ref=e352]: Warning alert
+        - generic [ref=e353]:
+          - link "Toast" [ref=e354] [cursor=pointer]:
+            - /url: /docs/components/toast
+          - generic [ref=e356]:
+            - img [ref=e357]
+            - generic [ref=e360]: Notification
+        - generic [ref=e361]:
+          - link "Dialog" [ref=e362] [cursor=pointer]:
+            - /url: /docs/components/dialog
+          - generic [ref=e364]:
+            - generic [ref=e365]: Confirm Action
+            - paragraph [ref=e366]: Are you sure you want to continue with this action?
+            - generic [ref=e367]:
+              - button "Cancel" [ref=e368]
+              - button "Confirm" [ref=e369]
+        - generic [ref=e370]:
+          - link "Modal" [ref=e371] [cursor=pointer]:
+            - /url: /docs/components/modal
+          - generic [ref=e373]:
+            - button [ref=e374]:
+              - img [ref=e375]
+            - generic [ref=e378]: Modal Window
+            - paragraph [ref=e379]: Full-screen overlay with backdrop
+            - button "Save Changes" [ref=e381]
+        - generic [ref=e382]:
+          - link "Tooltip" [ref=e383] [cursor=pointer]:
+            - /url: /docs/components/tooltip
+          - generic [ref=e385]:
+            - generic [ref=e386]: Helpful tip
+            - img [ref=e388]
+        - generic [ref=e390]:
+          - link "Popover" [ref=e391] [cursor=pointer]:
+            - /url: /docs/components/popover
+          - generic [ref=e393]:
+            - button "Open Popover" [ref=e394]
+            - generic [ref=e395]:
+              - generic [ref=e396]: Quick Actions
+              - generic [ref=e397]:
+                - generic [ref=e398]: Edit
+                - generic [ref=e399]: Copy
+                - generic [ref=e400]: Share
+        - generic [ref=e401]:
+          - link "Tabs" [ref=e402] [cursor=pointer]:
+            - /url: /docs/components/tabs
+          - generic [ref=e404]:
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - img [ref=e407]
+                - generic [ref=e412]: Overview
+              - generic [ref=e413]:
+                - img [ref=e414]
+                - generic [ref=e416]: Analytics
+              - generic [ref=e417]:
+                - img [ref=e418]
+                - generic [ref=e421]: Reports
+            - generic [ref=e422]: Dashboard overview content
+        - generic [ref=e423]:
+          - link "Accordion" [ref=e424] [cursor=pointer]:
+            - /url: /docs/components/accordion
+          - generic [ref=e426]:
+            - generic [ref=e427]:
+              - button "Getting Started" [expanded] [ref=e428]:
+                - text: Getting Started
+                - img [ref=e430]
+              - generic [ref=e433]: Installation guide
+            - button "Components" [ref=e435]:
+              - text: Components
+              - img [ref=e437]
+        - generic [ref=e439]:
+          - link "DropdownMenu" [ref=e440] [cursor=pointer]:
+            - /url: /docs/components/dropdownmenu
+          - generic [ref=e442]:
+            - button "Options" [ref=e443]:
+              - img [ref=e444]
+              - text: Options
+            - generic [ref=e448]:
+              - generic [ref=e449]: Edit Item
+              - generic [ref=e450]: Duplicate
+              - generic [ref=e452]: Delete
+        - generic [ref=e453]:
+          - link "ContextMenu" [ref=e454] [cursor=pointer]:
+            - /url: /docs/components/contextmenu
+          - generic [ref=e456]:
+            - generic [ref=e457]:
+              - generic [ref=e458]: Copy
+              - generic [ref=e459]: Paste
+              - generic [ref=e461]: Delete
+            - text: Right-click menu
+        - generic [ref=e462]:
+          - link "Sidebar" [ref=e463] [cursor=pointer]:
+            - /url: /docs/components/sidebar
+          - generic [ref=e465]:
+            - generic [ref=e466]:
+              - generic [ref=e469]: Home
+              - generic [ref=e472]: Dashboard
+              - generic [ref=e475]: Settings
+              - generic [ref=e478]: Profile
+              - generic [ref=e481]: User
+            - generic [ref=e483]: Main Content Area
+        - generic [ref=e491]:
+          - link "AreaChart" [ref=e492] [cursor=pointer]:
+            - /url: /docs/components/areachart
+          - generic [ref=e494]:
+            - generic [ref=e495]:
+              - generic [ref=e496]: Revenue Over Time
+              - generic [ref=e497]: +12.5%
+            - img "Area chart" [ref=e499]
+            - generic [ref=e502]:
+              - generic [ref=e503]: Jan
+              - generic [ref=e504]: Feb
+              - generic [ref=e505]: Mar
+              - generic [ref=e506]: Apr
+              - generic [ref=e507]: May
+        - generic [ref=e508]:
+          - link "BarChart" [ref=e509] [cursor=pointer]:
+            - /url: /docs/components/barchart
+          - generic [ref=e511]:
+            - generic [ref=e512]:
+              - generic [ref=e513]: Monthly Sales
+              - generic [ref=e514]: Q1 2026
+            - img "Bar chart" [ref=e516]
+            - generic [ref=e522]:
+              - generic [ref=e523]: Mon
+              - generic [ref=e524]: Tue
+              - generic [ref=e525]: Wed
+              - generic [ref=e526]: Thu
+              - generic [ref=e527]: Fri
+        - generic [ref=e528]:
+          - link "LineChart" [ref=e529] [cursor=pointer]:
+            - /url: /docs/components/linechart
+          - generic [ref=e531]:
+            - generic [ref=e532]:
+              - generic [ref=e533]: User Growth
+              - generic [ref=e534]: Live
+            - img "Line chart" [ref=e536]
+            - generic [ref=e541]:
+              - generic [ref=e542]: Week 1
+              - generic [ref=e543]: Week 2
+              - generic [ref=e544]: Week 3
+              - generic [ref=e545]: Week 4
+        - generic [ref=e546]:
+          - link "PieChart" [ref=e547] [cursor=pointer]:
+            - /url: /docs/components/piechart
+          - generic [ref=e549]:
+            - img "Pie chart" [ref=e551]
+            - generic [ref=e556]:
+              - generic [ref=e557]:
+                - generic [ref=e559]: Desktop
+                - generic [ref=e560]: 45%
+              - generic [ref=e561]:
+                - generic [ref=e563]: Mobile
+                - generic [ref=e564]: 32%
+              - generic [ref=e565]:
+                - generic [ref=e567]: Tablet
+                - generic [ref=e568]: 23%
+        - generic [ref=e569]:
+          - link "DonutChart" [ref=e570] [cursor=pointer]:
+            - /url: /docs/components/donutchart
+          - generic [ref=e572]:
+            - generic [ref=e573]:
+              - img "Donut chart" [ref=e574]
+              - generic [ref=e581]: 73%
+            - generic [ref=e582]:
+              - generic [ref=e583]:
+                - generic [ref=e585]: Done
+                - generic [ref=e586]: 73%
+              - generic [ref=e587]:
+                - generic [ref=e589]: Active
+                - generic [ref=e590]: 18%
+              - generic [ref=e591]:
+                - generic [ref=e593]: Pending
+                - generic [ref=e594]: 9%
+        - generic [ref=e595]:
+          - link "StackedBarChart" [ref=e596] [cursor=pointer]:
+            - /url: /docs/components/stackedbarchart
+          - generic [ref=e598]:
+            - generic [ref=e599]:
+              - generic [ref=e600]: Category Distribution
+              - generic [ref=e601]:
+                - generic [ref=e604]: A
+                - generic [ref=e607]: B
+            - img "Stacked bar chart" [ref=e609]
+            - generic [ref=e618]:
+              - generic [ref=e619]: Q1
+              - generic [ref=e620]: Q2
+              - generic [ref=e621]: Q3
+              - generic [ref=e622]: Q4
+        - generic [ref=e623]:
+          - link "Window" [ref=e624] [cursor=pointer]:
+            - /url: /docs/components/window
+          - generic [ref=e626]:
+            - generic [ref=e631]: Terminal
+            - generic [ref=e632]:
+              - generic [ref=e633]: $ npm install @pikoloo/darwin-ui
+              - generic [ref=e634]: added 42 packages in 2.3s
+              - generic [ref=e635]: $ npm run dev
+              - generic [ref=e636]: Ready on http://localhost:3000
+        - generic [ref=e637]:
+          - link "CloseButton" [ref=e638] [cursor=pointer]:
+            - /url: /docs/components/closebutton
+          - generic [ref=e640]:
+            - button "Close" [ref=e641]
+            - generic [ref=e643]: Close
+        - generic [ref=e644]:
+          - link "MdEditor" [ref=e645] [cursor=pointer]:
+            - /url: /docs/components/mdeditor
+          - generic [ref=e647]:
+            - generic [ref=e648]:
+              - generic [ref=e649]: B
+              - generic [ref=e650]: I
+              - generic [ref=e651]: U
+              - generic [ref=e653]: H1
+              - generic [ref=e654]: H2
+              - generic [ref=e656]: Link
+              - generic [ref=e657]: Code
+            - generic [ref=e658]:
+              - generic [ref=e659]: "# Welcome to Darwin UI"
+              - generic [ref=e660]: A beautiful component library for React.
+              - generic [ref=e661]: "**Bold** and *italic* text supported."
+              - generic [ref=e662]: "`code blocks`"
+        - generic [ref=e663]:
+          - link "ContactForm" [ref=e664] [cursor=pointer]:
+            - /url: /docs/components/contactform
+          - generic [ref=e666]:
+            - generic [ref=e667]: Get in Touch
+            - generic [ref=e668]:
+              - generic [ref=e669]:
+                - textbox "First name" [ref=e671]
+                - textbox "Last name" [ref=e673]
+              - textbox "Email address" [ref=e675]
+              - textbox "Your message..." [ref=e677]
+            - button "Send Message" [ref=e678]
+      - link "Explore all components in documentation →" [ref=e680] [cursor=pointer]:
+        - /url: /docs
+        - text: Explore all components in documentation
+        - generic [ref=e681]: →
+    - generic [ref=e682]:
+      - generic [ref=e683]:
+        - heading "Build Production Interfaces" [level=2] [ref=e684]
+        - paragraph [ref=e685]: See how Darwin UI components come together in a complete dashboard application.
+      - generic [ref=e689]:
+        - generic [ref=e695]:
+          - img [ref=e696]
+          - generic [ref=e701]: Dashboard
+        - generic [ref=e702]:
+          - generic [ref=e703]:
+            - generic [ref=e705]:
+              - generic [ref=e706]:
+                - generic [ref=e708]: Platform
+                - navigation [ref=e709]:
+                  - button "Overview" [ref=e710]:
+                    - img [ref=e712]
+                    - generic [ref=e717]: Overview
+                  - button "Analytics" [ref=e719]:
+                    - img [ref=e720]
+                    - generic [ref=e722]: Analytics
+                  - button "All Users" [ref=e723]:
+                    - img [ref=e724]
+                    - generic [ref=e729]: All Users
+                  - button "Realtime" [ref=e730]:
+                    - img [ref=e731]
+                    - generic [ref=e733]: Realtime
+              - generic [ref=e734]:
+                - generic [ref=e736]: Settings
+                - navigation [ref=e737]:
+                  - button "General" [ref=e738]:
+                    - img [ref=e739]
+                    - generic [ref=e742]: General
+                  - button "Updates 3" [ref=e743]:
+                    - img [ref=e744]
+                    - generic [ref=e747]: Updates
+                    - generic [ref=e748]: "3"
+            - button "Olivia Martin olivia@untitledui.com" [ref=e750] [cursor=pointer]:
+              - generic [ref=e752]:
+                - paragraph [ref=e753]: Olivia Martin
+                - paragraph [ref=e754]: olivia@untitledui.com
+              - img [ref=e755]
+          - generic [ref=e758]:
+            - generic [ref=e759]:
+              - generic [ref=e760]:
+                - heading "Dashboard Overview" [level=1] [ref=e761]
+                - paragraph [ref=e762]: Monitor your key metrics and performance
+              - generic [ref=e763]:
+                - generic [ref=e764]:
+                  - img [ref=e765]
+                  - textbox "Search..." [ref=e768]
+                - button [ref=e770]:
+                  - img [ref=e771]
+                - button "Add Widget" [ref=e775]
+            - generic [ref=e776]:
+              - generic [ref=e777]:
+                - generic [ref=e778]:
+                  - img [ref=e780]
+                  - generic [ref=e782]:
+                    - img [ref=e783]
+                    - text: +12.5%
+                - generic [ref=e786]:
+                  - paragraph [ref=e787]: Total Revenue
+                  - paragraph [ref=e788]: $48,234.00
+              - generic [ref=e789]:
+                - generic [ref=e790]:
+                  - img [ref=e792]
+                  - generic [ref=e797]:
+                    - img [ref=e798]
+                    - text: +8.2%
+                - generic [ref=e801]:
+                  - paragraph [ref=e802]: Active Users
+                  - paragraph [ref=e803]: 12,420
+              - generic [ref=e804]:
+                - generic [ref=e805]:
+                  - img [ref=e807]
+                  - generic [ref=e809]:
+                    - img [ref=e810]
+                    - text: "-0.4%"
+                - generic [ref=e813]:
+                  - paragraph [ref=e814]: Conversion
+                  - paragraph [ref=e815]: 3.24%
+              - generic [ref=e816]:
+                - generic [ref=e817]:
+                  - img [ref=e819]
+                  - generic [ref=e822]:
+                    - img [ref=e823]
+                    - text: +4.1%
+                - generic [ref=e826]:
+                  - paragraph [ref=e827]: Growth Rate
+                  - paragraph [ref=e828]: +24.5%
+            - generic [ref=e829]:
+              - generic [ref=e830]:
+                - generic [ref=e831]:
+                  - generic [ref=e832]:
+                    - heading "Revenue Trend" [level=3] [ref=e833]
+                    - generic [ref=e834]:
+                      - generic [ref=e835]: +12.5%
+                      - generic [ref=e836]: vs last month
+                  - generic [ref=e837]:
+                    - button "Last 6 months" [ref=e838]:
+                      - text: Last 6 months
+                      - img [ref=e839]
+                    - button [ref=e841]:
+                      - img [ref=e842]
+                - application [ref=e1081]:
+                  - generic [ref=e1094]:
+                    - generic [ref=e1095]:
+                      - generic [ref=e1097]: Jan
+                      - generic [ref=e1099]: Feb
+                      - generic [ref=e1101]: Mar
+                      - generic [ref=e1103]: Apr
+                      - generic [ref=e1105]: May
+                      - generic [ref=e1107]: Jun
+                    - generic [ref=e1108]:
+                      - generic [ref=e1110]: $0
+                      - generic [ref=e1112]: $2000
+                      - generic [ref=e1114]: $4000
+                      - generic [ref=e1116]: $6000
+                      - generic [ref=e1118]: $8000
+              - generic [ref=e847]:
+                - generic [ref=e848]:
+                  - heading "Traffic Source" [level=3] [ref=e849]
+                  - button [ref=e850]:
+                    - img [ref=e851]
+                - generic [ref=e855]:
+                  - application [ref=e1121]
+                  - generic:
+                    - generic: 100%
+                    - generic: Total
+                - generic [ref=e856]:
+                  - button "Desktop 45%" [ref=e857] [cursor=pointer]:
+                    - generic [ref=e860]: Desktop
+                    - generic [ref=e861]: 45%
+                  - button "Mobile 35%" [ref=e862] [cursor=pointer]:
+                    - generic [ref=e865]: Mobile
+                    - generic [ref=e866]: 35%
+                  - button "Tablet 20%" [ref=e867] [cursor=pointer]:
+                    - generic [ref=e870]: Tablet
+                    - generic [ref=e871]: 20%
+            - generic [ref=e872]:
+              - generic [ref=e873]:
+                - generic [ref=e874]:
+                  - heading "Recent Transactions" [level=3] [ref=e875]
+                  - generic [ref=e877]:
+                    - generic [ref=e878]: All Status
+                    - generic [ref=e879]: Revenue
+                - generic [ref=e880]:
+                  - button "Filter" [ref=e881]:
+                    - img [ref=e882]
+                    - text: Filter
+                  - button "Export" [ref=e884]:
+                    - img [ref=e885]
+                    - text: Export
+              - table [ref=e889]:
+                - rowgroup [ref=e890]:
+                  - row "Plan Name Status Date Revenue Growth Actions" [ref=e891]:
+                    - columnheader "Plan Name" [ref=e892]
+                    - columnheader "Status" [ref=e893]
+                    - columnheader "Date" [ref=e894]
+                    - columnheader "Revenue" [ref=e895]
+                    - columnheader "Growth" [ref=e896]
+                    - columnheader "Actions" [ref=e897]
+                - rowgroup [ref=e898]:
+                  - row "P Premium Plan Active Just now $2,400.00 +12.5%" [ref=e899]:
+                    - cell "P Premium Plan" [ref=e900]:
+                      - generic [ref=e901]:
+                        - generic [ref=e902]: P
+                        - generic [ref=e903]: Premium Plan
+                    - cell "Active" [ref=e904]:
+                      - generic [ref=e905]: Active
+                    - cell "Just now" [ref=e906]
+                    - cell "$2,400.00" [ref=e907]
+                    - cell "+12.5%" [ref=e908]
+                    - cell [ref=e909]:
+                      - generic [ref=e910]:
+                        - button [ref=e911]:
+                          - img [ref=e912]
+                        - button [ref=e915]:
+                          - img [ref=e916]
+                  - row "B Basic Plan Active 2 mins ago $1,200.00 +8.2%" [ref=e919]:
+                    - cell "B Basic Plan" [ref=e920]:
+                      - generic [ref=e921]:
+                        - generic [ref=e922]: B
+                        - generic [ref=e923]: Basic Plan
+                    - cell "Active" [ref=e924]:
+                      - generic [ref=e925]: Active
+                    - cell "2 mins ago" [ref=e926]
+                    - cell "$1,200.00" [ref=e927]
+                    - cell "+8.2%" [ref=e928]
+                    - cell [ref=e929]:
+                      - generic [ref=e930]:
+                        - button [ref=e931]:
+                          - img [ref=e932]
+                        - button [ref=e935]:
+                          - img [ref=e936]
+                  - row "E Enterprise Pending 5 hours ago $4,800.00 +24.1%" [ref=e939]:
+                    - cell "E Enterprise" [ref=e940]:
+                      - generic [ref=e941]:
+                        - generic [ref=e942]: E
+                        - generic [ref=e943]: Enterprise
+                    - cell "Pending" [ref=e944]:
+                      - generic [ref=e945]: Pending
+                    - cell "5 hours ago" [ref=e946]
+                    - cell "$4,800.00" [ref=e947]
+                    - cell "+24.1%" [ref=e948]
+                    - cell [ref=e949]:
+                      - generic [ref=e950]:
+                        - button [ref=e951]:
+                          - img [ref=e952]
+                        - button [ref=e955]:
+                          - img [ref=e956]
+                  - row "S Starter Inactive 1 day ago $240.00 -2.4%" [ref=e959]:
+                    - cell "S Starter" [ref=e960]:
+                      - generic [ref=e961]:
+                        - generic [ref=e962]: S
+                        - generic [ref=e963]: Starter
+                    - cell "Inactive" [ref=e964]:
+                      - generic [ref=e965]: Inactive
+                    - cell "1 day ago" [ref=e966]
+                    - cell "$240.00" [ref=e967]
+                    - cell "-2.4%" [ref=e968]
+                    - cell [ref=e969]:
+                      - generic [ref=e970]:
+                        - button [ref=e971]:
+                          - img [ref=e972]
+                        - button [ref=e975]:
+                          - img [ref=e976]
+              - generic [ref=e979]:
+                - paragraph [ref=e980]: Showing 1-4 of 24 items
+                - generic [ref=e981]:
+                  - button "Prev" [disabled]
+                  - button "Next" [ref=e982]
+    - generic [ref=e987]:
+      - generic [ref=e989]:
+        - generic [ref=e995]: FormComponent.tsx
+        - generic [ref=e996]:
+          - generic [ref=e998]: "1"
+          - generic [ref=e1000]: "2"
+          - generic [ref=e1002]: "3"
+          - generic [ref=e1004]: "4"
+          - generic [ref=e1006]: "5"
+          - generic [ref=e1008]: "6"
+          - generic [ref=e1010]: "7"
+          - generic [ref=e1012]: "8"
+      - generic [ref=e1013]:
+        - heading "Agentic Coding Supported by Default" [level=2] [ref=e1015]:
+          - text: Agentic Coding
+          - text: Supported by Default
+        - generic [ref=e1016]:
+          - generic [ref=e1017]:
+            - img [ref=e1019]
+            - generic [ref=e1021]:
+              - heading "Claude Code Compatible" [level=4] [ref=e1022]
+              - paragraph [ref=e1023]: Works seamlessly with Claude, Cursor, and AI coding assistants.
+          - generic [ref=e1024]:
+            - img [ref=e1026]
+            - generic [ref=e1030]:
+              - heading "Clean API Surface" [level=4] [ref=e1031]
+              - paragraph [ref=e1032]: Predictable props and patterns that AI can understand and generate.
+          - generic [ref=e1033]:
+            - img [ref=e1035]
+            - generic [ref=e1038]:
+              - heading "Self-Documenting" [level=4] [ref=e1039]
+              - paragraph [ref=e1040]: TypeScript types and JSDoc comments guide AI suggestions.
+    - contentinfo [ref=e1041]:
+      - generic [ref=e1044]:
+        - heading "Ready to build something beautiful?" [level=2] [ref=e1045]
+        - paragraph [ref=e1046]: Start using Darwin UI in your projects today. Free, open source, and designed for developers.
+        - generic [ref=e1047]:
+          - link "Get Started" [ref=e1048] [cursor=pointer]:
+            - /url: /docs
+            - button "Get Started" [ref=e1049]:
+              - text: Get Started
+              - img [ref=e1050]
+          - link "Star on GitHub" [ref=e1052] [cursor=pointer]:
+            - /url: https://github.com/surajmandalcell/darwin-ui
+            - button "Star on GitHub" [ref=e1053]:
+              - img [ref=e1054]
+              - text: Star on GitHub
+      - generic [ref=e1058]:
+        - generic [ref=e1059]:
+          - img [ref=e1060]
+          - generic [ref=e1065]: Darwin UI
+          - generic [ref=e1066]: ·
+          - generic [ref=e1067]: Open source under MIT
+        - generic [ref=e1068]:
+          - link "Docs" [ref=e1069] [cursor=pointer]:
+            - /url: /docs
+          - link "Changelog" [ref=e1070] [cursor=pointer]:
+            - /url: /changelog
+          - link "GitHub" [ref=e1071] [cursor=pointer]:
+            - /url: https://github.com/surajmandalcell/darwin-ui
+          - link "Twitter" [ref=e1072] [cursor=pointer]:
+            - /url: https://twitter.com/surajmandalcell
+  - generic [ref=e1131]: $0

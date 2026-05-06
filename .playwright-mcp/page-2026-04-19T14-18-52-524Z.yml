@@ -1,0 +1,40 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e6]
+    - link "Desktop" [ref=e11] [cursor=pointer]:
+      - /url: /desktop
+      - img [ref=e12]
+      - generic [ref=e14]: Desktop
+    - link "Docs" [ref=e15] [cursor=pointer]:
+      - /url: /docs
+      - img [ref=e16]
+      - generic [ref=e18]: Docs
+    - link "Changelog" [ref=e20] [cursor=pointer]:
+      - /url: /changelog
+      - img [ref=e21]
+      - generic [ref=e25]: Changelog
+    - generic [ref=e26]:
+      - button "Switch to light mode" [ref=e27]:
+        - img [ref=e28]
+      - generic [ref=e34]:
+        - img [ref=e35]
+        - 'slider "Animation speed: 1x" [ref=e38] [cursor=pointer]': "1"
+        - generic [ref=e39]: 1x
+  - generic [ref=e41]:
+    - img [ref=e43]
+    - generic [ref=e47]: "404"
+    - heading "Page not found" [level=1] [ref=e48]
+    - paragraph [ref=e49]: The page you're looking for doesn't exist or has been moved.
+    - generic [ref=e50]:
+      - link "Go Home" [ref=e51] [cursor=pointer]:
+        - /url: /
+        - button "Go Home" [ref=e52]:
+          - img [ref=e53]
+          - text: Go Home
+      - link "View Docs" [ref=e56] [cursor=pointer]:
+        - /url: /docs
+        - button "View Docs" [ref=e57]:
+          - img [ref=e58]
+          - text: View Docs

@@ -1,0 +1,249 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e6]
+    - link "Desktop" [ref=e11] [cursor=pointer]:
+      - /url: /desktop
+      - img [ref=e12]
+      - generic [ref=e14]: Desktop
+    - link "Docs" [ref=e15] [cursor=pointer]:
+      - /url: /docs
+      - img [ref=e16]
+      - generic [ref=e18]: Docs
+    - link "Changelog" [ref=e20] [cursor=pointer]:
+      - /url: /changelog
+      - img [ref=e21]
+      - generic [ref=e25]: Changelog
+    - generic [ref=e26]:
+      - button "Switch to light mode" [ref=e27]:
+        - img [ref=e28]
+      - generic [ref=e34]:
+        - img [ref=e35]
+        - 'slider "Animation speed: 1x" [ref=e38] [cursor=pointer]': "1"
+        - generic [ref=e39]: 1x
+  - generic [ref=e41]:
+    - generic [ref=e42]:
+      - generic [ref=e44]:
+        - img
+        - textbox "Search..." [ref=e45]
+        - generic [ref=e46]: ⌘K
+      - navigation [ref=e47]:
+        - generic [ref=e48]:
+          - button "Getting Started" [ref=e49]:
+            - img [ref=e51]
+            - img [ref=e54]
+            - generic [ref=e56]: Getting Started
+          - generic [ref=e58]:
+            - button "Agentic Coding" [ref=e60]
+            - button "Introduction" [ref=e62]
+            - button "Installation" [ref=e64]
+            - button "CSS Setup" [ref=e66]
+            - button "ShadCN CLI" [ref=e68]
+            - button "Quick Start" [ref=e70]
+            - button "CSS Isolation" [ref=e72]
+        - generic [ref=e73]:
+          - button "Components" [ref=e74]:
+            - img [ref=e76]
+            - img [ref=e79]
+            - generic [ref=e81]: Components
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - generic [ref=e85]: Form Controls
+              - button "Button" [ref=e86]: Button
+            - button "Input" [ref=e89]
+            - button "Textarea" [ref=e91]
+            - button "Checkbox" [ref=e93]
+            - button "Switch" [ref=e95]
+            - button "Select" [ref=e97]
+            - button "MultiSelect" [ref=e99]
+            - button "SearchInput" [ref=e101]
+            - button "Slider" [ref=e103]
+            - button "DateSelect" [ref=e105]
+            - button "Upload" [ref=e107]
+            - generic [ref=e108]:
+              - generic [ref=e109]: Feedback
+              - button "Badge" [ref=e110]
+            - button "Progress" [ref=e112]
+            - button "Skeleton" [ref=e114]
+            - generic [ref=e115]:
+              - generic [ref=e116]: Overlays
+              - button "Dialog" [ref=e117]
+            - button "Modal" [ref=e119]
+            - button "Popover" [ref=e121]
+            - button "Tooltip" [ref=e123]
+            - button "DropdownMenu" [ref=e125]
+            - button "ContextMenu" [ref=e127]
+            - generic [ref=e128]:
+              - generic [ref=e129]: Data Display
+              - button "Table" [ref=e130]
+            - button "Card" [ref=e132]
+            - button "Avatar" [ref=e134]
+            - button "Image" [ref=e136]
+            - button "Charts" [ref=e138]
+            - generic [ref=e139]:
+              - generic [ref=e140]: Navigation
+              - button "Tabs" [ref=e141]
+            - button "Accordion" [ref=e143]
+            - button "Sidebar" [ref=e145]
+            - generic [ref=e146]:
+              - generic [ref=e147]: Layout
+              - button "Window" [ref=e148]
+            - generic [ref=e149]:
+              - generic [ref=e150]: Effects
+              - button "Reveal" [ref=e151]
+            - button "Backgrounds" [ref=e153]
+            - button "Hover Effects" [ref=e155]
+            - generic [ref=e156]:
+              - generic [ref=e157]: Specialized
+              - button "ContactForm" [ref=e158]
+            - button "MdEditor" [ref=e160]
+            - button "CloseButton" [ref=e162]
+        - generic [ref=e163]:
+          - button "Theming" [ref=e164]:
+            - img [ref=e166]
+            - img [ref=e169]
+            - generic [ref=e175]: Theming
+          - generic [ref=e177]:
+            - button "Colors" [ref=e179]
+            - button "Dark Mode" [ref=e181]
+            - button "Customization" [ref=e183]
+      - link "GitHub" [ref=e185] [cursor=pointer]:
+        - /url: https://github.com
+        - img [ref=e187]
+        - generic [ref=e191]: GitHub
+    - generic [ref=e193]:
+      - button "Copy for AI" [ref=e195]:
+        - img [ref=e196]
+        - text: Copy for AI
+      - generic [ref=e199]:
+        - generic [ref=e200]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: Components
+            - img [ref=e204]
+            - generic [ref=e206]: Button
+          - heading "Button" [level=1] [ref=e207]
+          - paragraph [ref=e208]: A beautiful, accessible button component with native macOS styling.
+        - generic [ref=e209]:
+          - heading "Preview" [level=3] [ref=e210]
+          - generic [ref=e214]:
+            - generic [ref=e215]:
+              - generic [ref=e216]: Text Buttons
+              - generic [ref=e217]:
+                - button "Primary" [ref=e219]
+                - button "Secondary" [ref=e221]
+                - button "Outline" [ref=e223]
+                - button "Ghost" [ref=e225]
+                - button "Destructive" [ref=e227]
+                - button "Click me" [ref=e229]
+            - generic [ref=e230]:
+              - generic [ref=e231]: Icon Buttons
+              - generic [ref=e232]:
+                - button [ref=e234]:
+                  - img [ref=e235]
+                - button [ref=e237]:
+                  - img [ref=e238]
+                - button [ref=e242]:
+                  - img [ref=e243]
+                - button [ref=e246]:
+                  - img [ref=e247]
+                - button [ref=e254]:
+                  - img [ref=e255]
+            - generic [ref=e258]:
+              - generic [ref=e259]: With Icons
+              - generic [ref=e260]:
+                - button "Create New" [ref=e262]:
+                  - img [ref=e263]
+                  - text: Create New
+                - button "Download" [ref=e265]:
+                  - img [ref=e266]
+                  - text: Download
+                - button "Share" [ref=e270]:
+                  - img [ref=e271]
+                  - text: Share
+        - generic [ref=e277]:
+          - heading "Import" [level=2] [ref=e278]
+          - generic [ref=e280]:
+            - generic [ref=e281]:
+              - generic [ref=e283]: tsx
+              - button "Copy code to clipboard" [ref=e284]:
+                - img [ref=e285]
+                - generic [ref=e288]: Copy
+            - code [ref=e290]:
+              - generic [ref=e291]: "1"
+              - text: "import { Button } from '@pikoloo/darwin-ui';"
+              - generic [ref=e292]: "2"
+              - text: "import { Plus, Settings, Download } from 'lucide-react';"
+        - generic [ref=e293]:
+          - heading "Usage" [level=2] [ref=e294]
+          - generic [ref=e296]:
+            - generic [ref=e297]:
+              - generic [ref=e299]: tsx
+              - button "Copy code to clipboard" [ref=e300]:
+                - img [ref=e301]
+                - generic [ref=e304]: Copy
+            - code [ref=e306]:
+              - generic [ref=e307]: "1"
+              - text: <Button variant="primary">Primary</Button>
+              - generic [ref=e308]: "2"
+              - text: <Button variant="secondary">Secondary</Button>
+              - generic [ref=e309]: "3"
+              - text: <Button variant="destructive">Delete</Button>
+        - generic [ref=e310]:
+          - heading "Examples" [level=2] [ref=e311]
+          - generic [ref=e312]:
+            - generic [ref=e313]:
+              - generic [ref=e314]:
+                - heading "With Icons" [level=3] [ref=e315]
+                - paragraph [ref=e316]: Buttons with leading icons
+              - generic [ref=e317]:
+                - button "Preview" [ref=e318]
+                - button "Code" [ref=e319]
+            - generic [ref=e321]:
+              - button "Create New" [ref=e322]:
+                - img [ref=e323]
+                - text: Create New
+              - button "Download" [ref=e324]:
+                - img [ref=e325]
+                - text: Download
+          - generic [ref=e328]:
+            - generic [ref=e329]:
+              - generic [ref=e330]:
+                - heading "Icon Only" [level=3] [ref=e331]
+                - paragraph [ref=e332]: Square icon buttons
+              - generic [ref=e333]:
+                - button "Preview" [ref=e334]
+                - button "Code" [ref=e335]
+            - generic [ref=e337]:
+              - button [ref=e338]:
+                - img [ref=e339]
+              - button [ref=e340]:
+                - img [ref=e341]
+              - button [ref=e344]:
+                - img [ref=e345]
+              - button [ref=e347]:
+                - img [ref=e348]
+          - generic [ref=e351]:
+            - generic [ref=e352]:
+              - generic [ref=e353]:
+                - heading "Loading State" [level=3] [ref=e354]
+                - paragraph [ref=e355]: Button with loading spinner
+              - generic [ref=e356]:
+                - button "Preview" [ref=e357]
+                - button "Code" [ref=e358]
+            - generic [ref=e360]:
+              - button "Click to load" [ref=e361]
+              - button [disabled]:
+                - img
+          - generic [ref=e362]:
+            - generic [ref=e363]:
+              - generic [ref=e364]:
+                - heading "Glass" [level=3] [ref=e365]
+                - paragraph [ref=e366]: Frosted glass hover effect
+              - generic [ref=e367]:
+                - button "Preview" [ref=e368]
+                - button "Code" [ref=e369]
+            - generic [ref=e371]:
+              - button "Glass Button" [ref=e372]
+              - button "Secondary Glass" [ref=e373]
+              - button "Outline Glass" [ref=e374]

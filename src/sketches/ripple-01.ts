@@ -7,16 +7,15 @@ import { BaseConstants } from "../utils/constants";
 import { penColorMultiselect } from "@/components/PenColorMultiselect";
 
 type Constants = BaseConstants & {
-  bandWidthMin: number;
-  bandWidthMax: number;
+  bandThicknessMin: number;
+  bandThicknessMax: number;
   gapMin: number;
   gapMax: number;
-  lineSpacing: number;
-  jitter: number;
-  jitterSegmentLength: number;
-  colorPasses: number;
+  lineSpacingMin: number;
+  lineSpacingMax: number;
+  colorPassesMin: number;
+  colorPassesMax: number;
   lineThickness: number;
-  circularity: number;
   colors: DotPen[];
 };
 
@@ -33,30 +32,28 @@ export const constants: Constants = {
   marginX: 40,
   marginY: 40,
   debug: false,
-  bandWidthMin: 5,
-  bandWidthMax: 5,
+  bandThicknessMin: 4,
+  bandThicknessMax: 8,
   gapMin: 0,
   gapMax: 0,
-  lineSpacing: 1.75,
-  jitter: 0,
-  jitterSegmentLength: 0.14,
-  colorPasses: 3,
-  lineThickness: 0.4,
-  circularity: 1,
+  lineSpacingMin: 1.25,
+  lineSpacingMax: 2.5,
+  colorPassesMin: 2,
+  colorPassesMax: 5,
+  lineThickness: 0.2,
   colors: all("zebraSarasa"),
 };
 
 export const constantsProps = {
-  bandWidthMin: { min: 5, max: 150, step: 5 },
-  bandWidthMax: { min: 10, max: 200, step: 5 },
+  bandThicknessMin: { min: 1, max: 100, step: 1 },
+  bandThicknessMax: { min: 1, max: 100, step: 1 },
   gapMin: { min: 0, max: 40, step: 1 },
   gapMax: { min: 0, max: 80, step: 1 },
-  lineSpacing: { min: 0.5, max: 10, step: 0.25 },
-  jitter: { min: 0, max: 15, step: 0.5 },
-  jitterSegmentLength: { min: 0.01, max: 0.5, step: 0.01 },
-  colorPasses: { min: 1, max: 4, step: 1 },
+  lineSpacingMin: { min: 0.5, max: 10, step: 0.25 },
+  lineSpacingMax: { min: 0.5, max: 10, step: 0.25 },
+  colorPassesMin: { min: 1, max: 8, step: 1 },
+  colorPassesMax: { min: 1, max: 8, step: 1 },
   lineThickness: { min: 0.1, max: 1, step: 0.05 },
-  circularity: { min: 0, max: 1, step: 0.05 },
   colors: (value: DotPen[]) =>
     penColorMultiselect({
       family: "zebraSarasa",
@@ -85,152 +82,65 @@ const ripple01Sketch =
       const marginY = vars.marginY ?? constants.marginY;
       const drawW = p.width - 2 * marginX;
       const drawH = p.height - 2 * marginY;
-      const startX = marginX;
-      const startY = marginY;
 
-      const bandWidthMin = vars.bandWidthMin ?? constants.bandWidthMin;
-      const bandWidthMax = vars.bandWidthMax ?? constants.bandWidthMax;
+      const bandThicknessMin = vars.bandThicknessMin ?? constants.bandThicknessMin;
+      const bandThicknessMax = vars.bandThicknessMax ?? constants.bandThicknessMax;
       const gapMin = vars.gapMin ?? constants.gapMin;
       const gapMax = vars.gapMax ?? constants.gapMax;
-      const lineSpacing = vars.lineSpacing ?? constants.lineSpacing;
-      const jitter = vars.jitter ?? constants.jitter;
-      const jitterSegmentLength =
-        vars.jitterSegmentLength ?? constants.jitterSegmentLength;
-      const colorPasses = Math.round(vars.colorPasses ?? constants.colorPasses);
+      const lineSpacingMin = vars.lineSpacingMin ?? constants.lineSpacingMin;
+      const lineSpacingMax = vars.lineSpacingMax ?? constants.lineSpacingMax;
+      const colorPassesMin = Math.round(vars.colorPassesMin ?? constants.colorPassesMin);
+      const colorPassesMax = Math.round(vars.colorPassesMax ?? constants.colorPassesMax);
       const lineThickness = vars.lineThickness ?? constants.lineThickness;
-      const circularity = vars.circularity ?? constants.circularity;
 
       const colorPool = (vars.colors ?? constants.colors) as DotPen[];
       const colors = colorPool.length > 0 ? colorPool : all("zebraSarasa");
 
-      const cxCanvas = startX + drawW / 2;
-      const cyCanvas = startY + drawH / 2;
+      const cxCanvas = marginX + drawW / 2;
+      const cyCanvas = marginY + drawH / 2;
 
-      function drawJitteryLine(
-        x1: number,
-        y1: number,
-        x2: number,
-        y2: number,
-      ) {
-        const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-        if (len < 0.5) return;
+      // Build concentric circular bands using a single radius cursor
+      const maxRadius = Math.min(drawW, drawH) / 2;
 
-        if (jitter <= 0) {
-          p.line(x1, y1, x2, y2);
-          return;
-        }
-
-        // jitter is absolute pixel displacement (no len scaling)
-        const scaledJitter = jitter;
-        const dx = (x2 - x1) / len;
-        const dy = (y2 - y1) / len;
-        const perpX = -dy;
-        const perpY = dx;
-
-        // jitterSegmentLength is a fraction of path length
-        const avgStep = jitterSegmentLength;
-        const tValues: number[] = [0];
-        let t = 0;
-        while (t < 1) {
-          t += avgStep * p.random(0.5, 1.5);
-          tValues.push(t >= 1 ? 1 : t + p.random(-0.02, 0.02));
-        }
-
-        p.beginShape();
-        for (const tv of tValues) {
-          const tc = Math.max(0, Math.min(1, tv));
-          const x = p.lerp(x1, x2, tc);
-          const y = p.lerp(y1, y2, tc);
-          const edge = 0.3 + 0.7 * Math.sin(tc * Math.PI);
-          const j = scaledJitter * edge * p.random(0.6, 1.4);
-          const d = p.random(-j, j);
-          p.vertex(x + perpX * d, y + perpY * d);
-        }
-        p.endShape();
+      interface Band {
+        rOuter: number;
+        rInner: number;
       }
 
-      // Build asymmetric bands: each side advances independently
-      const maxInset = Math.min(drawW, drawH) / 2;
+      const bands: Band[] = [];
+      let cursor = 0;
 
-      interface BandEdge {
-        leftOuter: number;
-        leftInner: number;
-        rightOuter: number;
-        rightInner: number;
-        topOuter: number;
-        topInner: number;
-        botOuter: number;
-        botInner: number;
+      while (cursor < maxRadius) {
+        const rOuter = cursor;
+        const rInner = Math.min(
+          cursor + p.random(bandThicknessMin, bandThicknessMax),
+          maxRadius,
+        );
+        bands.push({ rOuter, rInner });
+        cursor = rInner + p.random(gapMin, gapMax);
       }
 
-      const bands: BandEdge[] = [];
-      let leftCursor = 0,
-        rightCursor = 0,
-        topCursor = 0,
-        botCursor = 0;
-
-      while (
-        Math.min(leftCursor, rightCursor, topCursor, botCursor) < maxInset
-      ) {
-        const leftInner = Math.min(
-          leftCursor + p.random(bandWidthMin, bandWidthMax),
-          maxInset,
-        );
-        const rightInner = Math.min(
-          rightCursor + p.random(bandWidthMin, bandWidthMax),
-          maxInset,
-        );
-        const topInner = Math.min(
-          topCursor + p.random(bandWidthMin, bandWidthMax),
-          maxInset,
-        );
-        const botInner = Math.min(
-          botCursor + p.random(bandWidthMin, bandWidthMax),
-          maxInset,
-        );
-
-        bands.push({
-          leftOuter: leftCursor,
-          leftInner,
-          rightOuter: rightCursor,
-          rightInner,
-          topOuter: topCursor,
-          topInner,
-          botOuter: botCursor,
-          botInner,
-        });
-
-        leftCursor = leftInner + p.random(gapMin, gapMax);
-        rightCursor = rightInner + p.random(gapMin, gapMax);
-        topCursor = topInner + p.random(gapMin, gapMax);
-        botCursor = botInner + p.random(gapMin, gapMax);
-      }
-
-      // Helper: blend between rectangular and elliptical bounds
-      function blendX(
-        rectX: number,
+      // Helper: elliptical bounds
+      function ellipX(
         rxEllip: number,
         ryEllip: number,
         yRel: number,
         sign: 1 | -1,
       ): number {
-        if (ryEllip <= 0) return rectX;
+        if (ryEllip <= 0) return cxCanvas;
         const frac = Math.max(0, 1 - (yRel / ryEllip) ** 2);
-        const ellipX = cxCanvas + sign * rxEllip * Math.sqrt(frac);
-        return p.lerp(rectX, ellipX, circularity);
+        return cxCanvas + sign * rxEllip * Math.sqrt(frac);
       }
 
-      function blendY(
-        rectY: number,
+      function ellipY(
         rxEllip: number,
         ryEllip: number,
         xRel: number,
         sign: 1 | -1,
       ): number {
-        if (rxEllip <= 0) return rectY;
+        if (rxEllip <= 0) return cyCanvas;
         const frac = Math.max(0, 1 - (xRel / rxEllip) ** 2);
-        const ellipY = cyCanvas + sign * ryEllip * Math.sqrt(frac);
-        return p.lerp(rectY, ellipY, circularity);
+        return cyCanvas + sign * ryEllip * Math.sqrt(frac);
       }
 
       // Render bands
@@ -238,35 +148,25 @@ const ripple01Sketch =
         const band = bands[i];
         const isHorizontal = i % 2 === 0;
 
-        // Rectangular bounds
-        const ox = startX + band.leftOuter;
-        const oy = startY + band.topOuter;
-        const ox2 = startX + drawW - band.rightOuter;
-        const oy2 = startY + drawH - band.botOuter;
-        const ix = startX + band.leftInner;
-        const iy = startY + band.topInner;
-        const ix2 = startX + drawW - band.rightInner;
-        const iy2 = startY + drawH - band.botInner;
+        // Circular bands: radius is inset from center
+        const rxOuter = maxRadius - band.rOuter;
+        const ryOuter = rxOuter;
+        const rxInner = maxRadius - band.rInner;
+        const ryInner = rxInner;
 
-        // Ellipse semi-axes (averaged for symmetry)
-        const rxOuter = drawW / 2 - (band.leftOuter + band.rightOuter) / 2;
-        const ryOuter = drawH / 2 - (band.topOuter + band.botOuter) / 2;
-        const rxInner = drawW / 2 - (band.leftInner + band.rightInner) / 2;
-        const ryInner = drawH / 2 - (band.topInner + band.botInner) / 2;
+        const outerYMin = cyCanvas - ryOuter;
+        const outerYMax = cyCanvas + ryOuter;
+        const outerXMin = cxCanvas - rxOuter;
+        const outerXMax = cxCanvas + rxOuter;
 
-        // Blended Y sweep range
-        const outerYMin = p.lerp(oy, cyCanvas - ryOuter, circularity);
-        const outerYMax = p.lerp(oy2, cyCanvas + ryOuter, circularity);
-        const outerXMin = p.lerp(ox, cxCanvas - rxOuter, circularity);
-        const outerXMax = p.lerp(ox2, cxCanvas + rxOuter, circularity);
-
-        const spacing = p.random(lineSpacing * 0.7, lineSpacing * 1.5);
+        const colorPasses = Math.round(p.random(colorPassesMin, colorPassesMax + 1));
+        const shuffled = p.shuffle([...colors]) as DotPen[];
 
         for (let pass = 0; pass < colorPasses; pass++) {
-          const color = p.random(colors) as DotPen;
-          setStroke(color, p);
+          setStroke(shuffled[pass % shuffled.length], p);
           p.strokeWeight(lineThickness);
 
+          const spacing = p.random(lineSpacingMin, lineSpacingMax);
           const passOffset =
             pass === 0 ? 0 : p.random(-spacing * 0.4, spacing * 0.4);
 
@@ -275,27 +175,24 @@ const ripple01Sketch =
             while (y <= outerYMax) {
               const yRel = y - cyCanvas;
 
-              // Blended outer x bounds at this y
-              const x1 = blendX(ox, rxOuter, ryOuter, yRel, -1);
-              const x2 = blendX(ox2, rxOuter, ryOuter, yRel, 1);
+              const x1 = ellipX(rxOuter, ryOuter, yRel, -1);
+              const x2 = ellipX(rxOuter, ryOuter, yRel, 1);
               if (x1 >= x2) {
                 y += spacing;
                 continue;
               }
 
-              // Is y inside inner y range (blended)?
-              const innerYMin = p.lerp(iy, cyCanvas - ryInner, circularity);
-              const innerYMax = p.lerp(iy2, cyCanvas + ryInner, circularity);
+              const innerYMin = cyCanvas - ryInner;
+              const innerYMax = cyCanvas + ryInner;
               const inInnerY = y >= innerYMin && y <= innerYMax;
 
               if (!inInnerY) {
-                drawJitteryLine(x1, y, x2, y);
+                p.line(x1, y, x2, y);
               } else {
-                // Blended inner x bounds
-                const xi1 = blendX(ix, rxInner, ryInner, yRel, -1);
-                const xi2 = blendX(ix2, rxInner, ryInner, yRel, 1);
-                if (xi1 > x1) drawJitteryLine(x1, y, xi1, y);
-                if (x2 > xi2) drawJitteryLine(xi2, y, x2, y);
+                const xi1 = ellipX(rxInner, ryInner, yRel, -1);
+                const xi2 = ellipX(rxInner, ryInner, yRel, 1);
+                if (xi1 > x1) p.line(x1, y, xi1, y);
+                if (x2 > xi2) p.line(xi2, y, x2, y);
               }
               y += spacing;
             }
@@ -304,27 +201,24 @@ const ripple01Sketch =
             while (x <= outerXMax) {
               const xRel = x - cxCanvas;
 
-              // Blended outer y bounds at this x
-              const y1 = blendY(oy, rxOuter, ryOuter, xRel, -1);
-              const y2 = blendY(oy2, rxOuter, ryOuter, xRel, 1);
+              const y1 = ellipY(rxOuter, ryOuter, xRel, -1);
+              const y2 = ellipY(rxOuter, ryOuter, xRel, 1);
               if (y1 >= y2) {
                 x += spacing;
                 continue;
               }
 
-              // Is x inside inner x range (blended)?
-              const innerXMin = p.lerp(ix, cxCanvas - rxInner, circularity);
-              const innerXMax = p.lerp(ix2, cxCanvas + rxInner, circularity);
+              const innerXMin = cxCanvas - rxInner;
+              const innerXMax = cxCanvas + rxInner;
               const inInnerX = x >= innerXMin && x <= innerXMax;
 
               if (!inInnerX) {
-                drawJitteryLine(x, y1, x, y2);
+                p.line(x, y1, x, y2);
               } else {
-                // Blended inner y bounds
-                const yi1 = blendY(iy, rxInner, ryInner, xRel, -1);
-                const yi2 = blendY(iy2, rxInner, ryInner, xRel, 1);
-                if (yi1 > y1) drawJitteryLine(x, y1, x, yi1);
-                if (y2 > yi2) drawJitteryLine(x, yi2, x, y2);
+                const yi1 = ellipY(rxInner, ryInner, xRel, -1);
+                const yi2 = ellipY(rxInner, ryInner, xRel, 1);
+                if (yi1 > y1) p.line(x, y1, x, yi1);
+                if (y2 > yi2) p.line(x, yi2, x, y2);
               }
               x += spacing;
             }

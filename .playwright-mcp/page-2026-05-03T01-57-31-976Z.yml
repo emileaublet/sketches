@@ -1,0 +1,204 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Émile's Sketches" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - link "aublet.ca" [ref=e7] [cursor=pointer]:
+        - /url: https://aublet.ca
+  - main [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - heading "Bibitte" [level=1] [ref=e12]
+          - paragraph [ref=e13]: Flat geometric insect generator — bold specimen poster style
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - button "Back" [ref=e286] [cursor=pointer]:
+              - img
+            - generic [ref=e16]: 01 / 02
+            - button "Next" [disabled]:
+              - img
+          - button "Switch to light mode" [ref=e17] [cursor=pointer]:
+            - img
+          - button "Refresh sketch" [ref=e18] [cursor=pointer]:
+            - img
+          - button "Copy SVG to clipboard" [ref=e19] [cursor=pointer]:
+            - img
+          - button "Download SVG" [ref=e20] [cursor=pointer]:
+            - img
+          - button "Upload SVG" [ref=e21] [cursor=pointer]:
+            - img
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - text: Controls
+          - button [ref=e45]:
+            - img
+        - generic [ref=e46]:
+          - text: Paper Size
+          - combobox [ref=e47]:
+            - img [ref=e48]
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - generic [ref=e52]: Paper Size Ratio
+            - generic [ref=e53]: "0.25"
+          - slider [ref=e58]
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - generic [ref=e61]: Width
+            - generic [ref=e62]: "600"
+          - slider [ref=e67]
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - generic [ref=e70]: Height
+            - generic [ref=e71]: "800"
+          - slider [ref=e76]
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - generic [ref=e79]: Margin X
+            - generic [ref=e80]: "40"
+          - slider [ref=e85]
+        - generic [ref=e86]:
+          - generic [ref=e87]:
+            - generic [ref=e88]: Margin Y
+            - generic [ref=e89]: "40"
+          - slider [ref=e94]
+        - generic [ref=e95]:
+          - generic [ref=e96]: Use SVG
+          - switch [ref=e97] [cursor=pointer]
+        - generic [ref=e98]:
+          - text: Archetype
+          - combobox [ref=e99]:
+            - generic: beetle
+            - img [ref=e100]
+        - generic [ref=e102]:
+          - text: Body Mode
+          - combobox [ref=e103]:
+            - generic: unified
+            - img [ref=e104]
+        - generic [ref=e106]:
+          - text: Body Shape
+          - combobox [ref=e107]:
+            - generic: shield
+            - img [ref=e108]
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - generic [ref=e112]: Body Length
+            - generic [ref=e113]: "260"
+          - slider [ref=e118]
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]: Body Width
+            - generic [ref=e122]: "160"
+          - slider [ref=e127]
+        - generic [ref=e128]:
+          - generic [ref=e129]:
+            - generic [ref=e130]: Body Taper
+            - generic [ref=e131]: "0.5"
+          - slider [ref=e136]
+        - generic [ref=e137]:
+          - generic [ref=e138]: Show Center Line
+          - switch [checked] [ref=e139] [cursor=pointer]
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - generic [ref=e142]: Head Size
+            - generic [ref=e143]: "0.7"
+          - slider [ref=e148]
+        - generic [ref=e149]:
+          - text: Head Shape
+          - combobox [ref=e150]:
+            - generic: oval
+            - img [ref=e151]
+        - generic [ref=e153]:
+          - generic [ref=e154]:
+            - generic [ref=e155]: Antennae Length
+            - generic [ref=e156]: "0.5"
+          - slider [ref=e161]
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - generic [ref=e164]: Antennae Curvature
+            - generic [ref=e165]: "0.4"
+          - slider [ref=e170]
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - generic [ref=e173]: Leg Pairs
+            - generic [ref=e174]: "3"
+          - slider [ref=e179]
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - generic [ref=e182]: Leg Length
+            - generic [ref=e183]: 60 – 110
+          - generic [ref=e184]:
+            - slider "Minimum" [ref=e188]
+            - slider "Maximum" [ref=e190]
+        - generic [ref=e191]:
+          - generic [ref=e192]:
+            - generic [ref=e193]: Leg Thickness
+            - generic [ref=e194]: "2"
+          - slider [ref=e199]
+        - generic [ref=e200]:
+          - generic [ref=e201]: Has Wings
+          - switch [ref=e202] [cursor=pointer]
+        - generic [ref=e203]:
+          - generic [ref=e204]:
+            - generic [ref=e205]: Wing Pairs
+            - generic [ref=e206]: "1"
+          - slider [ref=e210]
+        - generic [ref=e211]:
+          - text: Wing Shape
+          - combobox [ref=e212]:
+            - generic: teardrop
+            - img [ref=e213]
+        - generic [ref=e215]:
+          - generic [ref=e216]:
+            - generic [ref=e217]: Wing Length Factor
+            - generic [ref=e218]: "1.1"
+          - slider [ref=e223]
+        - generic [ref=e224]:
+          - generic [ref=e225]:
+            - generic [ref=e226]: Wing Width Factor
+            - generic [ref=e227]: "0.8"
+          - slider [ref=e232]
+        - generic [ref=e233]:
+          - generic [ref=e234]:
+            - generic [ref=e235]: Dominant Hue
+            - generic [ref=e236]: "28"
+          - slider [ref=e241]
+        - generic [ref=e242]:
+          - generic [ref=e243]:
+            - generic [ref=e244]: Contrast Hue1
+            - generic [ref=e245]: "190"
+          - slider [ref=e250]
+        - generic [ref=e251]:
+          - generic [ref=e252]:
+            - generic [ref=e253]: Contrast Hue2
+            - generic [ref=e254]: "330"
+          - slider [ref=e259]
+        - generic [ref=e260]:
+          - generic [ref=e261]:
+            - generic [ref=e262]: Saturation
+            - generic [ref=e263]: "82"
+          - slider [ref=e268]
+        - generic [ref=e269]:
+          - generic [ref=e270]:
+            - generic [ref=e271]: Lightness
+            - generic [ref=e272]: 38 – 62
+          - generic [ref=e273]:
+            - slider "Minimum" [ref=e277]
+            - slider "Maximum" [ref=e279]
+        - generic [ref=e280]:
+          - generic [ref=e281]: Debug
+          - switch [ref=e282] [cursor=pointer]
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - img [ref=e283]
+          - textbox [ref=e31]: "27029757"
+        - generic [ref=e32]:
+          - button "Rotate counterclockwise" [ref=e33]:
+            - img
+          - button "Zoom in" [ref=e34]:
+            - img
+          - button "Reset zoom" [ref=e35]: 1 x
+          - button "Zoom out" [ref=e36]:
+            - img
+  - contentinfo [ref=e37]:
+    - paragraph [ref=e39]: © 2026 Émile Aublet. All rights reserved.
